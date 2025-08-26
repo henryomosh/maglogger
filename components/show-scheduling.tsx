@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client"
 
 import React from "react"
@@ -48,25 +49,53 @@ interface TimeSlot {
 const mockShows: Show[] = [
   {
     id: "1",
-    title: "Morning Drive",
-    description: "Start your day with the best music and traffic updates",
+    title: "Newspaper Review",
+    description: "Start your day with newspaper updates",
     djId: "3",
-    djName: "Mike DJ",
+    djName: "Mike Presenter",
     startTime: "06:00",
-    endTime: "10:00",
+    endTime: "07:00",
     dayOfWeek: 1, // Monday
     category: "Music",
     isRecurring: true,
     status: "scheduled",
     color: "bg-blue-500",
   },
-  {
+    {
     id: "2",
-    title: "Afternoon Vibes",
+    title: "Mass Line",
+    description: "Start your day with newspaper updates",
+    djId: "3",
+    djName: "Mary Presenter",
+    startTime: "08:00",
+    endTime: "10:00",
+    dayOfWeek: 1, // Monday
+    category: "Music",
+    isRecurring: true,
+    status: "scheduled",
+    color: "bg-indigo-500",
+  },
+    {
+    id: "3",
+    title: "Interview",
+    description: "Start your day with newspaper updates",
+    djId: "3",
+    djName: "Peter Presenter",
+    startTime: "10:00",
+    endTime: "12:00",
+    dayOfWeek: 1, // Monday
+    category: "Music",
+    isRecurring: true,
+    status: "scheduled",
+    color: "bg-purple-500",
+  },
+  {
+    id: "4",
+    title: "Music",
     description: "Smooth tunes for your afternoon",
     djId: "3",
     djName: "Mike DJ",
-    startTime: "14:00",
+    startTime: "12:00",
     endTime: "18:00",
     dayOfWeek: 1, // Monday
     category: "Music",
@@ -75,11 +104,11 @@ const mockShows: Show[] = [
     color: "bg-green-500",
   },
   {
-    id: "3",
-    title: "Evening Jazz",
+    id: "5",
+    title: "Requests",
     description: "Classic and contemporary jazz selections",
     djId: "5",
-    djName: "Tom DJ",
+    djName: "Tom Presenter",
     startTime: "19:00",
     endTime: "22:00",
     dayOfWeek: 1, // Monday
@@ -89,7 +118,7 @@ const mockShows: Show[] = [
     color: "bg-purple-500",
   },
   {
-    id: "4",
+    id: "6",
     title: "Night Beats",
     description: "Electronic and dance music for the night owls",
     djId: "6",
@@ -104,7 +133,7 @@ const mockShows: Show[] = [
   },
   // Tuesday shows
   {
-    id: "5",
+    id: "8",
     title: "Morning Drive",
     description: "Start your day with the best music and traffic updates",
     djId: "3",
@@ -118,7 +147,7 @@ const mockShows: Show[] = [
     color: "bg-blue-500",
   },
   {
-    id: "6",
+    id: "9",
     title: "Midday Mix",
     description: "Pop hits and listener requests",
     djId: "4",
@@ -205,9 +234,9 @@ export function ShowScheduling() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-sans font-bold text-foreground">Show Programming & Scheduling</h1>
+          <h1 className="text-3xl font-sans font-bold text-foreground">Show Programming & Sheduling</h1>
           <p className="text-muted-foreground font-serif mt-1">
-            Manage your radio station's show schedule and programming.
+            Manage your radio station's show Logs and programming.
           </p>
         </div>
         {canManageShows && (

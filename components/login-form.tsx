@@ -31,11 +31,11 @@ export function LoginForm() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-primary rounded-full">
+            <div className="p-3 bg-purple-500 rounded-full">
               <RadioIcon className="h-8 w-8 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-sans font-bold">Radio Station Manager</CardTitle>
+          <CardTitle className="text-2xl font-sans font-bold">Magnet Logger</CardTitle>
           <CardDescription className="font-serif">Sign in to access your dashboard</CardDescription>
         </CardHeader>
         <CardContent>
@@ -73,9 +73,9 @@ export function LoginForm() {
           </form>
           <div className="mt-4 text-sm text-muted-foreground font-serif">
             <p>Demo credentials:</p>
-            <p>admin@radio.com / password</p>
-            <p>manager@radio.com / password</p>
-            <p>dj@radio.com / password</p>
+            <p>Admin Email: admin@magnet.com Password: password</p>
+            {/* <p>manager@radio.com / password</p> */}
+            <p>Staff Email: staff@magnet.com  Password: password</p>
           </div>
         </CardContent>
       </Card>

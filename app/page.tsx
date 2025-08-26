@@ -21,7 +21,7 @@ function DashboardContent() {
 
   const stats = [
     {
-      title: "Active DJs",
+      title: "Active Presenters",
       value: "12",
       change: "+2 this week",
       icon: Users,
@@ -39,28 +39,23 @@ function DashboardContent() {
       value: "45",
       change: "3 updated",
       icon: Music,
-      color: "text-chart-3",
+      color: "text-green-700",
     },
-    {
-      title: "Revenue",
-      value: "$12,450",
-      change: "+15% this month",
-      icon: DollarSign,
-      color: "text-chart-4",
-    },
+
   ]
 
   const recentActivity = [
-    { time: "2:30 PM", event: 'Mike DJ started "Afternoon Vibes"', type: "live" },
+    { time: "2:30 PM", event: 'Mike Presenter started "Newspaper Review"', type: "live" },
     { time: "1:45 PM", event: 'New playlist "Top 40 Hits" created', type: "playlist" },
-    { time: "12:15 PM", event: "Sarah Manager updated show schedule", type: "schedule" },
+    { time: "12:15 PM", event: "Sarah  updated show schedule", type: "schedule" },
     { time: "11:30 AM", event: 'Ad campaign "Local Business" completed', type: "revenue" },
   ]
 
   const upcomingShows = [
-    { time: "3:00 PM", show: "Drive Time Mix", dj: "Lisa DJ", duration: "2h" },
-    { time: "5:00 PM", show: "Evening Jazz", dj: "Tom DJ", duration: "3h" },
-    { time: "8:00 PM", show: "Night Beats", dj: "Alex DJ", duration: "4h" },
+    { time: "3:00 PM", show: "Newspaper Review", dj: "Lisa Presenter", duration: "2h" },
+    { time: "5:00 PM", show: "Mass Line", dj: "Tom Presenter", duration: "3h" },
+    { time: "8:00 PM", show: "Music", dj: "Alex Presenter", duration: "1h" },
+    { time: "9:00 PM", show: "Request", dj: "Alex Presenter", duration: "4h" },
   ]
 
   const renderContent = () => {
@@ -88,20 +83,20 @@ function DashboardContent() {
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-3xl font-sans font-bold text-foreground">
-                    Welcome back, {user?.name?.split(" ")[0] || "User"}!
+                    Welcome back, {user?.name || "User"}!
                   </h1>
                   <p className="text-muted-foreground font-serif mt-1">
                     Here's what's happening at your radio station today.
                   </p>
                 </div>
                 <Badge variant="secondary" className="font-serif">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                  <div className="w-4 h-4 bg-green-500 rounded-full mr-2 animate-pulse"></div>
                   Live Broadcasting
                 </Badge>
               </div>
 
               {/* Stats Grid */}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {stats.map((stat) => (
                   <Card key={stat.title}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

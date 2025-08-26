@@ -18,9 +18,8 @@ interface DashboardLayoutProps {
 const navigation = [
   { name: "Dashboard", icon: BarChart3, href: "#dashboard", key: "dashboard" },
   { name: "Staff", icon: Users, href: "#staff", key: "staff" },
-  { name: "Scheduling", icon: Calendar, href: "#scheduling", key: "scheduling" },
+  { name: "Show Logs", icon: Calendar, href: "#scheduling", key: "scheduling" },
   { name: "Playlists", icon: Music, href: "#playlists", key: "playlists" },
-  { name: "Revenue", icon: DollarSign, href: "#revenue", key: "revenue" },
   { name: "Analytics", icon: BarChart3, href: "#analytics", key: "analytics" },
 ]
 
@@ -42,12 +41,12 @@ export function DashboardLayout({ children, activeSection = "dashboard", onSecti
       >
         <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-sidebar-primary rounded-lg">
+            <div className="p-2 bg-purple-500 rounded-lg">
               <RadioIcon className="h-6 w-6 text-sidebar-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-sans font-bold text-sidebar-foreground">Radio Manager</h1>
-              <p className="text-xs text-sidebar-foreground/60 font-serif">Professional Dashboard</p>
+              <h1 className="font-sans font-bold text-sidebar-foreground">Magnet Logger</h1>
+              <p className="text-xs text-sidebar-foreground/60 font-serif">System Dashboard</p>
             </div>
           </div>
         </div>
