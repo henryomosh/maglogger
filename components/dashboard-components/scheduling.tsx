@@ -1,4 +1,4 @@
-// @ts-nocheck
+//@ts-nocheck
 "use client";
 
 import React from "react";
@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "./auth-provider";
+import { useAuth } from "@/components/auth-provider";
 import {
   Plus,
   Edit,
@@ -43,6 +43,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { createScheduling } from "@/lib/actions";
 
 interface Show {
   id: string;
@@ -602,6 +603,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
       ...formData,
       djName: selectedDJ?.name || "",
     });
+    
   };
 
   return (
@@ -609,11 +611,11 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="title" className="font-serif">
-            Show Title
+            Show Title <span className="text-red-500">*</span>
           </Label>
           <Input
             id="title"
-            name="title"
+            className="border-1 border-blue-400"
             value={formData.title}
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
@@ -623,11 +625,11 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="category" className="font-serif">
-            Category
+            Category <span className="text-red-500">*</span>
           </Label>
           <Input
             id="category"
-            name="category"
+            className="border-1 border-blue-400"
             value={formData.category}
             onChange={(e) =>
               setFormData({ ...formData, category: e.target.value })
@@ -643,7 +645,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
         </Label>
         <Textarea
           id="description"
-          name="description"
+          className="border-1 border-blue-400"
           value={formData.description}
           onChange={(e) =>
             setFormData({ ...formData, description: e.target.value })
@@ -659,10 +661,12 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             DJ/Host
           </Label>
           <Select
+            name="host"
             value={formData.djId}
-            onValueChange={(value) => setFormData({ ...formData, djId: value })}
-            name="host">
-            <SelectTrigger>
+            onValueChange={(value) =>
+              setFormData({ ...formData, djId: value })
+            }>
+            <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue placeholder="Select DJ" />
             </SelectTrigger>
             <SelectContent>
@@ -679,12 +683,12 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             Day of Week
           </Label>
           <Select
+            name="day"
             value={formData.dayOfWeek.toString()}
             onValueChange={(value) =>
               setFormData({ ...formData, dayOfWeek: Number.parseInt(value) })
-            }
-            name="day">
-            <SelectTrigger>
+            }>
+            <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -701,11 +705,12 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             Color
           </Label>
           <Select
+            name="color"
             value={formData.color}
             onValueChange={(value) =>
               setFormData({ ...formData, color: value })
             }>
-            <SelectTrigger>
+            <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -730,6 +735,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
           </Label>
           <Input
             id="startTime"
+            name="startTime"
+            className="border-1 border-blue-400"
             type="time"
             value={formData.startTime}
             onChange={(e) =>
@@ -744,6 +751,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
           </Label>
           <Input
             id="endTime"
+            name="endTime"
+            className="border-1 border-blue-400 w-full"
             type="time"
             value={formData.endTime}
             onChange={(e) =>
@@ -757,11 +766,12 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             Status
           </Label>
           <Select
+            name="status"
             value={formData.status}
             onValueChange={(
               value: "scheduled" | "live" | "completed" | "cancelled"
             ) => setFormData({ ...formData, status: value })}>
-            <SelectTrigger>
+            <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -778,11 +788,12 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
         <input
           type="checkbox"
           id="isRecurring"
+          name="isRecurring"
           checked={formData.isRecurring}
           onChange={(e) =>
             setFormData({ ...formData, isRecurring: e.target.checked })
           }
-          className="rounded border-border"
+          className="rounded border-border "
         />
         <Label htmlFor="isRecurring" className="font-serif">
           Recurring weekly show

@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth, type UserRole } from "./auth-provider";
+import { useAuth, type UserRole } from "@/components/auth-provider";
 import {
   Plus,
   Edit,
@@ -34,6 +34,8 @@ import {
   Calendar,
   Clock,
   MoreVertical,
+  Trash,
+  OctagonAlert,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -42,8 +44,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { createStaff } from "@/lib/actions";
+import { updateStaff } from "@/lib/actions";
+import { deleteStaff } from "@/lib/actions";
 import { fetchStaff } from "@/lib/data";
 import { User } from "@/lib/definations";
+import { toast } from "sonner";
 
 interface StaffMember {
   id: string;
@@ -55,7 +60,7 @@ interface StaffMember {
   hireDate: string;
   status: "active" | "inactive" | "on-leave";
   bio?: string;
-  specialties?: string[];
+  specialities?: string[];
   schedule?: {
     monday?: string;
     tuesday?: string;
@@ -75,7 +80,13 @@ interface StaffDataMemmber {
   role: string;
   status: string;
   bio?: string;
-  specialties?: string[];
+  specialties?: [];
+}
+
+interface StaffFormProps {
+  initialData?: StaffMember;
+  onClose: () => void;
+  onSave: (staff: Omit<StaffMember, "id">) => void;
 }
 
 // Mock staff data
@@ -90,7 +101,7 @@ const mockStaff: StaffMember[] = [
     hireDate: "2020-01-15",
     status: "active",
     bio: "Experienced radio station manager with 15+ years in broadcasting.",
-    specialties: ["Management", "Operations", "Strategy"],
+    specialities: ["Management", "Operations", "Strategy"],
   },
   {
     id: "2",
@@ -102,7 +113,7 @@ const mockStaff: StaffMember[] = [
     hireDate: "2021-03-20",
     status: "active",
     bio: "Programming director focused on content strategy and audience engagement.",
-    specialties: ["Programming", "Content Strategy", "Analytics"],
+    specialities: ["Programming", "Content Strategy", "Analytics"],
     schedule: {
       monday: "9:00 AM - 6:00 PM",
       tuesday: "9:00 AM - 6:00 PM",
@@ -121,7 +132,7 @@ const mockStaff: StaffMember[] = [
     hireDate: "2022-06-10",
     status: "active",
     bio: "Popular afternoon drive-time DJ with a passion for rock and alternative music.",
-    specialties: ["Rock Music", "Live Shows", "Audience Interaction"],
+    specialities: ["Rock Music", "Live Shows", "Audience Interaction"],
     schedule: {
       monday: "2:00 PM - 6:00 PM",
       tuesday: "2:00 PM - 6:00 PM",
@@ -140,7 +151,7 @@ const mockStaff: StaffMember[] = [
     hireDate: "2023-02-14",
     status: "active",
     bio: "Audio production specialist and sound engineer.",
-    specialties: ["Audio Production", "Sound Engineering", "Editing"],
+    specialities: ["Audio Production", "Sound Engineering", "Editing"],
     schedule: {
       monday: "10:00 AM - 7:00 PM",
       wednesday: "10:00 AM - 7:00 PM",
@@ -159,7 +170,7 @@ const mockStaff: StaffMember[] = [
     hireDate: "2021-11-08",
     status: "on-leave",
     bio: "Evening jazz specialist currently on medical leave.",
-    specialties: ["Jazz", "Classical", "Evening Shows"],
+    specialities: ["Jazz", "Classical", "Evening Shows"],
   },
   {
     id: "6",
@@ -171,7 +182,7 @@ const mockStaff: StaffMember[] = [
     hireDate: "2023-08-22",
     status: "active",
     bio: "Night shift DJ specializing in electronic and dance music.",
-    specialties: ["Electronic", "Dance", "Late Night"],
+    specialities: ["Electronic", "Dance", "Late Night"],
     schedule: {
       thursday: "10:00 PM - 2:00 AM",
       friday: "10:00 PM - 2:00 AM",
@@ -188,9 +199,13 @@ export function StaffManagement({ data }: { data: any }) {
   const [filterRole, setFilterRole] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
-  const [staffData, setStaffData] = useState<StaffDataMemmber[]>();
+  const [staffId, setStaffId] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
+  const [staffData, setStaffData] = useState<StaffDataMemmber[]>();
+  console.log(data);
   // Check if user has permission to manage staff
   const canManageStaff = user?.role === "admin" || user?.role === "manager";
 
@@ -198,6 +213,7 @@ export function StaffManagement({ data }: { data: any }) {
     async function fetchData() {
       try {
         const data = await fetchStaff(); // Replace with your API endpoint
+
         setStaffData(data);
       } catch (err) {
       } finally {
@@ -207,7 +223,7 @@ export function StaffManagement({ data }: { data: any }) {
     fetchData();
   }, []);
 
-  const filteredStaff = data?.filter((member:any) => {
+  const filteredStaff = data?.filter((member: any) => {
     const matchesSearch =
       member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -239,12 +255,19 @@ export function StaffManagement({ data }: { data: any }) {
       case "dj":
         return "bg-green-100 text-green-800";
       case "staff":
-        return "bg-gray-100 text-gray-800";
+        return "bg-pink-100 text-pink-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true);
+    await deleteStaff(id);
+    toast.warning("Member Deleted!");
+    setIsDeleting(false);
+    setIsDeleteDialogOpen(false);
+  };
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -287,6 +310,39 @@ export function StaffManagement({ data }: { data: any }) {
             </DialogContent>
           </Dialog>
         )}
+        {canManageStaff && (
+          <Dialog
+            open={isDeleteDialogOpen}
+            onOpenChange={setIsDeleteDialogOpen}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="font-sans font-bold">
+                  <div className="flex gap-4">
+                    <OctagonAlert className="h-10 w-10 text-red-600" /> Are your
+                    sure you want to delete this member?
+                  </div>
+                </DialogTitle>
+                <DialogDescription className="font-serif">
+                  <div className="flex justify-end gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDeleteDialogOpen(false)}
+                      className="font-serif bg-transparent">
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => handleDelete(staffId)}
+                      className="font-sans font-bold bg-red-600 hover:bg-red-400"
+                      disabled={isDeleting}>
+                      {isDeleting ? "Deleting..." : "Delete"}
+                    </Button>
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {/* Filters */}
@@ -298,23 +354,22 @@ export function StaffManagement({ data }: { data: any }) {
                 placeholder="Search staff members..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="font-serif"
+                className="font-serif border-1 border-blue-300"
               />
             </div>
             <Select value={filterRole} onValueChange={setFilterRole}>
-              <SelectTrigger className="w-full sm:w-40">
+              <SelectTrigger className="w-full sm:w-40 border-1 border-blue-300">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="manager">Manager</SelectItem>
-                <SelectItem value="dj">DJ</SelectItem>
                 <SelectItem value="staff">Staff</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full sm:w-40">
+              <SelectTrigger className="w-full sm:w-40 border-1 border-blue-300">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -330,7 +385,7 @@ export function StaffManagement({ data }: { data: any }) {
 
       {/* Staff Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {staffData?.map((member) => (
+        {filteredStaff?.map((member: any) => (
           <Card key={member.id} className="relative">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
@@ -339,7 +394,7 @@ export function StaffManagement({ data }: { data: any }) {
                     <AvatarFallback className="bg-primary text-primary-foreground font-sans font-bold">
                       {member.name
                         .split(" ")
-                        .map((n) => n[0])
+                        .map((n: any) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
@@ -360,9 +415,17 @@ export function StaffManagement({ data }: { data: any }) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Edit className="h-4 w-4 mr-2" />
+                      <DropdownMenuItem onClick={() => setEditingStaff(member)}>
+                        <Edit className="h-4 w-4 mr-2 text-green-600" />
                         Edit Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setIsDeleteDialogOpen(true);
+                          setStaffId(member.id);
+                        }}>
+                        <Trash className="h-4 w-4 mr-2 text-red-600" />
+                        Delete Member
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -371,7 +434,8 @@ export function StaffManagement({ data }: { data: any }) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
-                <Badge className={` font-serif text-xs`}>
+                <Badge
+                  className={`${getRoleColor(member.role)} font-serif text-xs`}>
                   {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
                 </Badge>
                 <Badge
@@ -392,10 +456,6 @@ export function StaffManagement({ data }: { data: any }) {
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <span className="font-serif">{member.phone}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-serif">Hired</span>
-                </div>
               </div>
 
               {member.bio && (
@@ -404,9 +464,9 @@ export function StaffManagement({ data }: { data: any }) {
                 </p>
               )}
 
-              {member.specialties && member.specialties.length > 0 && (
+              {member.specialities && member.specialities.length > 0 && (
                 <div className="flex flex-wrap gap-1">
-                  {member.specialties.slice(0, 3).map((specialty) => (
+                  {member.specialities.slice(0, 3).map((specialty: any) => (
                     <Badge
                       key={specialty}
                       variant="outline"
@@ -414,11 +474,11 @@ export function StaffManagement({ data }: { data: any }) {
                       {specialty}
                     </Badge>
                   ))}
-                  {member.specialties.length > 3 && (
+                  {/* {member.specialties.length > 3 && (
                     <Badge variant="outline" className="font-serif text-xs">
                       +{member.specialties.length - 3} more
                     </Badge>
-                  )}
+                  )} */}
                 </div>
               )}
 
@@ -454,9 +514,9 @@ export function StaffManagement({ data }: { data: any }) {
         ))}
       </div>
 
-      {staffData?.length === 0 && (
+      {filteredStaff?.length === 0 && (
         <Card>
-          <CardContent className="py-12 text-center">
+          <CardContent className="py-12 text-center ">
             <p className="text-muted-foreground font-serif">
               No staff members found matching your criteria.
             </p>
@@ -499,12 +559,6 @@ export function StaffManagement({ data }: { data: any }) {
   );
 }
 
-interface StaffFormProps {
-  initialData?: StaffMember;
-  onClose: () => void;
-  onSave: (staff: Omit<StaffMember, "id">) => void;
-}
-
 function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
   const [status, setStatus] = useState<{
     success: boolean;
@@ -513,6 +567,7 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
+    id: initialData?.id || "",
     name: initialData?.name || "",
     email: initialData?.email || "",
     phone: initialData?.phone || "",
@@ -521,7 +576,7 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
     hireDate: initialData?.hireDate || new Date().toISOString().split("T")[0],
     status: initialData?.status || ("active" as const),
     bio: initialData?.bio || "",
-    specialties: initialData?.specialties?.join(", ") || "",
+    specialities: initialData?.specialities?.join(", ") || "",
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -531,12 +586,11 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
     setStatus(null);
     onSave({
       ...formData,
-      specialties: formData.specialties
+      specialities: formData.specialities
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
     });
-
     const formData2 = new FormData(e.currentTarget);
     const result = await createStaff(formData2);
 
@@ -544,10 +598,24 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
     setIsSubmitting(false);
 
     setIsSubmitting(false);
+    toast.success("Staff member created successfully!", {});
+  };
+
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const formData2 = new FormData(e.currentTarget);
+    const results = await updateStaff(formData2);
+    setStatus(results);
+    setIsSubmitting(false);
+    toast.success("Member details updated successfuly!");
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={initialData ? handleUpdate : handleSubmit}
+      className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name" className="font-serif">
@@ -623,11 +691,11 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
             Specialties (comma-separated)
           </Label>
           <Input
-            id="specialties"
-            name="specialties"
-            value={formData.specialties}
+            id="specialities"
+            name="specialities"
+            value={formData.specialities}
             onChange={(e) =>
-              setFormData({ ...formData, specialties: e.target.value })
+              setFormData({ ...formData, specialities: e.target.value })
             }
             className="border-1 border-blue-400"
             placeholder="Rock Music, Live Shows, Audio Production"
@@ -669,7 +737,18 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
           rows={3}
         />
       </div>
-
+      {initialData && (
+        <div className="hidden">
+          <Input
+            id="userid"
+            name="id"
+            value={formData.id}
+            onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+            className="border-1 border-blue-400"
+            placeholder="Rock Music, Live Shows, Audio Production"
+          />
+        </div>
+      )}
       <div className="flex justify-end gap-2 pt-4">
         <Button
           type="button"
@@ -678,8 +757,20 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
           className="font-serif bg-transparent">
           Cancel
         </Button>
-        <Button type="submit" className="font-sans font-bold">
-          {initialData ? "Update" : "Add"} Staff Member
+        <Button
+          type="submit"
+          className="font-sans font-bold"
+          disabled={isSubmitting}>
+          {isSubmitting ? (
+            <div
+              role="status"
+              className="flex items-center justify-center gap-2">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-100 border-t-transparent"></div>
+              <span>Processing ...</span>
+            </div>
+          ) : (
+            `${initialData ? "Update" : "Add"} Staff Member`
+          )}
         </Button>
       </div>
     </form>

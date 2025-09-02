@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import Link from "next/link";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "./auth-provider";
+import { useAuth } from "@/components/auth-provider";
 import {
   RadioIcon,
   Users,
@@ -24,35 +25,66 @@ import {
   Settings,
   FileText,
 } from "lucide-react";
+import { LoginForm } from "../login-form";
+import { useRouter } from "next/router";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  activeSection?: string;
-  onSectionChange?: (section: string) => void;
 }
 
 const navigation = [
-  { name: "Dashboard", icon: BarChart3, href: "#dashboard", key: "dashboard" },
-  { name: "Staff", icon: Users, href: "#staff", key: "staff" },
-  { name: "Show Logs", icon: FileText, href: "#logs", key: "logs" },
-  { name: "Sheduling", icon: Calendar, href: "#scheduling", key: "scheduling" },
-  { name: "Playlists", icon: Music, href: "#playlists", key: "playlists" },
-  { name: "Analytics", icon: BarChart3, href: "#analytics", key: "analytics" },
+  {
+    name: "Dashboard",
+    icon: BarChart3,
+    href: "#dashboard",
+    key: "dashboard",
+    link: "/dashboard",
+  },
+  {
+    name: "Staff",
+    icon: Users,
+    href: "#staff",
+    key: "staff",
+    link: "/dashboard/staff",
+  },
+  {
+    name: "Show Logs",
+    icon: FileText,
+    href: "#logs",
+    key: "logs",
+    link: "#",
+  },
+  {
+    name: "Sheduling",
+    icon: Calendar,
+    href: "#scheduling",
+    key: "scheduling",
+    link: "/dashboard/scheduling",
+  },
+  {
+    name: "Playlists",
+    icon: Music,
+    href: "#playlists",
+    key: "playlists",
+    link: "#",
+  },
+  {
+    name: "Analytics",
+    icon: BarChart3,
+    href: "#analytics",
+    key: "analytics",
+    link: "#",
+  },
 ];
 
-export function DashboardLayout({
-  children,
-  activeSection = "dashboard",
-  onSectionChange,
-}: DashboardLayoutProps) {
+export function DashboardLayout({ children }: DashboardLayoutProps, props: {}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
+  const [activeSection, setActiveSection] = useState("");
 
-  const handleNavClick = (key: string) => {
-    if (onSectionChange) {
-      onSectionChange(key);
-    }
-  };
+  if (!user) {
+    return <LoginForm />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,16 +113,18 @@ export function DashboardLayout({
           <ul className="space-y-1">
             {navigation.map((item) => (
               <li key={item.name}>
-                <button
-                  onClick={() => handleNavClick(item.key)}
+                <Link
+                  href={item.link}
+                  onClick={() => setActiveSection(item.key)}
                   className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-serif rounded-lg transition-colors text-left ${
                     activeSection === item.key
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
                       : "text-sidebar-foreground hover:bg-sidebar-accent/50"
-                  }`}>
+                  }
+                    `}>
                   <item.icon className="h-5 w-5" />
                   {item.name}
-                </button>
+                </Link>
               </li>
             ))}
           </ul>
