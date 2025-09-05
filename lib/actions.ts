@@ -45,7 +45,7 @@ export async function updateStaff(formData: FormData) {
 
   try {
     await sql`
-      Update users 
+      UPDATE users 
       SET role = ${role}, name = ${name} , email = ${email} , phone = ${phone},
       specialities = ${specialities}, status = ${status}, bio = ${bio}
       WHERE id = ${id}
@@ -74,19 +74,68 @@ export async function createScheduling(formData: FormData) {
   const startTime = formData.get("startTime") as string;
   const endTime = formData.get("endTime") as string;
   const date = formData.get("date") as string;
-  const recurring = formData.get("recurring") as string;
+  const recurring = formData.get("isRecurring");
+  const status = formData.get("status") as string;
+  const staffId = formData.get("userId") as string;
 
   // Saving to a database
-  console.log(title, category, description, day, host, color, startTime, endTime, date, recurring)
+
+  const created = new Date();
+  const isRecurring = recurring ? true : false;
+
   try {
-    await sql`
-     
+    await sql` INSERT INTO scheduling (title, category, description, day, host, color, start, ends, recurring, created, date, status, staff)
+    VALUES (${title}, ${category}, ${description}, ${day}, ${host}, ${color}, ${startTime}, ${endTime}, ${isRecurring}, ${created}, ${date},${status}, ${staffId} )
+
     `;
   } catch (error: any) {
     if (error) {
-      console.log(error?.detail);
+      return { success: false, message: "dsasa" };
     }
   }
-  revalidatePath("/dashbord/staff");
+  revalidatePath("/dashboard/scheduling");
   return { success: true, message: "Form submitted successfully!" };
+}
+
+export async function updateScheduling(formData: FormData) {
+  const title = formData.get("title") as string;
+  const category = formData.get("category") as string;
+  const description = formData.get("description") as string;
+  const day = formData.get("day") as string;
+  const color = formData.get("color") as string;
+  const startTime = formData.get("startTime") as string;
+  const endTime = formData.get("endTime") as string;
+  const date = formData.get("date") as string;
+  const recurring = formData.get("isRecurring");
+  const status = formData.get("status") as string;
+  const id = formData.get("id") as string;
+
+  // Saving to a database
+
+  const isRecurring = recurring ? true : false;
+
+  try {
+    await sql` UPDATE 
+     scheduling SET title=${title},category = ${category},description= ${description}, day=${day}, color=${color}, 
+     start=${startTime}, ends=${endTime}, recurring=${isRecurring}, date = ${date},status=${status}
+     WHERE id= ${id}
+    `;
+  } catch (error) {
+    if (error) {
+      return { success: false, message: "dsasa" };
+    }
+  }
+  revalidatePath("/dashboard/scheduling");
+  return { success: true, message: "Form submitted successfully!" };
+}
+
+export async function deleteSchedule(id: string) {
+  try {
+    await sql`DELETE FROM scheduling WHERE id = ${id}`;
+  } catch (error) {
+    if (error) {
+      return { success: false };
+    }
+  }
+  revalidatePath("/dashboard/scheduling");
 }

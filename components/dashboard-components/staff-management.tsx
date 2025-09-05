@@ -209,20 +209,6 @@ export function StaffManagement({ data }: { data: any }) {
   // Check if user has permission to manage staff
   const canManageStaff = user?.role === "admin" || user?.role === "manager";
 
-  React.useEffect(() => {
-    async function fetchData() {
-      try {
-        const data = await fetchStaff(); // Replace with your API endpoint
-
-        setStaffData(data);
-      } catch (err) {
-      } finally {
-      }
-    }
-
-    fetchData();
-  }, []);
-
   const filteredStaff = data?.filter((member: any) => {
     const matchesSearch =
       member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -322,22 +308,20 @@ export function StaffManagement({ data }: { data: any }) {
                     sure you want to delete this member?
                   </div>
                 </DialogTitle>
-                <DialogDescription className="font-serif">
-                  <div className="flex justify-end gap-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsDeleteDialogOpen(false)}
-                      className="font-serif bg-transparent">
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={() => handleDelete(staffId)}
-                      className="font-sans font-bold bg-red-600 hover:bg-red-400"
-                      disabled={isDeleting}>
-                      {isDeleting ? "Deleting..." : "Delete"}
-                    </Button>
-                  </div>
+                <DialogDescription className="font-serif flex justify-end gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDeleteDialogOpen(false)}
+                    className="font-serif bg-transparent">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => handleDelete(staffId)}
+                    className="font-sans font-bold bg-red-600 hover:bg-red-400"
+                    disabled={isDeleting}>
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </Button>
                 </DialogDescription>
               </DialogHeader>
             </DialogContent>

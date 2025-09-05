@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 
 import React from "react";
@@ -36,6 +35,9 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreVertical,
+  BadgeCheck,
+  Trash2,
+  OctagonAlert,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -43,20 +45,27 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { createScheduling } from "@/lib/actions";
+import {
+  createScheduling,
+  deleteSchedule,
+  updateScheduling,
+} from "@/lib/actions";
+import { toast } from "sonner";
+import "@/components/dashboard-components/radix-styles.css";
+import { start } from "repl";
 
 interface Show {
   id: string;
   title: string;
   description: string;
-  djId: string;
+  host: string;
   djName: string;
-  startTime: string;
-  endTime: string;
-  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
+  start: string;
+  end: string;
+  day: number; // 0 = Sunday, 1 = Monday, etc.
   category: string;
-  isRecurring: boolean;
-  status: "scheduled" | "live" | "completed" | "cancelled";
+  recurring: boolean;
+  status: string;
   color: string;
 }
 
@@ -67,121 +76,121 @@ interface TimeSlot {
 }
 
 // Mock shows data
-const mockShows: Show[] = [
-  {
-    id: "1",
-    title: "Newspaper Review",
-    description: "Start your day with newspaper updates",
-    djId: "3",
-    djName: "Mike Presenter",
-    startTime: "06:00",
-    endTime: "07:00",
-    dayOfWeek: 1, // Monday
-    category: "Music",
-    isRecurring: true,
-    status: "scheduled",
-    color: "bg-blue-500",
-  },
-  {
-    id: "2",
-    title: "Mass Line",
-    description: "Start your day with newspaper updates",
-    djId: "3",
-    djName: "Mary Presenter",
-    startTime: "08:00",
-    endTime: "10:00",
-    dayOfWeek: 1, // Monday
-    category: "Music",
-    isRecurring: true,
-    status: "scheduled",
-    color: "bg-indigo-500",
-  },
-  {
-    id: "3",
-    title: "Interview",
-    description: "Start your day with newspaper updates",
-    djId: "3",
-    djName: "Peter Presenter",
-    startTime: "10:00",
-    endTime: "12:00",
-    dayOfWeek: 1, // Monday
-    category: "Music",
-    isRecurring: true,
-    status: "scheduled",
-    color: "bg-purple-500",
-  },
-  {
-    id: "4",
-    title: "Music",
-    description: "Smooth tunes for your afternoon",
-    djId: "3",
-    djName: "Mike DJ",
-    startTime: "12:00",
-    endTime: "18:00",
-    dayOfWeek: 1, // Monday
-    category: "Music",
-    isRecurring: true,
-    status: "live",
-    color: "bg-green-500",
-  },
-  {
-    id: "5",
-    title: "Requests",
-    description: "Classic and contemporary jazz selections",
-    djId: "5",
-    djName: "Tom Presenter",
-    startTime: "19:00",
-    endTime: "22:00",
-    dayOfWeek: 1, // Monday
-    category: "Jazz",
-    isRecurring: true,
-    status: "scheduled",
-    color: "bg-purple-500",
-  },
-  {
-    id: "6",
-    title: "Night Beats",
-    description: "Electronic and dance music for the night owls",
-    djId: "6",
-    djName: "Alex DJ",
-    startTime: "22:00",
-    endTime: "02:00",
-    dayOfWeek: 1, // Monday
-    category: "Electronic",
-    isRecurring: true,
-    status: "scheduled",
-    color: "bg-pink-500",
-  },
-  // Tuesday shows
-  {
-    id: "8",
-    title: "Morning Drive",
-    description: "Start your day with the best music and traffic updates",
-    djId: "3",
-    djName: "Mike DJ",
-    startTime: "06:00",
-    endTime: "10:00",
-    dayOfWeek: 2, // Tuesday
-    category: "Music",
-    isRecurring: true,
-    status: "scheduled",
-    color: "bg-blue-500",
-  },
-  {
-    id: "9",
-    title: "Midday Mix",
-    description: "Pop hits and listener requests",
-    djId: "4",
-    djName: "Lisa Staff",
-    startTime: "12:00",
-    endTime: "15:00",
-    dayOfWeek: 2, // Tuesday
-    category: "Pop",
-    isRecurring: true,
-    status: "scheduled",
-    color: "bg-orange-500",
-  },
-];
+// const mockShows: Show[] = [
+//   {
+//     id: "1",
+//     title: "Newspaper Review",
+//     description: "Start your day with newspaper updates",
+//     djId: "3",
+//     djName: "Mike Presenter",
+//     startTime: "06:00",
+//     endTime: "07:00",
+//     dayOfWeek: 1, // Monday
+//     category: "Music",
+//     isRecurring: true,
+//     status: "scheduled",
+//     color: "bg-blue-500",
+//   },
+//   {
+//     id: "2",
+//     title: "Mass Line",
+//     description: "Start your day with newspaper updates",
+//     djId: "3",
+//     djName: "Mary Presenter",
+//     startTime: "08:00",
+//     endTime: "10:00",
+//     dayOfWeek: 1, // Monday
+//     category: "Music",
+//     isRecurring: true,
+//     status: "scheduled",
+//     color: "bg-indigo-500",
+//   },
+//   {
+//     id: "3",
+//     title: "Interview",
+//     description: "Start your day with newspaper updates",
+//     djId: "3",
+//     djName: "Peter Presenter",
+//     startTime: "10:00",
+//     endTime: "12:00",
+//     dayOfWeek: 1, // Monday
+//     category: "Music",
+//     isRecurring: true,
+//     status: "scheduled",
+//     color: "bg-purple-500",
+//   },
+//   {
+//     id: "4",
+//     title: "Music",
+//     description: "Smooth tunes for your afternoon",
+//     djId: "3",
+//     djName: "Mike DJ",
+//     startTime: "12:00",
+//     endTime: "18:00",
+//     dayOfWeek: 1, // Monday
+//     category: "Music",
+//     isRecurring: true,
+//     status: "live",
+//     color: "bg-green-500",
+//   },
+//   {
+//     id: "5",
+//     title: "Requests",
+//     description: "Classic and contemporary jazz selections",
+//     djId: "5",
+//     djName: "Tom Presenter",
+//     startTime: "19:00",
+//     endTime: "22:00",
+//     dayOfWeek: 1, // Monday
+//     category: "Jazz",
+//     isRecurring: true,
+//     status: "scheduled",
+//     color: "bg-purple-500",
+//   },
+//   {
+//     id: "6",
+//     title: "Night Beats",
+//     description: "Electronic and dance music for the night owls",
+//     djId: "6",
+//     djName: "Alex DJ",
+//     startTime: "22:00",
+//     endTime: "02:00",
+//     dayOfWeek: 1, // Monday
+//     category: "Electronic",
+//     isRecurring: true,
+//     status: "scheduled",
+//     color: "bg-pink-500",
+//   },
+//   // Tuesday shows
+//   {
+//     id: "8",
+//     title: "Morning Drive",
+//     description: "Start your day with the best music and traffic updates",
+//     djId: "3",
+//     djName: "Mike DJ",
+//     startTime: "06:00",
+//     endTime: "10:00",
+//     dayOfWeek: 2, // Tuesday
+//     category: "Music",
+//     isRecurring: true,
+//     status: "scheduled",
+//     color: "bg-blue-500",
+//   },
+//   {
+//     id: "9",
+//     title: "Midday Mix",
+//     description: "Pop hits and listener requests",
+//     djId: "4",
+//     djName: "Lisa Staff",
+//     startTime: "12:00",
+//     endTime: "15:00",
+//     dayOfWeek: 2, // Tuesday
+//     category: "Pop",
+//     isRecurring: true,
+//     status: "scheduled",
+//     color: "bg-orange-500",
+//   },
+// ];
 
 const timeSlots: TimeSlot[] = Array.from({ length: 24 }, (_, i) => ({
   hour: i,
@@ -199,13 +208,21 @@ const daysOfWeek = [
   "Saturday",
 ];
 
-export function ShowScheduling() {
+interface LiveEvent {
+  startTime: string; // ISO 8601 format from the database
+  endTime: string; // ISO 8601 format from the database
+}
+
+export function ShowScheduling({ data }: { data: any }) {
   const { user } = useAuth();
-  const [shows, setShows] = useState<Show[]>(mockShows);
+  const [shows, setShows] = useState<Show[]>(data);
   const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [selectedView, setSelectedView] = useState<"week" | "day">("week");
+  const [selectedView, setSelectedView] = useState<"week" | "day">("day");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingShow, setEditingShow] = useState<Show | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [scheduleId, setScheduleId] = useState("");
 
   // Check if user has permission to manage shows
   const canManageShows = user?.role === "admin" || user?.role === "manager";
@@ -227,22 +244,22 @@ export function ShowScheduling() {
 
   const getShowsForDay = (dayOfWeek: number) => {
     return shows
-      .filter((show) => show.dayOfWeek === dayOfWeek)
-      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+      .filter((show) => show.day === dayOfWeek)
+      .sort((a, b) => a.start.localeCompare(b.start));
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "live":
-        return "bg-red-100 text-red-800 animate-pulse";
+        return "bg-red-300 text-red-800 animate-pulse";
       case "scheduled":
-        return "bg-green-100 text-green-800";
+        return "bg-green-300 text-green-800";
       case "completed":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-300 text-gray-800";
       case "cancelled":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-300 text-yellow-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-300 text-gray-800";
     }
   };
 
@@ -260,6 +277,35 @@ export function ShowScheduling() {
     setCurrentWeek(newWeek);
   };
 
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true);
+
+    const results = await deleteSchedule(id);
+    toast.warning("Shedule Deleted!");
+
+    setIsDeleting(false);
+    setIsDeleteDialogOpen(false);
+  };
+
+  const showStatus = (event: LiveEvent) => {
+    const [startHours, startMinutes] = event.startTime.split(":");
+    const [endHours, endMinutes] = event.endTime.split(":");
+    let hourNow = Number(new Date().getHours());
+    const starts = Number(startHours);
+    const end = Number(endHours);
+
+    console.log({ start: starts, ends: end, now: hourNow });
+    if (end > hourNow && starts < hourNow) {
+      return "live";
+    }
+
+    if (starts > hourNow) {
+      return "scheduled";
+    }
+    if (end < hourNow) {
+      return "completed";
+    }
+  };
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -302,6 +348,37 @@ export function ShowScheduling() {
             </DialogContent>
           </Dialog>
         )}
+        {canManageShows && (
+          <Dialog
+            open={isDeleteDialogOpen}
+            onOpenChange={setIsDeleteDialogOpen}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="font-sans font-bold">
+                  <div className="flex gap-4">
+                    <OctagonAlert className="h-10 w-10 text-red-600" /> Are your
+                    sure you want to delete this member?
+                  </div>
+                </DialogTitle>
+                <DialogDescription className="font-serif flex justify-end gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDeleteDialogOpen(false)}
+                    className="font-serif bg-transparent">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => handleDelete(scheduleId)}
+                    className="font-sans font-bold bg-red-600 hover:bg-red-400"
+                    disabled={isDeleting}>
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </Button>
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {/* View Controls */}
@@ -311,13 +388,22 @@ export function ShowScheduling() {
             <Tabs
               value={selectedView}
               onValueChange={(value) =>
-                setSelectedView(value as "week" | "day")
+                setSelectedView(value as "day" | "week")
               }>
               <TabsList>
-                <TabsTrigger value="week" className="font-serif">
+                <TabsTrigger
+                  value="week"
+                  className="font-serif  bg-gray-300 data-[state=active]:bg-green-300  mr-2">
+                  {selectedView === "week" && (
+                    <BadgeCheck className="h-6 w-6" />
+                  )}{" "}
                   Week View
                 </TabsTrigger>
-                <TabsTrigger value="day" className="font-serif">
+
+                <TabsTrigger
+                  value="day"
+                  className="font-serif bg-gray-300 data-[state=active]:bg-green-300">
+                  {selectedView === "day" && <BadgeCheck className="h-6 w-6" />}{" "}
                   Day View
                 </TabsTrigger>
               </TabsList>
@@ -407,7 +493,7 @@ export function ShowScheduling() {
                       const dayShows = getShowsForDay(dayIndex).filter(
                         (show) => {
                           const showHour = Number.parseInt(
-                            show.startTime.split(":")[0]
+                            show.start.split(":")[0]
                           );
                           return (
                             showHour >= slot.hour && showHour < slot.hour + 2
@@ -418,23 +504,46 @@ export function ShowScheduling() {
                       return (
                         <div
                           key={dayIndex}
-                          className="min-h-16 border-t border-l p-1">
-                          {dayShows.map((show) => (
+                          className="min-h-16 border-t border-l">
+                          {dayShows.map((show: any) => (
                             <div
                               key={show.id}
-                              className={`${show.color} text-white text-xs p-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-opacity`}
-                              onClick={() =>
-                                canManageShows && setEditingShow(show)
-                              }>
-                              <div className="font-sans font-bold truncate">
-                                {show.title}
+                              className={`${show.color} text-white text-xs pl-1 pb-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-opacity`}>
+                              <div className="flex items start justify-between ">
+                                <div className="font-sans font-bold truncate pt-2">
+                                  {show.title}
+                                </div>
+                                {canManageShows && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm">
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="start">
+                                      <DropdownMenuItem
+                                        onClick={() => setEditingShow(show)}>
+                                        <Edit className="h-4 w-4 mr-2 text-green-500" />
+                                        Edit Show
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => {
+                                          setScheduleId(show.id);
+                                          setIsDeleteDialogOpen(true);
+                                        }}>
+                                        <Trash2 className="h-4 w-4 mr-2 text-red-500" />
+                                        Delete Show
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
                               </div>
                               <div className="font-serif opacity-90">
-                                {formatTime(show.startTime)} -{" "}
-                                {formatTime(show.endTime)}
+                                {formatTime(show.start)} -{" "}
+                                {formatTime(show.ends)}
                               </div>
                               <div className="font-serif opacity-75 truncate">
-                                {show.djName}
+                                {show.name}
                               </div>
                             </div>
                           ))}
@@ -449,11 +558,11 @@ export function ShowScheduling() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {shows
-            .filter((show) => show.dayOfWeek === new Date().getDay())
-            .sort((a, b) => a.startTime.localeCompare(b.startTime))
-            .map((show) => (
+            .filter((show: any) => show.day === new Date().getDay())
+            .sort((a: any, b: any) => a.start.localeCompare(b.start))
+            .map((show: any) => (
               <Card key={show.id} className="relative">
-                <CardHeader className="pb-3">
+                <CardHeader className="">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div
@@ -477,39 +586,50 @@ export function ShowScheduling() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
                             onClick={() => setEditingShow(show)}>
-                            <Edit className="h-4 w-4 mr-2" />
+                            <Edit className="h-4 w-4 mr-2 text-green-500" />
                             Edit Show
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setScheduleId(show.id);
+                              setIsDeleteDialogOpen(true);
+                            }}>
+                            <Trash2 className="h-4 w-4 mr-2 text-red-500" />
+                            Delete Show
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-2">
                   <Badge
                     className={`${getStatusColor(
-                      show.status
-                    )} font-serif text-xs`}>
-                    {show.status.charAt(0).toUpperCase() + show.status.slice(1)}
+                      showStatus({
+                        startTime: show.start,
+                        endTime: show.ends,
+                      }) || ""
+                    )} font-serif text-sm`}>
+                    {/* {show.status.charAt(0).toUpperCase() + show.status.slice(1)} */}
+                    {showStatus({ startTime: show.start, endTime: show.ends })}{" "}
                   </Badge>
 
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
                       <span className="font-serif">
-                        {formatTime(show.startTime)} -{" "}
-                        {formatTime(show.endTime)}
+                        {formatTime(show.start)} - {formatTime(show.ends)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-serif">{show.djName}</span>
+                      <span className="font-serif">{show.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-serif">
-                        {show.isRecurring ? "Weekly" : "One-time"} •{" "}
-                        {daysOfWeek[show.dayOfWeek]}
+                        {show.recurring ? "Weekly" : "One-time"} •{" "}
+                        {daysOfWeek[show.day]}
                       </span>
                     </div>
                   </div>
@@ -565,16 +685,23 @@ interface ShowFormProps {
 }
 
 function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
+  const [status, setStatus] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
+    id: initialData?.id || "",
     title: initialData?.title || "",
     description: initialData?.description || "",
-    djId: initialData?.djId || "",
+    djId: initialData?.host || "",
     djName: initialData?.djName || "",
-    startTime: initialData?.startTime || "09:00",
-    endTime: initialData?.endTime || "12:00",
-    dayOfWeek: initialData?.dayOfWeek || 1,
+    startTime: initialData?.start || "09:00",
+    endTime: initialData?.end || "12:00",
+    dayOfWeek: initialData?.day || 1,
     category: initialData?.category || "Music",
-    isRecurring: initialData?.isRecurring || true,
+    isRecurring: initialData?.recurring || true,
     status: initialData?.status || ("scheduled" as const),
     color: initialData?.color || "bg-blue-500",
   });
@@ -596,18 +723,31 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
     { value: "bg-red-500", label: "Red" },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { user } = useAuth();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const selectedDJ = availableDJs.find((dj) => dj.id === formData.djId);
-    onSave({
-      ...formData,
-      djName: selectedDJ?.name || "",
-    });
-    
+    setIsSubmitting(true);
+    const formData2 = new FormData(e.currentTarget);
+    const result = await createScheduling(formData2);
+    toast.success("Show Created successfully!");
+    setIsSubmitting(false);
+    onClose();
+  };
+
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    const formData2 = new FormData(e.currentTarget);
+    const result = await updateScheduling(formData2);
+    toast.success("Show Updated Successfully!", {});
+    setIsSubmitting(false);
+    onClose();
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={initialData ? handleUpdate : handleSubmit}
+      className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="title" className="font-serif">
@@ -615,12 +755,23 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
           </Label>
           <Input
             id="title"
+            name="title"
             className="border-1 border-blue-400"
             value={formData.title}
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
             }
             required
+          />
+          <Input
+            name="userId"
+            className="border-1 border-blue-500 hidden"
+            defaultValue={user?.id}
+          />
+          <Input
+            name="id"
+            className="border-1 border-blue-500 hidden"
+            defaultValue={formData.id}
           />
         </div>
         <div className="space-y-2">
@@ -629,6 +780,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
           </Label>
           <Input
             id="category"
+            name="category"
             className="border-1 border-blue-400"
             value={formData.category}
             onChange={(e) =>
@@ -645,6 +797,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
         </Label>
         <Textarea
           id="description"
+          name="description"
           className="border-1 border-blue-400"
           value={formData.description}
           onChange={(e) =>
@@ -784,20 +937,35 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
         </div>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
-          id="isRecurring"
-          name="isRecurring"
-          checked={formData.isRecurring}
-          onChange={(e) =>
-            setFormData({ ...formData, isRecurring: e.target.checked })
-          }
-          className="rounded border-border "
-        />
-        <Label htmlFor="isRecurring" className="font-serif">
-          Recurring weekly show
-        </Label>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="isRecurring"
+            name="isRecurring"
+            checked={formData.isRecurring}
+            onChange={(e) =>
+              setFormData({ ...formData, isRecurring: e.target.checked })
+            }
+            className="rounded border-border "
+          />
+          <Label htmlFor="isRecurring" className="font-serif">
+            Recurring weekly show
+          </Label>
+        </div>
+        {!formData.isRecurring && (
+          <div className="space-y-2">
+            <Label htmlFor="status" className="font-serif">
+              Date <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              type="date"
+              name="date"
+              className="border-1 border-blue-500"
+              required={!formData.isRecurring}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
@@ -808,8 +976,20 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
           className="font-serif bg-transparent">
           Cancel
         </Button>
-        <Button type="submit" className="font-sans font-bold">
-          {initialData ? "Update" : "Schedule"} Show
+        <Button
+          type="submit"
+          className="font-sans font-bold"
+          disabled={isSubmitting}>
+          {isSubmitting ? (
+            <div
+              role="status"
+              className="flex items-center justify-center gap-2">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-100 border-t-transparent"></div>
+              <span>Processing ...</span>
+            </div>
+          ) : (
+            `${initialData ? "Update" : "Add"} Schedule`
+          )}
         </Button>
       </div>
     </form>

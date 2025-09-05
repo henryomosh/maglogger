@@ -77,7 +77,7 @@ const navigation = [
   },
 ];
 
-export function DashboardLayout({ children }: DashboardLayoutProps, props: {}) {
+export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const [activeSection, setActiveSection] = useState("");
@@ -186,7 +186,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps, props: {}) {
 
         {/* Page content */}
         <main className="py-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-1">
             {children}
           </div>
         </main>

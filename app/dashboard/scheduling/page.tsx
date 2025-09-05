@@ -1,10 +1,12 @@
 import { ShowScheduling } from "@/components/dashboard-components/scheduling";
-import { fetchStaff } from "@/lib/data";
+import { fetchSchedule } from "@/lib/data";
 
 export default async function Schedulling() {
+  const data = await fetchSchedule();
+
   return (
     <>
-      <ShowScheduling />
+      <ShowScheduling data={data} />
     </>
   );
 }

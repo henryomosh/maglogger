@@ -32,7 +32,6 @@ export function DashboardHome() {
   }
 
   console.log("[v0] DashboardContent rendering, activeSection:", activeSection);
-  console.log("[v0] User:", user);
 
   const stats = [
     {

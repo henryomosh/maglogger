@@ -36,34 +36,28 @@ async function seedUsers() {
 async function seedSheduling() {
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await sql`
-    CREATE TABLE IF NOT EXISTS sheduling (
+    CREATE TABLE IF NOT EXISTS scheduling (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       title VARCHAR(255) NOT NULL,
-      category VARCHAR(255) NOT NULL,
-      description VARCHAR(255) NOT NULL,
+      category VARCHAR(255),
+      description VARCHAR(255),
+      day INT NOT NULL,
       host VARCHAR(255) NOT NULL,
       color VARCHAR(255) NOT NULL,
-      
+      start VARCHAR(255) NOT NULL,
+      ends VARCHAR(255) NOT NULL,
+      recurring BOOLEAN,
+      created TIMESTAMP NOT NULL,
+      date DATE,
+      status VARCHAR(255) NOT NULL,
+      staff UUID NOT NULL   
     );
   `;
-
-  const insertedUsers = await Promise.all(
-    users.map(async (user) => {
-      const hashedPassword = await bcrypt.hash(user.password, 10);
-      return sql`
-        INSERT INTO users (id, role, name, email, phone, specialities, status, bio, password)
-        VALUES (${user.id},${user.role}, ${user.name}, ${user.email},${user.phone},${user.specialities}, ${user.status}, ${user.bio}, ${hashedPassword})
-        ON CONFLICT (id) DO NOTHING;
-      `;
-    })
-  );
-
-  return insertedUsers;
 }
 
 export async function GET() {
   try {
-    const result = await sql.begin((sql) => [seedUsers()]);
+    const result = await sql.begin((sql) => [seedSheduling()]);
 
     return Response.json({ message: "Database seeded successfully" });
   } catch (error) {
