@@ -55,9 +55,29 @@ async function seedSheduling() {
   `;
 }
 
+async function seedLogs() {
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS logs (
+      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      show UUID NOT NULL,
+      start_Time JSONB,
+      end_time JSONB,
+      description JSONB,
+      guest_name JSONB,
+      topic JSONB,
+      phone JSONB,
+      created TIMESTAMP NOT NULL
+    );
+  `;
+}
 export async function GET() {
   try {
-    const result = await sql.begin((sql) => [seedSheduling()]);
+    const result = await sql.begin((sql) => [
+      seedUsers(),
+      seedSheduling(),
+      seedLogs(),
+    ]);
 
     return Response.json({ message: "Database seeded successfully" });
   } catch (error) {

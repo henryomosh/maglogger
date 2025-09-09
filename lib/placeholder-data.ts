@@ -8,7 +8,7 @@ const users = [
     specialities: "Music, Management",
     status: "active",
     bio: "News speciality",
-    password: "pass1234",
+    password: "password",
   },
   {
     id: "d6e15727-9fe1-4961-8c5b-ea44a9bd81aa",
@@ -19,7 +19,7 @@ const users = [
     specialities: "Music, Management",
     status: "active",
     bio: "News speciality",
-    password: "pass1234",
+    password: "password",
   },
   {
     id: "d6e15727-9fe1-4961-8c52-ea44a9bd82aa",
@@ -30,7 +30,7 @@ const users = [
     specialities: "Music, Management",
     status: "active",
     bio: "News speciality",
-    password: "pass1234",
+    password: "password",
   },
 ];
 

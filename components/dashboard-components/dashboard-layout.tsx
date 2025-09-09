@@ -50,9 +50,9 @@ const navigation = [
   {
     name: "Show Logs",
     icon: FileText,
-    href: "#logs",
+    href: "/dashboard/logs",
     key: "logs",
-    link: "#",
+    link: "/dashboard/logs",
   },
   {
     name: "Sheduling",
@@ -92,7 +92,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border transform ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-200 ease-in-out lg:translate-x-0`}>
+        } transition-transform duration-200 ease-in-out lg:translate-x-0`}
+      >
         <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-500 rounded-lg">
@@ -121,7 +122,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
                       : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                   }
-                    `}>
+                    `}
+                >
                   <item.icon className="h-5 w-5" />
                   {item.name}
                 </Link>
@@ -139,7 +141,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             variant="ghost"
             size="sm"
             className="lg:hidden"
-            onClick={() => setSidebarOpen(!sidebarOpen)}>
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
             <Menu className="h-5 w-5" />
           </Button>
 
@@ -150,7 +153,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-8 w-8 rounded-full">
+                    className="relative h-8 w-8 rounded-full"
+                  >
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-primary text-primary-foreground font-sans font-bold">
                         {user?.name

@@ -52,7 +52,6 @@ import {
 } from "@/lib/actions";
 import { toast } from "sonner";
 import "@/components/dashboard-components/radix-styles.css";
-import { start } from "repl";
 
 interface Show {
   id: string;
@@ -74,123 +73,6 @@ interface TimeSlot {
   minute: number;
   label: string;
 }
-
-// Mock shows data
-// const mockShows: Show[] = [
-//   {
-//     id: "1",
-//     title: "Newspaper Review",
-//     description: "Start your day with newspaper updates",
-//     djId: "3",
-//     djName: "Mike Presenter",
-//     startTime: "06:00",
-//     endTime: "07:00",
-//     dayOfWeek: 1, // Monday
-//     category: "Music",
-//     isRecurring: true,
-//     status: "scheduled",
-//     color: "bg-blue-500",
-//   },
-//   {
-//     id: "2",
-//     title: "Mass Line",
-//     description: "Start your day with newspaper updates",
-//     djId: "3",
-//     djName: "Mary Presenter",
-//     startTime: "08:00",
-//     endTime: "10:00",
-//     dayOfWeek: 1, // Monday
-//     category: "Music",
-//     isRecurring: true,
-//     status: "scheduled",
-//     color: "bg-indigo-500",
-//   },
-//   {
-//     id: "3",
-//     title: "Interview",
-//     description: "Start your day with newspaper updates",
-//     djId: "3",
-//     djName: "Peter Presenter",
-//     startTime: "10:00",
-//     endTime: "12:00",
-//     dayOfWeek: 1, // Monday
-//     category: "Music",
-//     isRecurring: true,
-//     status: "scheduled",
-//     color: "bg-purple-500",
-//   },
-//   {
-//     id: "4",
-//     title: "Music",
-//     description: "Smooth tunes for your afternoon",
-//     djId: "3",
-//     djName: "Mike DJ",
-//     startTime: "12:00",
-//     endTime: "18:00",
-//     dayOfWeek: 1, // Monday
-//     category: "Music",
-//     isRecurring: true,
-//     status: "live",
-//     color: "bg-green-500",
-//   },
-//   {
-//     id: "5",
-//     title: "Requests",
-//     description: "Classic and contemporary jazz selections",
-//     djId: "5",
-//     djName: "Tom Presenter",
-//     startTime: "19:00",
-//     endTime: "22:00",
-//     dayOfWeek: 1, // Monday
-//     category: "Jazz",
-//     isRecurring: true,
-//     status: "scheduled",
-//     color: "bg-purple-500",
-//   },
-//   {
-//     id: "6",
-//     title: "Night Beats",
-//     description: "Electronic and dance music for the night owls",
-//     djId: "6",
-//     djName: "Alex DJ",
-//     startTime: "22:00",
-//     endTime: "02:00",
-//     dayOfWeek: 1, // Monday
-//     category: "Electronic",
-//     isRecurring: true,
-//     status: "scheduled",
-//     color: "bg-pink-500",
-//   },
-//   // Tuesday shows
-//   {
-//     id: "8",
-//     title: "Morning Drive",
-//     description: "Start your day with the best music and traffic updates",
-//     djId: "3",
-//     djName: "Mike DJ",
-//     startTime: "06:00",
-//     endTime: "10:00",
-//     dayOfWeek: 2, // Tuesday
-//     category: "Music",
-//     isRecurring: true,
-//     status: "scheduled",
-//     color: "bg-blue-500",
-//   },
-//   {
-//     id: "9",
-//     title: "Midday Mix",
-//     description: "Pop hits and listener requests",
-//     djId: "4",
-//     djName: "Lisa Staff",
-//     startTime: "12:00",
-//     endTime: "15:00",
-//     dayOfWeek: 2, // Tuesday
-//     category: "Pop",
-//     isRecurring: true,
-//     status: "scheduled",
-//     color: "bg-orange-500",
-//   },
-// ];
 
 const timeSlots: TimeSlot[] = Array.from({ length: 24 }, (_, i) => ({
   hour: i,
@@ -243,9 +125,9 @@ export function ShowScheduling({ data }: { data: any }) {
   const weekDates = getWeekDates(currentWeek);
 
   const getShowsForDay = (dayOfWeek: number) => {
-    return shows
-      .filter((show) => show.day === dayOfWeek)
-      .sort((a, b) => a.start.localeCompare(b.start));
+    return data
+      .filter((show: any) => show.day === dayOfWeek)
+      .sort((a: any, b: any) => a.start.localeCompare(b.start));
   };
 
   const getStatusColor = (status: string) => {
@@ -294,11 +176,9 @@ export function ShowScheduling({ data }: { data: any }) {
     const starts = Number(startHours);
     const end = Number(endHours);
 
-    console.log({ start: starts, ends: end, now: hourNow });
-    if (end > hourNow && starts < hourNow) {
+    if (end >= hourNow && starts <= hourNow) {
       return "live";
     }
-
     if (starts > hourNow) {
       return "scheduled";
     }
@@ -351,7 +231,8 @@ export function ShowScheduling({ data }: { data: any }) {
         {canManageShows && (
           <Dialog
             open={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}>
+            onOpenChange={setIsDeleteDialogOpen}
+          >
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle className="font-sans font-bold">
@@ -365,13 +246,15 @@ export function ShowScheduling({ data }: { data: any }) {
                     type="button"
                     variant="outline"
                     onClick={() => setIsDeleteDialogOpen(false)}
-                    className="font-serif bg-transparent">
+                    className="font-serif bg-transparent"
+                  >
                     Cancel
                   </Button>
                   <Button
                     onClick={() => handleDelete(scheduleId)}
                     className="font-sans font-bold bg-red-600 hover:bg-red-400"
-                    disabled={isDeleting}>
+                    disabled={isDeleting}
+                  >
                     {isDeleting ? "Deleting..." : "Delete"}
                   </Button>
                 </DialogDescription>
@@ -389,11 +272,13 @@ export function ShowScheduling({ data }: { data: any }) {
               value={selectedView}
               onValueChange={(value) =>
                 setSelectedView(value as "day" | "week")
-              }>
+              }
+            >
               <TabsList>
                 <TabsTrigger
                   value="week"
-                  className="font-serif  bg-gray-300 data-[state=active]:bg-green-300  mr-2">
+                  className="font-serif  bg-gray-300 data-[state=active]:bg-green-300  mr-2"
+                >
                   {selectedView === "week" && (
                     <BadgeCheck className="h-6 w-6" />
                   )}{" "}
@@ -402,7 +287,8 @@ export function ShowScheduling({ data }: { data: any }) {
 
                 <TabsTrigger
                   value="day"
-                  className="font-serif bg-gray-300 data-[state=active]:bg-green-300">
+                  className="font-serif bg-gray-300 data-[state=active]:bg-green-300"
+                >
                   {selectedView === "day" && <BadgeCheck className="h-6 w-6" />}{" "}
                   Day View
                 </TabsTrigger>
@@ -414,7 +300,8 @@ export function ShowScheduling({ data }: { data: any }) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigateWeek("prev")}>
+                  onClick={() => navigateWeek("prev")}
+                >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="font-serif font-medium min-w-48 text-center">
@@ -432,7 +319,8 @@ export function ShowScheduling({ data }: { data: any }) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigateWeek("next")}>
+                  onClick={() => navigateWeek("next")}
+                >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -440,7 +328,8 @@ export function ShowScheduling({ data }: { data: any }) {
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentWeek(new Date())}
-                className="font-serif">
+                className="font-serif"
+              >
                 Today
               </Button>
             </div>
@@ -467,7 +356,8 @@ export function ShowScheduling({ data }: { data: any }) {
               {daysOfWeek.map((day, index) => (
                 <div
                   key={day}
-                  className="font-serif font-medium text-sm text-center p-2">
+                  className="font-serif font-medium text-sm text-center p-2"
+                >
                   <div>{day}</div>
                   <div className="text-xs text-muted-foreground">
                     {weekDates[index].toLocaleDateString("en-US", {
@@ -491,7 +381,7 @@ export function ShowScheduling({ data }: { data: any }) {
                     {/* Day columns */}
                     {daysOfWeek.map((_, dayIndex) => {
                       const dayShows = getShowsForDay(dayIndex).filter(
-                        (show) => {
+                        (show: any) => {
                           const showHour = Number.parseInt(
                             show.start.split(":")[0]
                           );
@@ -504,11 +394,13 @@ export function ShowScheduling({ data }: { data: any }) {
                       return (
                         <div
                           key={dayIndex}
-                          className="min-h-16 border-t border-l">
+                          className="min-h-16 border-t border-l"
+                        >
                           {dayShows.map((show: any) => (
                             <div
                               key={show.id}
-                              className={`${show.color} text-white text-xs pl-1 pb-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-opacity`}>
+                              className={`${show.color} text-white text-xs pl-1 pb-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-opacity`}
+                            >
                               <div className="flex items start justify-between ">
                                 <div className="font-sans font-bold truncate pt-2">
                                   {show.title}
@@ -522,7 +414,8 @@ export function ShowScheduling({ data }: { data: any }) {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="start">
                                       <DropdownMenuItem
-                                        onClick={() => setEditingShow(show)}>
+                                        onClick={() => setEditingShow(show)}
+                                      >
                                         <Edit className="h-4 w-4 mr-2 text-green-500" />
                                         Edit Show
                                       </DropdownMenuItem>
@@ -530,7 +423,8 @@ export function ShowScheduling({ data }: { data: any }) {
                                         onClick={() => {
                                           setScheduleId(show.id);
                                           setIsDeleteDialogOpen(true);
-                                        }}>
+                                        }}
+                                      >
                                         <Trash2 className="h-4 w-4 mr-2 text-red-500" />
                                         Delete Show
                                       </DropdownMenuItem>
@@ -557,7 +451,7 @@ export function ShowScheduling({ data }: { data: any }) {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {shows
+          {data
             .filter((show: any) => show.day === new Date().getDay())
             .sort((a: any, b: any) => a.start.localeCompare(b.start))
             .map((show: any) => (
@@ -566,7 +460,8 @@ export function ShowScheduling({ data }: { data: any }) {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-4 h-4 rounded-full ${show.color}`}></div>
+                        className={`w-4 h-4 rounded-full ${show.color}`}
+                      ></div>
                       <div>
                         <CardTitle className="text-lg font-sans font-bold">
                           {show.title}
@@ -585,7 +480,8 @@ export function ShowScheduling({ data }: { data: any }) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => setEditingShow(show)}>
+                            onClick={() => setEditingShow(show)}
+                          >
                             <Edit className="h-4 w-4 mr-2 text-green-500" />
                             Edit Show
                           </DropdownMenuItem>
@@ -593,7 +489,8 @@ export function ShowScheduling({ data }: { data: any }) {
                             onClick={() => {
                               setScheduleId(show.id);
                               setIsDeleteDialogOpen(true);
-                            }}>
+                            }}
+                          >
                             <Trash2 className="h-4 w-4 mr-2 text-red-500" />
                             Delete Show
                           </DropdownMenuItem>
@@ -609,7 +506,8 @@ export function ShowScheduling({ data }: { data: any }) {
                         startTime: show.start,
                         endTime: show.ends,
                       }) || ""
-                    )} font-serif text-sm`}>
+                    )} font-serif text-sm`}
+                  >
                     {/* {show.status.charAt(0).toUpperCase() + show.status.slice(1)} */}
                     {showStatus({ startTime: show.start, endTime: show.ends })}{" "}
                   </Badge>
@@ -701,7 +599,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
     endTime: initialData?.end || "12:00",
     dayOfWeek: initialData?.day || 1,
     category: initialData?.category || "Music",
-    isRecurring: initialData?.recurring || true,
+    isRecurring: initialData?.recurring || (true as boolean),
     status: initialData?.status || ("scheduled" as const),
     color: initialData?.color || "bg-blue-500",
   });
@@ -747,7 +645,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
   return (
     <form
       onSubmit={initialData ? handleUpdate : handleSubmit}
-      className="space-y-4">
+      className="space-y-4"
+    >
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="title" className="font-serif">
@@ -816,9 +715,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
           <Select
             name="host"
             value={formData.djId}
-            onValueChange={(value) =>
-              setFormData({ ...formData, djId: value })
-            }>
+            onValueChange={(value) => setFormData({ ...formData, djId: value })}
+          >
             <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue placeholder="Select DJ" />
             </SelectTrigger>
@@ -840,7 +738,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             value={formData.dayOfWeek.toString()}
             onValueChange={(value) =>
               setFormData({ ...formData, dayOfWeek: Number.parseInt(value) })
-            }>
+            }
+          >
             <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue />
             </SelectTrigger>
@@ -862,7 +761,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             value={formData.color}
             onValueChange={(value) =>
               setFormData({ ...formData, color: value })
-            }>
+            }
+          >
             <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue />
             </SelectTrigger>
@@ -871,7 +771,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
                 <SelectItem key={color.value} value={color.value}>
                   <div className="flex items-center gap-2">
                     <div
-                      className={`w-4 h-4 rounded-full ${color.value}`}></div>
+                      className={`w-4 h-4 rounded-full ${color.value}`}
+                    ></div>
                     {color.label}
                   </div>
                 </SelectItem>
@@ -923,7 +824,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             value={formData.status}
             onValueChange={(
               value: "scheduled" | "live" | "completed" | "cancelled"
-            ) => setFormData({ ...formData, status: value })}>
+            ) => setFormData({ ...formData, status: value })}
+          >
             <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue />
             </SelectTrigger>
@@ -973,17 +875,20 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
           type="button"
           variant="outline"
           onClick={onClose}
-          className="font-serif bg-transparent">
+          className="font-serif bg-transparent"
+        >
           Cancel
         </Button>
         <Button
           type="submit"
           className="font-sans font-bold"
-          disabled={isSubmitting}>
+          disabled={isSubmitting}
+        >
           {isSubmitting ? (
             <div
               role="status"
-              className="flex items-center justify-center gap-2">
+              className="flex items-center justify-center gap-2"
+            >
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-100 border-t-transparent"></div>
               <span>Processing ...</span>
             </div>

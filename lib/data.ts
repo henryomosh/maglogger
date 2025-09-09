@@ -75,10 +75,66 @@ export async function fetchSchedule() {
       ...item,
       date: item?.date ? item.date : "",
     }));
-    console.log(schedule);
+
     return schedule;
   } catch (error) {
     console.error("Database Error:", error);
+    throw new Error("Failed to fetch the latest invoices.");
+  }
+}
+
+export async function fetchUserSchedule(id: string) {
+  try {
+    const data = await sql<[]>`
+      SELECT 
+      scheduling.id,
+      scheduling.title,
+      scheduling.start,
+      scheduling.ends
+      FROM scheduling
+      WHERE scheduling.staff = ${id}
+      ORDER BY scheduling.created DESC`;
+    return data;
+  } catch (error) {
+    console.log("Database Error:", error);
+    throw new Error("Failed to fetch the latest invoices.");
+  }
+}
+
+export async function fetchLogs() {
+  try {
+    const data = await sql`
+      SELECT 
+      logs.id,
+      logs.show,
+      logs.start_time,
+      logs.end_time,
+      logs.description,
+      logs.guest_name,
+      logs.topic,
+      logs.phone,
+      logs.created,
+      scheduling.title,
+      users.name
+      FROM logs
+      JOIN scheduling ON logs.show = scheduling.id
+      JOIN users ON scheduling.staff = users.id 
+
+      `;
+
+    const logs = data.map((item) => ({
+      ...item,
+      start_time: JSON.parse(item?.start_time),
+      end_time: JSON.parse(item?.end_time),
+      description: JSON.parse(item?.description),
+      guest_name: JSON.parse(item?.guest_name),
+      topic: JSON.parse(item?.topic),
+      phone: JSON.parse(item?.phone),
+    }));
+    console.log(logs);
+    return logs;
+  } catch (error) {
+    console.log("Database Error:", error);
     throw new Error("Failed to fetch the latest invoices.");
   }
 }
