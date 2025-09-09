@@ -215,6 +215,7 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
     const result = await createLog(formData2);
     toast.success("Log Created successfully!");
     setIsSubmitting(false);
+    onClose();
   };
 
   return (

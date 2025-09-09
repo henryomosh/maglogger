@@ -606,10 +606,10 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
 
   // Mock DJs for selection
   const availableDJs = [
-    { id: "3", name: "Mike DJ" },
+    { id: "3", name: "Mike BARASA" },
     { id: "4", name: "Lisa Staff" },
-    { id: "5", name: "Tom DJ" },
-    { id: "6", name: "Alex DJ" },
+    { id: "5", name: "Tom CAT" },
+    { id: "6", name: "Alex MWANNGI" },
   ];
 
   const showColors = [
@@ -710,7 +710,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="dj" className="font-serif">
-            DJ/Host
+            Show Host
           </Label>
           <Select
             name="host"
@@ -718,7 +718,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             onValueChange={(value) => setFormData({ ...formData, djId: value })}
           >
             <SelectTrigger className="border-1 border-blue-400 w-full">
-              <SelectValue placeholder="Select DJ" />
+              <SelectValue placeholder="Select Host" />
             </SelectTrigger>
             <SelectContent>
               {availableDJs.map((dj) => (
