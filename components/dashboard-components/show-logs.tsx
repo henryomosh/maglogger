@@ -242,7 +242,7 @@ export function ShowLogs({
   const filteredUserLogs = canManageShows
     ? showLogs
     : showLogs.filter((item: any) => {
-        return item.staff === user?.id;
+        return item?.staff === user?.id;
       });
 
   const filteredLogs1 = filteredUserLogs?.filter((log: any) => {

@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 
 import React from "react";
@@ -376,7 +375,7 @@ export function StaffManagement({ data }: { data: any }) {
         {filteredStaff?.map((member: any) => (
           <Card key={member.id} className="relative">
             <CardHeader className="pb-3">
-              {member.id === user.id && (
+              {member.id === user?.id && (
                 <Badge className="bg-green-500 mb-2">Current user</Badge>
               )}
               <div className="flex items-start justify-between">
@@ -591,7 +590,6 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
     const formData2 = new FormData(e.currentTarget);
     const result = await createStaff(formData2);
 
-    setStatus(result);
     setIsSubmitting(false);
 
     setIsSubmitting(false);
