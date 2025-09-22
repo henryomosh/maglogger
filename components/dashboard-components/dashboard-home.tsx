@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useAuth } from "@/components/auth-provider";
-import { LoginForm } from "@/components/login-form";
 
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -21,17 +21,35 @@ import {
   Clock,
   Mic,
   Radio,
+  Clock3,
+  Check,
+  CircleX,
+  FileText,
 } from "lucide-react";
 
-export function DashboardHome() {
+export function DashboardHome({
+  staffData,
+  activeUsers,
+  scheduleData,
+  logsData,
+  liveShow,
+  approvedLogs,
+  pendingLogs,
+  declinedLogs,
+  upCommingShows,
+}: {
+  staffData: any;
+  scheduleData: any;
+  activeUsers: any;
+  logsData: any;
+  liveShow: any;
+  approvedLogs: any;
+  pendingLogs: any;
+  declinedLogs: any;
+  upCommingShows: any;
+}) {
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
-
-  if (!user) {
-    return <LoginForm />;
-  }
-
-  console.log("[v0] DashboardContent rendering, activeSection:", activeSection);
 
   const stats = [
     {
@@ -110,23 +128,96 @@ export function DashboardHome() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-serif font-medium">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-sans font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground font-serif">
-                {stat.change}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-serif font-medium">
+              Active Presenters
+            </CardTitle>
+            <Users className="h-4 w-4 text-chart-1" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-sans font-bold">
+              {activeUsers.length || 0}
+            </div>
+            <p className="text-xs text-muted-foreground font-serif">
+              +2 this week
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-serif font-medium">
+              Shows Today
+            </CardTitle>
+            <Radio className="h-4 w-4 text-chart-2" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-sans font-bold">
+              {scheduleData?.length || 0}
+            </div>
+            <p className="text-xs text-muted-foreground font-serif">
+              {liveShow?.length > 0
+                ? `${liveShow.length} live now`
+                : "No live show"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-serif font-medium">
+              Approved Logs
+            </CardTitle>
+            <Check className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-sans font-bold">
+              {approvedLogs?.length || 0}
+            </div>
+            <p className="text-xs text-muted-foreground font-serif">
+              {liveShow?.length > 0
+                ? `${approvedLogs.length} live now`
+                : "No live show"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-serif font-medium">
+              Pending Logs
+            </CardTitle>
+            <Clock3 className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-sans font-bold">
+              {pendingLogs?.length || 0}
+            </div>
+            <p className="text-xs text-muted-foreground font-serif">
+              {liveShow?.length > 0
+                ? `${liveShow.length} live now`
+                : "No live show"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-serif font-medium">
+              Declined Logs
+            </CardTitle>
+            <CircleX className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-sans font-bold">
+              {declinedLogs?.length || 0}
+            </div>
+            <p className="text-xs text-muted-foreground font-serif">
+              {liveShow?.length > 0
+                ? `${liveShow.length} live now`
+                : "No live show"}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content Grid */}
@@ -175,24 +266,26 @@ export function DashboardHome() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {upcomingShows.map((show, index) => (
+              {upCommingShows.map((show: any, index: any) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
                       <Mic className="h-4 w-4 text-accent" />
                       <span className="text-sm font-serif font-medium">
-                        {show.time}
+                        {show?.start}
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm font-sans font-bold">{show.show}</p>
+                      <p className="text-sm font-sans font-bold">
+                        {show?.title}
+                      </p>
                       <p className="text-xs text-muted-foreground font-serif">
-                        with {show.dj}
+                        with {show.name}
                       </p>
                     </div>
                   </div>
                   <Badge variant="secondary" className="font-serif text-xs">
-                    {show.duration}
+                    {show?.duration ? `${show.duration}h` : ""}
                   </Badge>
                 </div>
               ))}
@@ -211,77 +304,49 @@ export function DashboardHome() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
-            {user?.role === "admin" || user?.role === "manager" ? (
-              <>
-                <div
-                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => setActiveSection("staff")}>
+            <>
+              <Link href="dashboard/staff">
+                <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
                   <Users className="h-5 w-5 text-accent" />
                   <div>
                     <p className="font-serif font-medium">Manage Staff</p>
                     <p className="text-xs text-muted-foreground font-serif">
-                      Add or edit DJ profiles
+                      Add or edit Staff profiles
                     </p>
                   </div>
                 </div>
+              </Link>
+              <Link href="dashboard/scheduling">
+                {" "}
                 <div
                   className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => setActiveSection("scheduling")}>
+                  onClick={() => setActiveSection("scheduling")}
+                >
                   <Calendar className="h-5 w-5 text-accent" />
                   <div>
                     <p className="font-serif font-medium">Schedule Shows</p>
                     <p className="text-xs text-muted-foreground font-serif">
-                      Update programming
+                      Update Show programming
                     </p>
                   </div>
                 </div>
+              </Link>
+              <Link href="dashboard/logs">
+                {" "}
                 <div
                   className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => setActiveSection("analytics")}>
-                  <TrendingUp className="h-5 w-5 text-accent" />
+                  onClick={() => setActiveSection("analytics")}
+                >
+                  <FileText className="h-5 w-5 text-accent" />
                   <div>
-                    <p className="font-serif font-medium">View Analytics</p>
+                    <p className="font-serif font-medium">View Logs</p>
                     <p className="text-xs text-muted-foreground font-serif">
-                      Check performance
+                      View and manage show logs
                     </p>
                   </div>
                 </div>
-              </>
-            ) : (
-              <>
-                <div
-                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => setActiveSection("playlists")}>
-                  <Music className="h-5 w-5 text-accent" />
-                  <div>
-                    <p className="font-serif font-medium">My Playlists</p>
-                    <p className="text-xs text-muted-foreground font-serif">
-                      Manage your music
-                    </p>
-                  </div>
-                </div>
-                <div
-                  className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => setActiveSection("scheduling")}>
-                  <Calendar className="h-5 w-5 text-accent" />
-                  <div>
-                    <p className="font-serif font-medium">My Schedule</p>
-                    <p className="text-xs text-muted-foreground font-serif">
-                      View upcoming shows
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
-                  <Radio className="h-5 w-5 text-accent" />
-                  <div>
-                    <p className="font-serif font-medium">Go Live</p>
-                    <p className="text-xs text-muted-foreground font-serif">
-                      Start broadcasting
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
+              </Link>
+            </>
           </div>
         </CardContent>
       </Card>

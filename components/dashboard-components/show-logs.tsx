@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
@@ -57,10 +56,27 @@ import {
   Trash2,
   ListCheck,
   ContactRound,
+  FileText,
+  AlarmClock,
+  OctagonAlert,
+  Trash,
+  Edit,
+  MoreVertical,
+  Clock3,
+  Check,
+  CircleX,
+  ShieldAlert,
 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { fetchUserSchedule, fetchLogs } from "@/lib/data";
-
+import { deleteLog } from "@/lib/actions";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 interface ShowLog {
   id: string;
   showId: string;
@@ -175,6 +191,12 @@ const logTypeConfig = {
   news: { icon: MessageSquare, color: "bg-indigo-500", label: "News" },
 };
 
+const logStatus = {
+  pending: "pending",
+  approved: "approved",
+  declined: "declined",
+};
+
 export function ShowLogs({
   schedule,
   showLogs,
@@ -190,13 +212,14 @@ export function ShowLogs({
   const [selectedDate, setSelectedDate] = useState("");
   const [isAddLogOpen, setIsAddLogOpen] = useState(false);
   const [isLogDetailsOpen, setIsDetailsLogOpen] = useState(false);
-  const [modalLogDetails, setModalLogsDetails] = useState<ModalLogsDetails>({
-    start_time: {},
-    end_time: {},
-    description: {},
-    guest_name: {},
-    topic: {},
-    phone: {},
+  const [editingLog, setEditingLog] = useState(null);
+  const [modalLogDetails, setModalLogsDetails] = useState({
+    title: "",
+    name: "",
+    segments: [],
+    guests: [],
+    start: "",
+    ends: "",
   });
   const [viewMode, setViewMode] = useState<"cards" | "table">("table");
   const [currentPage, setCurrentPage] = useState(1);
@@ -208,21 +231,40 @@ export function ShowLogs({
     content: "",
     metadata: {},
   });
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [logId, setLogId] = useState("");
+
+  const canManageShows = user?.role === "admin" || user?.role === "manager";
 
   const uniqueShows = Array.from(new Set(logs.map((log) => log.showTitle)));
 
-  const filteredLogs = logs.filter((log) => {
+  const filteredUserLogs = canManageShows
+    ? showLogs
+    : showLogs.filter((item: any) => {
+        return item.staff === user?.id;
+      });
+
+  const filteredLogs1 = filteredUserLogs?.filter((log: any) => {
     const matchesSearch =
-      log.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.showTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.djName.toLowerCase().includes(searchTerm.toLowerCase());
+      log.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.start.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.ends.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.status.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesType = filterType === "all" || log.type === filterType;
-    const matchesShow = filterShow === "all" || log.showTitle === filterShow;
-    const matchesDate = !selectedDate || log.timestamp.startsWith(selectedDate);
+    const timestamp = log.created;
+    const matchesStatus = filterType === "all" || log.status === filterType;
+    const matchesShow = filterShow === "all" || log.title === filterShow;
 
-    return matchesSearch && matchesType && matchesShow && matchesDate;
+    const matchesDate = !selectedDate || timestamp.startsWith(selectedDate);
+
+    return matchesSearch && matchesStatus && matchesShow && matchesDate;
   });
+  const filteredLogs = filteredLogs1.sort(
+    (a: any, b: any) =>
+      new Date(b.created).getTime() - new Date(a.created).getTime()
+  );
 
   const groupedLogs = filteredLogs.reduce((groups: any, log: any) => {
     const date = new Date(log.timestamp).toDateString();
@@ -244,36 +286,26 @@ export function ShowLogs({
     return new Date(timestamp).toLocaleDateString();
   };
 
-  const handleAddLog = () => {
-    const log: ShowLog = {
-      id: Date.now().toString(),
-      ...newLog,
-      djName: user?.name || "Unknown DJ",
-      timestamp: new Date().toISOString(),
-    };
-    setLogs([log, ...logs]);
-    setNewLog({
-      showId: "",
-      showTitle: "",
-      type: "announcement",
-      content: "",
-      metadata: {},
-    });
-    setIsAddLogOpen(false);
-  };
-
   const exportLogs = () => {
     const csvContent = [
-      ["Date", "Time", "Show", "DJ", "Type", "Content", "Metadata"].join(","),
-      ...filteredLogs.map((log) =>
+      [
+        "Created",
+        "Show",
+        "Presenter",
+        "Segments",
+        "Guests",
+        "Show Starts",
+        "Show Ends",
+      ].join(","),
+      ...filteredLogs.map((log: any) =>
         [
-          formatDate(log.timestamp),
-          formatTime(log.timestamp),
-          log.showTitle,
-          log.djName,
-          logTypeConfig[log.type].label,
-          `"${log.content}"`,
-          JSON.stringify(log.metadata || {}),
+          formatDate(log.created),
+          log.title,
+          log.name,
+          log.segments.length,
+          log.guests.length,
+          log.start,
+          log.ends,
         ].join(",")
       ),
     ].join("\n");
@@ -292,11 +324,19 @@ export function ShowLogs({
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedLogs = showLogs.slice(startIndex, endIndex);
+  const paginatedLogs = filteredLogs.slice(startIndex, endIndex);
 
   const handleFilterChange = (filterFn: () => void) => {
     filterFn();
     setCurrentPage(1);
+  };
+
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true);
+    await deleteLog(id);
+    toast.warning("Log Deleted!");
+    setIsDeleting(false);
+    setIsDeleteDialogOpen(false);
   };
 
   return (
@@ -314,16 +354,16 @@ export function ShowLogs({
         <div className="flex gap-2">
           <div className="flex border rounded-lg">
             <Button
-              variant={viewMode === "cards" ? "default" : "ghost"}
+              variant={viewMode === "cards" ? "success" : "ghost"}
               size="sm"
               onClick={() => setViewMode("cards")}
-              className="rounded-r-none font-serif"
+              className="rounded-r-none font-serif "
             >
               <LayoutGrid className="h-4 w-4 mr-2" />
               Cards
             </Button>
             <Button
-              variant={viewMode === "table" ? "default" : "ghost"}
+              variant={viewMode === "table" ? "success" : "ghost"}
               size="sm"
               onClick={() => setViewMode("table")}
               className="rounded-l-none font-serif"
@@ -335,17 +375,17 @@ export function ShowLogs({
           <Button
             onClick={exportLogs}
             variant="outline"
-            className="font-serif bg-transparent"
+            className="font-serif bg-transparent hover:bg-green-600"
           >
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
           {(user?.role === "admin" ||
             user?.role === "manager" ||
-            user?.role === "dj") && (
+            user?.role === "staff") && (
             <Dialog open={isAddLogOpen} onOpenChange={setIsAddLogOpen}>
               <DialogTrigger asChild>
-                <Button className="font-serif">
+                <Button variant="success" className="font-serif">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Log Entry
                 </Button>
@@ -359,7 +399,10 @@ export function ShowLogs({
                     Record a new activity for a radio show
                   </DialogDescription>
                 </DialogHeader>
-                <ShowLogsForm />
+                <ShowLogsForm
+                  initialData={editingLog}
+                  onClose={() => setIsAddLogOpen(false)}
+                />
               </DialogContent>
             </Dialog>
           )}
@@ -367,177 +410,180 @@ export function ShowLogs({
             <DialogTrigger asChild></DialogTrigger>
             <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="font-sans font-bold text-xl">
+                <DialogTitle className="flex items-start gap-2 font-sans font-bold text-xl">
+                  <div className={`p-2 rounded-full bg-cyan-500 text-white`}>
+                    <FileText className="h-4 w-4" />
+                  </div>
                   Log Details
                 </DialogTitle>
                 <DialogDescription className="font-serif"></DialogDescription>
               </DialogHeader>
               <div className="flex gap-4 pb-2">
-                <div>
-                  {modalLogDetails?.start_time ? (
-                    Object.keys(modalLogDetails?.start_time).map(
-                      (key, index) => (
-                        <div className="mt-2 flex flex-wrap gap-2" key={index}>
-                          <ListCheck className="h-4 w-4 text-green-500" />
-                          <p className="text-xs font-serif text-foreground">
-                            <strong>Start Time: </strong>
-                            {modalLogDetails.start_time[key]}
-                          </p>
-                        </div>
-                      )
-                    )
-                  ) : (
-                    <p className="text-sm font-serif text-foreground">
-                      No segments
-                    </p>
-                  )}
-                </div>
-                <div>
-                  {" "}
-                  {modalLogDetails?.end_time &&
-                    Object.keys(modalLogDetails.end_time).map((key, index) => (
-                      <div className="mt-2 flex flex-wrap gap-2" key={index}>
-                        <p className="text-xs font-serif text-foreground">
-                          <strong>End Time: </strong>
-                          {modalLogDetails.end_time[key]}
-                        </p>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-4 ">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-sans font-bold text-md">
+                          {modalLogDetails?.title}
+                        </span>
+                        <span className="text-sm text-muted-foreground font-serif">
+                          with {modalLogDetails.name}
+                        </span>
                       </div>
-                    ))}
-                </div>
-                <div>
-                  {modalLogDetails.description &&
-                    Object.keys(modalLogDetails.description).map(
-                      (key, index) => (
-                        <div className="mt-2 flex flex-wrap gap-2" key={index}>
-                          <p className="text-xs font-serif text-foreground">
-                            <strong>Description:</strong>{" "}
-                            {modalLogDetails.description[key]}
-                          </p>
-                        </div>
-                      )
-                    )}
-                </div>
-              </div>
-              <hr />
-              <h1 className="font-serif font-bold pt-2">Guests</h1>
-              <div className="flex gap-4 ">
-                <div>
-                  {modalLogDetails.guest_name ? (
-                    Object.keys(modalLogDetails.guest_name).map(
-                      (key, index) => (
-                        <div className="mt-2 flex flex-wrap gap-2" key={index}>
-                          <ContactRound className="h-4 w-4 text-purple-500" />
-                          <p className="text-xs font-serif text-foreground">
-                            <strong>Guest Name:</strong>{" "}
-                            {modalLogDetails.guest_name[key]}
-                          </p>
-                        </div>
-                      )
-                    )
-                  ) : (
-                    <p className="text-sm font-serif text-foreground">
-                      No guests
-                    </p>
-                  )}
-                </div>
-                <div>
-                  {" "}
-                  {modalLogDetails.topic &&
-                    Object.keys(modalLogDetails.topic).map((key, index) => (
-                      <div className="mt-2 flex flex-wrap gap-2" key={index}>
-                        <p className="text-xs font-serif text-foreground">
-                          <strong> Topic:</strong> {modalLogDetails.topic[key]}
-                        </p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <AlarmClock className="h-4 w-4 text-indigo-400" />
+                        <span className="text-sm text-muted-foreground font-serif">
+                          {modalLogDetails.start}
+                        </span>
+                        <span className="text-sm text-muted-foreground font-serif">
+                          -
+                        </span>
+                        <span className="text-sm text-muted-foreground font-serif">
+                          {modalLogDetails.ends}
+                        </span>
                       </div>
-                    ))}
-                </div>
-                <div>
-                  {modalLogDetails.phone &&
-                    Object.keys(modalLogDetails.phone).map((key, index) => (
-                      <div className="mt-2 flex flex-wrap gap-2" key={index}>
-                        <p className="text-xs font-serif text-foreground">
-                          <strong>Phone Number:</strong>{" "}
-                          {modalLogDetails.phone[key]}
-                        </p>
+                      <hr />
+                      <h1 className="font-serif font-bold pt-2">Segments</h1>
+                      <div className="flex gap-4 pb-2">
+                        <div>
+                          {modalLogDetails.segments ? (
+                            modalLogDetails.segments.map(
+                              (item: any, index: any) => (
+                                <div className="flex gap-6" key={index}>
+                                  <div className="mt-2 flex gap-2">
+                                    <ListCheck className="h-4 w-4 text-green-500" />
+                                    <p className="text-xs font-serif text-foreground">
+                                      <strong>Start Time: </strong>
+                                      {item?.startTime}{" "}
+                                    </p>
+                                  </div>
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    <p className="text-xs font-serif text-foreground">
+                                      <strong>End Time: </strong>
+                                      {item?.endTime}
+                                    </p>
+                                  </div>
+                                  <div
+                                    className="mt-2 flex flex-wrap gap-2"
+                                    key={index}
+                                  >
+                                    <p className="text-xs font-serif text-foreground">
+                                      <strong>Description: </strong>{" "}
+                                      {item?.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              )
+                            )
+                          ) : (
+                            <p className="text-sm font-serif text-foreground">
+                              No segments
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    ))}
+                      <hr />
+                      <h1 className="font-serif font-bold pt-2">Guests</h1>
+                      <div className=" ">
+                        {modalLogDetails?.guests.length > 0 ? (
+                          modalLogDetails.guests.map(
+                            (item: any, index: any) => (
+                              <div
+                                className="flex justify-start gap-6"
+                                key={index}
+                              >
+                                <div className="mt-2 flex  gap-2">
+                                  <ContactRound className="h-4 w-4 text-purple-500" />
+                                  <p className="text-xs font-serif text-foreground">
+                                    <strong>Name: </strong>
+                                    {item?.guestName}{" "}
+                                  </p>
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  <p className="text-xs font-serif text-foreground">
+                                    <strong>Topic: </strong>
+                                    {item?.topic}
+                                  </p>
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  <p className="text-xs font-serif text-foreground">
+                                    <strong>Phone: </strong> {item?.phone}
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          )
+                        ) : (
+                          <p className="text-sm font-serif text-foreground">
+                            No guests
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="mt-2 flex flex-wrap gap-2"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </DialogContent>
           </Dialog>
+          {/* Edit Logs */}
+          {editingLog && (
+            <Dialog
+              open={!!editingLog}
+              onOpenChange={() => setEditingLog(null)}
+            >
+              <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="font-sans font-bold">
+                    Edit Show Log
+                  </DialogTitle>
+                  <DialogDescription className="font-serif"></DialogDescription>
+                </DialogHeader>
+                <ShowLogsForm
+                  initialData={editingLog}
+                  onClose={() => setEditingLog(null)}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
+          {/* Delete Log */}
+          {logId && (
+            <Dialog
+              open={isDeleteDialogOpen}
+              onOpenChange={setIsDeleteDialogOpen}
+            >
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="font-sans font-bold">
+                    <div className="flex gap-4">
+                      <OctagonAlert className="h-10 w-10 text-red-600" /> Are
+                      your sure you want to delete this log?
+                    </div>
+                  </DialogTitle>
+                  <DialogDescription className="font-serif flex justify-end gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDeleteDialogOpen(false)}
+                      className="font-serif bg-transparent"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => handleDelete(logId)}
+                      className="font-sans font-bold bg-red-600 hover:bg-red-400"
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? "Deleting..." : "Delete"}
+                    </Button>
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
-
-      {/* Stats Cards */}
-      {/* <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-serif font-medium">
-              Total Logs
-            </CardTitle>
-            <Eye className="h-4 w-4 text-chart-1" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-sans font-bold">
-              {filteredLogs.length}
-            </div>
-            <p className="text-xs text-muted-foreground font-serif">
-              {logs.length} total entries
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-serif font-medium">
-              Songs Played
-            </CardTitle>
-            <Music className="h-4 w-4 text-chart-2" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-sans font-bold">
-              {filteredLogs.filter((log) => log.type === "song").length}
-            </div>
-            <p className="text-xs text-muted-foreground font-serif">
-              Music tracks logged
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-serif font-medium">
-              Technical Issues
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-chart-3" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-sans font-bold">
-              {filteredLogs.filter((log) => log.type === "technical").length}
-            </div>
-            <p className="text-xs text-muted-foreground font-serif">
-              Issues reported
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-serif font-medium">
-              Listener Calls
-            </CardTitle>
-            <Phone className="h-4 w-4 text-chart-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-sans font-bold">
-              {
-                filteredLogs.filter((log) => log.type === "listener_call")
-                  .length
-              }
-            </div>
-            <p className="text-xs text-muted-foreground font-serif">
-              Calls received
-            </p>
-          </CardContent>
-        </Card>
-      </div> */}
 
       {/* Filters */}
       <Card>
@@ -565,15 +611,15 @@ export function ShowLogs({
               }
             >
               <SelectTrigger className="font-serif border-1 border-blue-400">
-                <SelectValue placeholder="Filter by type" />
+                <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="font-serif">
-                  All Types
+                  All status
                 </SelectItem>
-                {Object.entries(logTypeConfig).map(([key, config]) => (
+                {Object.entries(logStatus).map(([key, config]) => (
                   <SelectItem key={key} value={key} className="font-serif">
-                    {config.label}
+                    {config}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -591,9 +637,13 @@ export function ShowLogs({
                 <SelectItem value="all" className="font-serif">
                   All Shows
                 </SelectItem>
-                {uniqueShows.map((show) => (
-                  <SelectItem key={show} value={show} className="font-serif">
-                    {show}
+                {showLogs.map((log: any) => (
+                  <SelectItem
+                    key={log.id}
+                    value={log.title}
+                    className="font-serif"
+                  >
+                    {log.title}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -619,51 +669,118 @@ export function ShowLogs({
                 <Calendar className="h-5 w-5" />
               </CardTitle>
               <CardDescription className="font-serif">
-                {showLogs.length} log entries
+                {filteredLogs.length} log entries
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {showLogs.map((log: any) => {
+                {filteredLogs.map((log: any) => {
                   return (
                     <div
                       key={log.id}
                       className="flex items-start gap-4 p-4 border rounded-lg"
                     >
-                      <div className={`p-2 rounded-full  text-white`}></div>
+                      <div
+                        className={`p-2 rounded-full bg-cyan-500 text-white hidden md:block`}
+                      >
+                        <FileText className="h-4 w-4" />
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge
-                            variant="secondary"
-                            className="font-serif text-xs"
-                          >
-                            Approved
-                          </Badge>
-                          <span className="text-sm text-muted-foreground font-serif"></span>
+                        <div className="flex justify-between">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-sans font-bold text-sm">
+                              {log.title}
+                            </span>
+                            <span className="text-sm text-muted-foreground font-serif">
+                              with {log.name}
+                            </span>
+                          </div>
+                          <div className="flex gap-4">
+                            <div>
+                              {log?.status === "pending" && (
+                                <Badge className="font-serif text-xs bg-yellow-200 text-default">
+                                  <Clock3 className="h-4 w-4" /> Pending
+                                </Badge>
+                              )}
+                              {log?.status === "declined" && (
+                                <Badge className="font-serif text-xs bg-red-500 text-white">
+                                  <CircleX className="h-6 w-6" /> Declined
+                                </Badge>
+                              )}
+                              {log?.status === "approved" && (
+                                <Badge className="font-serif text-xs bg-green-500 text-white">
+                                  <Check className="h-6 w-6" /> Aproved
+                                </Badge>
+                              )}
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <MoreVertical className="h-4 w-4" />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                className="bg-blue-50"
+                              >
+                                <DropdownMenuItem
+                                  onClick={() => setEditingLog(log)}
+                                >
+                                  <Edit className="h-4 w-4 mr-2 text-green-600" />
+                                  Edit Log
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setLogId(log.id);
+                                    setIsDeleteDialogOpen(true);
+                                  }}
+                                >
+                                  <Trash className="h-4 w-4 mr-2 text-red-600" />
+                                  Delete Log
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-sans font-bold text-sm">
-                            {log.title}
+                        <div className="flex items-center gap-2 mb-1">
+                          <AlarmClock className="h-4 w-4 text-indigo-400" />
+                          <span className="text-sm text-muted-foreground font-serif">
+                            {log.start}
                           </span>
                           <span className="text-sm text-muted-foreground font-serif">
-                            with {log.name}
+                            -
+                          </span>
+                          <span className="text-sm text-muted-foreground font-serif">
+                            {log.ends}
                           </span>
                         </div>
                         <hr />
                         <h1 className="font-serif font-bold pt-2">Segments</h1>
                         <div className="flex gap-4 pb-2">
                           <div>
-                            {log.start_time ? (
-                              Object.keys(log.start_time).map((key, index) => (
-                                <div
-                                  className="mt-2 flex flex-wrap gap-2"
-                                  key={index}
-                                >
-                                  <ListCheck className="h-4 w-4 text-green-500" />
-                                  <p className="text-xs font-serif text-foreground">
-                                    <strong>Start Time: </strong>
-                                    {log.start_time[key]}
-                                  </p>
+                            {log.segments.length > 0 ? (
+                              log.segments.map((item: any, index: any) => (
+                                <div className="flex gap-6" key={index}>
+                                  <div className="mt-2 flex gap-2">
+                                    <ListCheck className="h-4 w-4 text-green-500" />
+                                    <p className="text-xs font-serif text-foreground">
+                                      <strong>Start Time: </strong>
+                                      {item?.startTime}{" "}
+                                    </p>
+                                  </div>
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    <p className="text-xs font-serif text-foreground">
+                                      <strong>End Time: </strong>
+                                      {item?.endTime}
+                                    </p>
+                                  </div>
+                                  <div
+                                    className="mt-2 flex flex-wrap gap-2"
+                                    key={index}
+                                  >
+                                    <p className="text-xs font-serif text-foreground">
+                                      <strong>Description: </strong>{" "}
+                                      {item?.description}
+                                    </p>
+                                  </div>
                                 </div>
                               ))
                             ) : (
@@ -672,87 +789,41 @@ export function ShowLogs({
                               </p>
                             )}
                           </div>
-                          <div>
-                            {" "}
-                            {log.end_time &&
-                              Object.keys(log.end_time).map((key, index) => (
-                                <div
-                                  className="mt-2 flex flex-wrap gap-2"
-                                  key={index}
-                                >
-                                  <p className="text-xs font-serif text-foreground">
-                                    <strong>End Time: </strong>
-                                    {log.end_time[key]}
-                                  </p>
-                                </div>
-                              ))}
-                          </div>
-                          <div>
-                            {log.description &&
-                              Object.keys(log.description).map((key, index) => (
-                                <div
-                                  className="mt-2 flex flex-wrap gap-2"
-                                  key={index}
-                                >
-                                  <p className="text-xs font-serif text-foreground">
-                                    <strong>Description:</strong>{" "}
-                                    {log.description[key]}
-                                  </p>
-                                </div>
-                              ))}
-                          </div>
                         </div>
                         <hr />
                         <h1 className="font-serif font-bold pt-2">Guests</h1>
-                        <div className="flex gap-4 ">
-                          <div>
-                            {log.guest_name ? (
-                              Object.keys(log.guest_name).map((key, index) => (
-                                <div
-                                  className="mt-2 flex flex-wrap gap-2"
-                                  key={index}
-                                >
+                        <div className=" ">
+                          {log.guests.lenghth > 0 ? (
+                            log.guests.map((item: any, index: any) => (
+                              <div
+                                className="flex justify-start gap-6"
+                                key={index}
+                              >
+                                <div className="mt-2 flex   gap-2">
                                   <ContactRound className="h-4 w-4 text-purple-500" />
                                   <p className="text-xs font-serif text-foreground">
-                                    <strong>Guest Name:</strong>{" "}
-                                    {log.guest_name[key]}
+                                    <strong>Name: </strong>
+                                    {item?.guestName}{" "}
                                   </p>
                                 </div>
-                              ))
-                            ) : (
-                              <p className="text-sm font-serif text-foreground">
-                                No guests
-                              </p>
-                            )}
-                          </div>
-                          <div>
-                            {" "}
-                            {log.topic &&
-                              Object.keys(log.topic).map((key, index) => (
-                                <div
-                                  className="mt-2 flex flex-wrap gap-2"
-                                  key={index}
-                                >
+                                <div className="mt-2 flex flex-wrap gap-2">
                                   <p className="text-xs font-serif text-foreground">
-                                    <strong> Topic:</strong> {log.topic[key]}
+                                    <strong>Topic: </strong>
+                                    {item?.topic}
                                   </p>
                                 </div>
-                              ))}
-                          </div>
-                          <div>
-                            {log.phone &&
-                              Object.keys(log.phone).map((key, index) => (
-                                <div
-                                  className="mt-2 flex flex-wrap gap-2"
-                                  key={index}
-                                >
+                                <div className="mt-2 flex flex-wrap gap-2">
                                   <p className="text-xs font-serif text-foreground">
-                                    <strong>Phone Number:</strong>{" "}
-                                    {log.phone[key]}
+                                    <strong>Phone: </strong> {item?.phone}
                                   </p>
                                 </div>
-                              ))}
-                          </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm font-serif text-foreground">
+                              No guests
+                            </p>
+                          )}
                         </div>
 
                         <div className="mt-2 flex flex-wrap gap-2"></div>
@@ -826,7 +897,7 @@ export function ShowLogs({
             </div>
           </CardHeader>
           <CardContent>
-            {showLogs.length > 0 ? (
+            {filteredLogs.length > 0 ? (
               <div className="space-y-4">
                 <div className="rounded-md border">
                   <Table>
@@ -867,23 +938,28 @@ export function ShowLogs({
                               {log.name}
                             </TableCell>
                             <TableCell className="font-serif">
-                              {log.start_time
-                                ? Object.keys(log.start_time).length
-                                : 0}
+                              {log?.segments.length || 0}
                             </TableCell>
                             <TableCell className="font-sans font-bold">
-                              {log.guest_name
-                                ? Object.keys(log.start_time).length
-                                : 0}
+                              {log?.guests.length || 0}
                             </TableCell>
                             <TableCell className="font-serif">
                               {" "}
-                              <Badge
-                                variant="secondary"
-                                className="font-serif text-xs"
-                              >
-                                Approved
-                              </Badge>
+                              {log?.status === "pending" && (
+                                <Badge className="font-serif text-xs bg-yellow-200 text-default">
+                                  <Clock3 className="h-4 w-4" /> Pending
+                                </Badge>
+                              )}
+                              {log?.status === "declined" && (
+                                <Badge className="font-serif text-xs bg-red-500 text-white">
+                                  <CircleX className="h-6 w-6" /> Declined
+                                </Badge>
+                              )}
+                              {log?.status === "approved" && (
+                                <Badge className="font-serif text-xs bg-green-500 text-white">
+                                  <Check className="h-6 w-6" /> Aproved
+                                </Badge>
+                              )}
                             </TableCell>
 
                             <TableCell className="font-serif max-w-xs">
@@ -899,12 +975,17 @@ export function ShowLogs({
                                     <Eye className="h-4 w-4" />
                                   </div>
                                 </button>
-                                <button>
+                                <button onClick={() => setEditingLog(log)}>
                                   <div className="p-1 rounded-lg bg-green-600 hover:bg-green-500 text-white">
                                     <SquarePen className="h-4 w-4" />
                                   </div>
                                 </button>
-                                <button>
+                                <button
+                                  onClick={() => {
+                                    setLogId(log.id);
+                                    setIsDeleteDialogOpen(true);
+                                  }}
+                                >
                                   <div className="p-1 rounded-lg bg-red-600 hover:bg-red-500 text-white">
                                     <Trash2 className="h-4 w-4" />
                                   </div>

@@ -270,7 +270,7 @@ export function StaffManagement({ data }: { data: any }) {
         {canManageStaff && (
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="font-sans font-bold">
+              <Button variant="success" className="font-sans font-bold">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Staff Member
               </Button>
@@ -300,7 +300,8 @@ export function StaffManagement({ data }: { data: any }) {
         {canManageStaff && (
           <Dialog
             open={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}>
+            onOpenChange={setIsDeleteDialogOpen}
+          >
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle className="font-sans font-bold">
@@ -314,13 +315,15 @@ export function StaffManagement({ data }: { data: any }) {
                     type="button"
                     variant="outline"
                     onClick={() => setIsDeleteDialogOpen(false)}
-                    className="font-serif bg-transparent">
+                    className="font-serif bg-transparent"
+                  >
                     Cancel
                   </Button>
                   <Button
                     onClick={() => handleDelete(staffId)}
                     className="font-sans font-bold bg-red-600 hover:bg-red-400"
-                    disabled={isDeleting}>
+                    disabled={isDeleting}
+                  >
                     {isDeleting ? "Deleting..." : "Delete"}
                   </Button>
                 </DialogDescription>
@@ -373,10 +376,13 @@ export function StaffManagement({ data }: { data: any }) {
         {filteredStaff?.map((member: any) => (
           <Card key={member.id} className="relative">
             <CardHeader className="pb-3">
+              {member.id === user.id && (
+                <Badge className="bg-green-500 mb-2">Current user</Badge>
+              )}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-primary text-primary-foreground font-sans font-bold">
+                    <AvatarFallback className="bg-cyan-500 text-primary-foreground font-sans font-bold">
                       {member.name
                         .split(" ")
                         .map((n: any) => n[0])
@@ -408,7 +414,9 @@ export function StaffManagement({ data }: { data: any }) {
                         onClick={() => {
                           setIsDeleteDialogOpen(true);
                           setStaffId(member.id);
-                        }}>
+                        }}
+                        disabled={member.id === user.id}
+                      >
                         <Trash className="h-4 w-4 mr-2 text-red-600" />
                         Delete Member
                       </DropdownMenuItem>
@@ -420,13 +428,15 @@ export function StaffManagement({ data }: { data: any }) {
             <CardContent className="space-y-4">
               <div className="flex gap-2">
                 <Badge
-                  className={`${getRoleColor(member.role)} font-serif text-xs`}>
+                  className={`${getRoleColor(member.role)} font-serif text-xs`}
+                >
                   {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
                 </Badge>
                 <Badge
                   className={`${getStatusColor(
                     member.status
-                  )} font-serif text-xs`}>
+                  )} font-serif text-xs`}
+                >
                   {member.status.charAt(0).toUpperCase() +
                     member.status.slice(1).replace("-", " ")}
                 </Badge>
@@ -455,7 +465,8 @@ export function StaffManagement({ data }: { data: any }) {
                     <Badge
                       key={specialty}
                       variant="outline"
-                      className="font-serif text-xs">
+                      className="font-serif text-xs"
+                    >
                       {specialty}
                     </Badge>
                   ))}
@@ -513,7 +524,8 @@ export function StaffManagement({ data }: { data: any }) {
       {editingStaff && (
         <Dialog
           open={!!editingStaff}
-          onOpenChange={() => setEditingStaff(null)}>
+          onOpenChange={() => setEditingStaff(null)}
+        >
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle className="font-sans font-bold">
@@ -600,7 +612,8 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
   return (
     <form
       onSubmit={initialData ? handleUpdate : handleSubmit}
-      className="space-y-4">
+      className="space-y-4"
+    >
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name" className="font-serif">
@@ -657,7 +670,8 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
             value={formData.role}
             onValueChange={(value: UserRole) =>
               setFormData({ ...formData, role: value })
-            }>
+            }
+          >
             <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue />
             </SelectTrigger>
@@ -695,7 +709,8 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
             name="status"
             onValueChange={(value: "active" | "inactive" | "on-leave") =>
               setFormData({ ...formData, status: value })
-            }>
+            }
+          >
             <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue />
             </SelectTrigger>
@@ -739,19 +754,22 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
           type="button"
           variant="outline"
           onClick={onClose}
-          className="font-serif bg-transparent">
+          className="font-serif bg-transparent"
+        >
           Cancel
         </Button>
         <Button
           type="submit"
+          variant="success"
           className="font-sans font-bold"
-          disabled={isSubmitting}>
+          disabled={isSubmitting}
+        >
           {isSubmitting ? (
             <div
               role="status"
-              className="flex items-center justify-center gap-2">
+              className="flex items-center justify-center gap-2"
+            >
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-100 border-t-transparent"></div>
-              <span>Processing ...</span>
             </div>
           ) : (
             `${initialData ? "Update" : "Add"} Staff Member`

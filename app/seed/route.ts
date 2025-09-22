@@ -39,17 +39,14 @@ async function seedSheduling() {
     CREATE TABLE IF NOT EXISTS scheduling (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       title VARCHAR(255) NOT NULL,
-      category VARCHAR(255),
       description VARCHAR(255),
       day INT NOT NULL,
-      host VARCHAR(255) NOT NULL,
       color VARCHAR(255) NOT NULL,
       start VARCHAR(255) NOT NULL,
       ends VARCHAR(255) NOT NULL,
       recurring BOOLEAN,
       created TIMESTAMP NOT NULL,
       date DATE,
-      status VARCHAR(255) NOT NULL,
       staff UUID NOT NULL   
     );
   `;
@@ -60,13 +57,11 @@ async function seedLogs() {
   await sql`
     CREATE TABLE IF NOT EXISTS logs (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      staff UUID NOT NULL,
       show UUID NOT NULL,
-      start_Time JSONB,
-      end_time JSONB,
-      description JSONB,
-      guest_name JSONB,
-      topic JSONB,
-      phone JSONB,
+      segments JSONB,
+      guests JSONB,
+      status VARCHAR(255) NOT NULL,
       created TIMESTAMP NOT NULL
     );
   `;

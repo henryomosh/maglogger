@@ -2,11 +2,11 @@ import { StaffManagement } from "@/components/dashboard-components/staff-managem
 import { fetchStaff } from "@/lib/data";
 
 export default async function Staff() {
-  const data = await fetchStaff();
+  const { staffData } = await fetchStaff();
 
   return (
     <>
-      <StaffManagement data={data} />
+      <StaffManagement data={staffData} />
     </>
   );
 }

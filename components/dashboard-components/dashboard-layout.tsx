@@ -3,7 +3,7 @@
 import type React from "react";
 import Link from "next/link";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -47,6 +47,14 @@ const navigation = [
     key: "staff",
     link: "/dashboard/staff",
   },
+
+  {
+    name: "Shows and Scheduling",
+    icon: Calendar,
+    href: "#scheduling",
+    key: "scheduling",
+    link: "/dashboard/scheduling",
+  },
   {
     name: "Show Logs",
     icon: FileText,
@@ -54,37 +62,32 @@ const navigation = [
     key: "logs",
     link: "/dashboard/logs",
   },
-  {
-    name: "Sheduling",
-    icon: Calendar,
-    href: "#scheduling",
-    key: "scheduling",
-    link: "/dashboard/scheduling",
-  },
-  {
-    name: "Playlists",
-    icon: Music,
-    href: "#playlists",
-    key: "playlists",
-    link: "#",
-  },
-  {
-    name: "Analytics",
-    icon: BarChart3,
-    href: "#analytics",
-    key: "analytics",
-    link: "#",
-  },
+  // {
+  //   name: "Playlists",
+  //   icon: Music,
+  //   href: "#playlists",
+  //   key: "playlists",
+  //   link: "#",
+  // },
+  // {
+  //   name: "Analytics",
+  //   icon: BarChart3,
+  //   href: "#analytics",
+  //   key: "analytics",
+  //   link: "#",
+  // },
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
-  const [activeSection, setActiveSection] = useState("");
+  const [activeSection2, setActiveSection2] = useState("");
 
-  if (!user) {
-    return <LoginForm />;
-  }
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,15 +119,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <li key={item.name}>
                 <Link
                   href={item.link}
-                  onClick={() => setActiveSection(item.key)}
+                  onClick={() => setActiveSection2(item.key)}
                   className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-serif rounded-lg transition-colors text-left ${
-                    activeSection === item.key
+                    activeSection2 === item.key
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
                       : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                   }
                     `}
                 >
-                  <item.icon className="h-5 w-5" />
+                  <item.icon className="h-5 w-5 " />
                   {item.name}
                 </Link>
               </li>

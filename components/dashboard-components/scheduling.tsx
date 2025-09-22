@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +38,7 @@ import {
   BadgeCheck,
   Trash2,
   OctagonAlert,
+  FileText,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -52,20 +53,24 @@ import {
 } from "@/lib/actions";
 import { toast } from "sonner";
 import "@/components/dashboard-components/radix-styles.css";
+import { ShowLogsManager } from "@/components/sub-components/scheduling-logs";
+import { fetchStaff } from "@/lib/data";
 
 interface Show {
   id: string;
   title: string;
   description: string;
   host: string;
+  staff: string;
   djName: string;
   start: string;
-  end: string;
+  ends: string;
   day: number; // 0 = Sunday, 1 = Monday, etc.
   category: string;
   recurring: boolean;
   status: string;
   color: string;
+  date: string;
 }
 
 interface TimeSlot {
@@ -95,7 +100,13 @@ interface LiveEvent {
   endTime: string; // ISO 8601 format from the database
 }
 
-export function ShowScheduling({ data }: { data: any }) {
+export function ShowScheduling({
+  data,
+  scheduleLogs,
+}: {
+  data: any;
+  scheduleLogs: any;
+}) {
   const { user } = useAuth();
   const [shows, setShows] = useState<Show[]>(data);
   const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -105,6 +116,28 @@ export function ShowScheduling({ data }: { data: any }) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [scheduleId, setScheduleId] = useState("");
+  const [scheduleLogModal, setScheduleLogModal] = useState(false);
+  const [showLogs, setShowLogs] = useState(null);
+  const [modalShow, setModalShow] = useState({ title: "" });
+  const [staff, setStaff] = useState([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const { formStaff } = await fetchStaff();
+        setStaff(formStaff);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    loadData();
+  }, []);
+
+  const handleLogs = async (id: string) => {
+    const logs = scheduleLogs?.filter((item: any) => item?.show === id);
+    setShowLogs(logs);
+  };
 
   // Check if user has permission to manage shows
   const canManageShows = user?.role === "admin" || user?.role === "manager";
@@ -186,6 +219,7 @@ export function ShowScheduling({ data }: { data: any }) {
       return "completed";
     }
   };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -195,13 +229,13 @@ export function ShowScheduling({ data }: { data: any }) {
             Show Programming & Sheduling
           </h1>
           <p className="text-muted-foreground font-serif mt-1">
-            Manage your radio station's show Logs and programming.
+            Manage your radio station's shows and programming.
           </p>
         </div>
         {canManageShows && (
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="font-sans font-bold">
+              <Button className="font-sans font-bold bg-green-700 hover:bg-green-600">
                 <Plus className="h-4 w-4 mr-2" />
                 Schedule Show
               </Button>
@@ -216,6 +250,7 @@ export function ShowScheduling({ data }: { data: any }) {
                 </DialogDescription>
               </DialogHeader>
               <ShowForm
+                staff={staff}
                 onClose={() => setIsAddDialogOpen(false)}
                 onSave={(newShow) => {
                   setShows([
@@ -262,11 +297,32 @@ export function ShowScheduling({ data }: { data: any }) {
             </DialogContent>
           </Dialog>
         )}
+
+        <Dialog open={scheduleLogModal} onOpenChange={setScheduleLogModal}>
+          <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-sans font-bold">
+                Show Logs for{" "}
+                <span className="text-purple-700 text-xl">
+                  {modalShow?.title}
+                </span>
+              </DialogTitle>
+              <DialogDescription className="font-serif">
+                Track activities during the show.
+              </DialogDescription>
+            </DialogHeader>
+            <ShowLogsManager
+              logs={showLogs}
+              scheduleId={scheduleId}
+              modalShow={modalShow}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* View Controls */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="">
           <div className="flex items-center justify-between">
             <Tabs
               value={selectedView}
@@ -298,8 +354,8 @@ export function ShowScheduling({ data }: { data: any }) {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
+                  className="bg-green-700 hover:bg-green-600"
+                  size="xs"
                   onClick={() => navigateWeek("prev")}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -317,18 +373,17 @@ export function ShowScheduling({ data }: { data: any }) {
                   })}
                 </span>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  className="bg-green-700 hover:bg-green-600"
+                  size="xs"
                   onClick={() => navigateWeek("next")}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
               <Button
-                variant="outline"
-                size="sm"
+                className="font-serif bg-green-700 hover:bg-green-600"
+                size="xs"
                 onClick={() => setCurrentWeek(new Date())}
-                className="font-serif"
               >
                 Today
               </Button>
@@ -341,14 +396,14 @@ export function ShowScheduling({ data }: { data: any }) {
       {selectedView === "week" ? (
         <Card>
           <CardHeader>
-            <CardTitle className="font-sans font-bold">
+            <CardTitle className="font-sans font-bold text-xl">
               Weekly Schedule
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-8 gap-2">
               {/* Time column header */}
-              <div className="font-serif font-medium text-sm text-muted-foreground">
+              <div className="font-serif font-bold text-md text-muted-foreground">
                 Time
               </div>
 
@@ -358,12 +413,14 @@ export function ShowScheduling({ data }: { data: any }) {
                   key={day}
                   className="font-serif font-medium text-sm text-center p-2"
                 >
-                  <div>{day}</div>
                   <div className="text-xs text-muted-foreground">
-                    {weekDates[index].toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
+                    <div className="text-lg font-bold text-cyan-500">
+                      {weekDates[index].toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </div>
+                    <div>{day}</div>
                   </div>
                 </div>
               ))}
@@ -397,48 +454,112 @@ export function ShowScheduling({ data }: { data: any }) {
                           className="min-h-16 border-t border-l"
                         >
                           {dayShows.map((show: any) => (
-                            <div
-                              key={show.id}
-                              className={`${show.color} text-white text-xs pl-1 pb-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-opacity`}
-                            >
-                              <div className="flex items start justify-between ">
-                                <div className="font-sans font-bold truncate pt-2">
-                                  {show.title}
+                            <div key={show.id}>
+                              {show.recurring ? (
+                                <div
+                                  onClick={() => {
+                                    handleLogs(show.id);
+                                    setModalShow(show);
+                                    setScheduleLogModal(true);
+                                  }}
+                                  className={`${show.color} text-white text-xs pl-1 pb-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-opacity`}
+                                >
+                                  <div className="flex items start justify-between ">
+                                    <div className="font-sans font-bold truncate pt-2">
+                                      {show.title}
+                                    </div>
+                                    {canManageShows && (
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="sm">
+                                            <MoreVertical className="h-4 w-4" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="start">
+                                          <DropdownMenuItem
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setEditingShow(show);
+                                            }}
+                                          >
+                                            <Edit className="h-4 w-4 mr-2 text-green-500" />
+                                            Edit Show
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setScheduleId(show.id);
+                                              setIsDeleteDialogOpen(true);
+                                            }}
+                                          >
+                                            <Trash2 className="h-4 w-4 mr-2 text-red-500" />
+                                            Delete Show
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    )}
+                                  </div>
+                                  <div className="font-serif opacity-90">
+                                    {formatTime(show.start)} -{" "}
+                                    {formatTime(show.ends)}
+                                  </div>
+                                  <div className="font-serif opacity-75 truncate">
+                                    {show.name}
+                                  </div>
                                 </div>
-                                {canManageShows && (
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="sm">
-                                        <MoreVertical className="h-4 w-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="start">
-                                      <DropdownMenuItem
-                                        onClick={() => setEditingShow(show)}
-                                      >
-                                        <Edit className="h-4 w-4 mr-2 text-green-500" />
-                                        Edit Show
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        onClick={() => {
-                                          setScheduleId(show.id);
-                                          setIsDeleteDialogOpen(true);
-                                        }}
-                                      >
-                                        <Trash2 className="h-4 w-4 mr-2 text-red-500" />
-                                        Delete Show
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                )}
-                              </div>
-                              <div className="font-serif opacity-90">
-                                {formatTime(show.start)} -{" "}
-                                {formatTime(show.ends)}
-                              </div>
-                              <div className="font-serif opacity-75 truncate">
-                                {show.name}
-                              </div>
+                              ) : (
+                                <>
+                                  {show.date ===
+                                    weekDates[Number(show.day)]
+                                      .toISOString()
+                                      .substring(0, 10) && (
+                                    <div
+                                      className={`${show.color} text-white text-xs pl-1 pb-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-opacity`}
+                                    >
+                                      <div className="flex items start justify-between ">
+                                        <div className="font-sans font-bold truncate pt-2">
+                                          {show.title}
+                                        </div>
+                                        {canManageShows && (
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button variant="ghost" size="sm">
+                                                <MoreVertical className="h-4 w-4" />
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="start">
+                                              <DropdownMenuItem
+                                                onClick={() =>
+                                                  setEditingShow(show)
+                                                }
+                                              >
+                                                <Edit className="h-4 w-4 mr-2 text-green-500" />
+                                                Edit Show
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem
+                                                onClick={() => {
+                                                  setScheduleId(show.id);
+                                                  setIsDeleteDialogOpen(true);
+                                                }}
+                                              >
+                                                <Trash2 className="h-4 w-4 mr-2 text-red-500" />
+                                                Delete Show
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        )}
+                                      </div>
+                                      <div className="font-serif opacity-90">
+                                        {formatTime(show.start)} -{" "}
+                                        {formatTime(show.ends)}
+                                      </div>
+                                      <div className="font-serif opacity-75 truncate">
+                                        {show.name}
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -537,9 +658,32 @@ export function ShowScheduling({ data }: { data: any }) {
                       {show.description}
                     </p>
                   )}
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-serif text-xs"
+                      onClick={() => {
+                        handleLogs(show.id);
+                        setModalShow(show);
+                        setScheduleLogModal(true);
+                      }}
+                    >
+                      <FileText className="h-3 w-3 mr-1 text-cyan-500" />
+                      View Logs (
+                      {
+                        scheduleLogs?.filter(
+                          (item: any) => item.show === show.id
+                        ).length
+                      }
+                      )
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
+          {data.filter((show: any) => show.day === new Date().getDay()).length <
+            1 && <p className="flex justify-center text-sm">No shows today</p>}
         </div>
       )}
 
@@ -556,6 +700,7 @@ export function ShowScheduling({ data }: { data: any }) {
               </DialogDescription>
             </DialogHeader>
             <ShowForm
+              staff={staff}
               initialData={editingShow}
               onClose={() => setEditingShow(null)}
               onSave={(updatedShow) => {
@@ -577,31 +722,36 @@ export function ShowScheduling({ data }: { data: any }) {
 }
 
 interface ShowFormProps {
+  staff?: any;
   initialData?: Show;
   onClose: () => void;
   onSave: (show: Omit<Show, "id">) => void;
 }
 
-function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
+function ShowForm({ staff, initialData, onClose, onSave }: ShowFormProps) {
   const [status, setStatus] = useState<{
     success: boolean;
     message: string;
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hostSelect, setHostSelect] = useState(initialData?.staff || "");
+  const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
     id: initialData?.id || "",
+    staff: initialData?.staff || "",
     title: initialData?.title || "",
     description: initialData?.description || "",
     djId: initialData?.host || "",
     djName: initialData?.djName || "",
-    startTime: initialData?.start || "09:00",
-    endTime: initialData?.end || "12:00",
+    startTime: initialData?.start || "",
+    endTime: initialData?.ends || "",
     dayOfWeek: initialData?.day || 1,
     category: initialData?.category || "Music",
-    isRecurring: initialData?.recurring || (true as boolean),
+    isRecurring: initialData ? initialData?.recurring : (true as boolean),
     status: initialData?.status || ("scheduled" as const),
     color: initialData?.color || "bg-blue-500",
+    date: initialData?.date || "",
   });
 
   // Mock DJs for selection
@@ -622,14 +772,30 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
   ];
 
   const { user } = useAuth();
+
+  const handleDayChange = (value: any) => {
+    const day = new Date(value);
+    setFormData({ ...formData, dayOfWeek: day.getDay(), date: value });
+  };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     const formData2 = new FormData(e.currentTarget);
-    const result = await createScheduling(formData2);
-    toast.success("Show Created successfully!");
-    setIsSubmitting(false);
-    onClose();
+    const staffId = formData2.get("staffId");
+    if (staffId === "initial") {
+      setError("Please select a show host");
+      setIsSubmitting(false);
+    } else {
+      const result = await createScheduling(formData2);
+      if (result) {
+        setStatus({ success: result?.success, message: result?.message });
+        setIsSubmitting(false);
+      } else {
+        toast.success("Show Created successfully!");
+        setIsSubmitting(false);
+        onClose();
+      }
+    }
   };
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -641,12 +807,18 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
     setIsSubmitting(false);
     onClose();
   };
-
   return (
     <form
       onSubmit={initialData ? handleUpdate : handleSubmit}
       className="space-y-4"
     >
+      <div>
+        {!status?.success && status?.message && (
+          <p className="text-red-500 text-sm text-center rounded border-1 bg-red-100 py-2 ">
+            {status?.message}
+          </p>
+        )}
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="title" className="font-serif">
@@ -662,6 +834,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             }
             required
           />
+
           <Input
             name="userId"
             className="border-1 border-blue-500 hidden"
@@ -674,19 +847,39 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="category" className="font-serif">
-            Category <span className="text-red-500">*</span>
+          <Label
+            htmlFor="host"
+            className={`font-serif ${error ? "text-red-500" : ""}`}
+          >
+            Show Host/Presenter
           </Label>
-          <Input
-            id="category"
-            name="category"
-            className="border-1 border-blue-400"
-            value={formData.category}
-            onChange={(e) =>
-              setFormData({ ...formData, category: e.target.value })
-            }
-            required
-          />
+
+          <Select
+            name="staffId"
+            value={hostSelect}
+            onValueChange={(value) => {
+              setHostSelect(value);
+            }}
+          >
+            <SelectTrigger
+              className={`border-1  w-full ${
+                error ? "border-red-500" : "border-blue-400"
+              }`}
+            >
+              <SelectValue placeholder="Select Host" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem key="select" value="initial" hidden>
+                Select Host
+              </SelectItem>
+              {staff?.map((item: any, index: any) => (
+                <SelectItem key={index} value={item.id}>
+                  {item.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {error && <p className="text-xs text-red-600">{error}</p>}
         </div>
       </div>
 
@@ -707,8 +900,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-4">
+        {/* <div className="space-y-2">
           <Label htmlFor="dj" className="font-serif">
             Show Host
           </Label>
@@ -728,7 +921,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
         <div className="space-y-2">
           <Label htmlFor="dayOfWeek" className="font-serif">
             Day of Week
@@ -739,6 +932,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             onValueChange={(value) =>
               setFormData({ ...formData, dayOfWeek: Number.parseInt(value) })
             }
+            disabled={!formData.isRecurring}
           >
             <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue />
@@ -782,7 +976,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="startTime" className="font-serif">
             Start Time
@@ -815,7 +1009,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             required
           />
         </div>
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label htmlFor="status" className="font-serif">
             Status
           </Label>
@@ -836,7 +1030,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
               <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -863,6 +1057,10 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             <Input
               type="date"
               name="date"
+              value={formData.date}
+              onChange={(e) => {
+                handleDayChange(e.target.value);
+              }}
               className="border-1 border-blue-500"
               required={!formData.isRecurring}
             />
@@ -881,6 +1079,7 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
         </Button>
         <Button
           type="submit"
+          variant="success"
           className="font-sans font-bold"
           disabled={isSubmitting}
         >
@@ -890,7 +1089,6 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
               className="flex items-center justify-center gap-2"
             >
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-100 border-t-transparent"></div>
-              <span>Processing ...</span>
             </div>
           ) : (
             `${initialData ? "Update" : "Add"} Schedule`

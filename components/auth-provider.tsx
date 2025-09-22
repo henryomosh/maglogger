@@ -10,6 +10,7 @@ import {
 import bcrypt from "bcryptjs";
 import { fetchUser } from "@/lib/data";
 import { Fascinate } from "next/font/google";
+import { redirect } from "next/navigation";
 
 export type UserRole = "admin" | "manager" | "dj" | "staff";
 
@@ -30,6 +31,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,21 +49,18 @@ const mockUsers: User[] = [
   { id: "4", name: "System Staff", email: "staff@magnet.com", role: "staff" },
 ];
 
-export function AuthProvider({
-  children,
-  staff,
-}: {
-  children: ReactNode;
-  staff: any;
-}) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isAuthenticated, setIsAuthentcated] = useState(false);
 
   useEffect(() => {
     // Check for stored user session
     const storedUser = localStorage.getItem("radio-user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
+      setIsAuthentcated(true);
     }
     setIsLoading(false);
   }, []);
@@ -71,24 +70,35 @@ export function AuthProvider({
 
     // authentication logic
     const user = await fetchUser(email);
+    if (!user) {
+      setIsLoading(false);
+      setErrorMessage("Email does not exist!");
+      return false;
+    }
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (user && passwordMatch) {
       setUser(user);
       localStorage.setItem("radio-user", JSON.stringify(user));
+      setIsAuthentcated(true);
       setIsLoading(false);
       return true;
     }
     setIsLoading(false);
+    setErrorMessage("Invalid email or password!");
     return false;
   };
 
   const logout = () => {
     setUser(null);
+    setIsAuthentcated(false);
     localStorage.removeItem("radio-user");
+    redirect("/login");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, isLoading, isAuthenticated }}
+    >
       {children}
     </AuthContext.Provider>
   );

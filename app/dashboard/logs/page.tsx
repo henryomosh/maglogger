@@ -3,11 +3,11 @@ import { fetchSchedule, fetchLogs } from "@/lib/data";
 
 export default async function Logs() {
   const schedule = await fetchSchedule();
-  const showLogs = await fetchLogs();
+  const { logsData } = await fetchLogs();
 
   return (
     <>
-      <ShowLogs schedule={schedule} showLogs={showLogs} />
+      <ShowLogs schedule={schedule} showLogs={logsData} />
     </>
   );
 }

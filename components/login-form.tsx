@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,13 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      redirect("/dashboard");
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,8 +36,9 @@ export function LoginForm() {
     const success = await login(email, password);
     if (!success) {
       setError("Invalid credentials. Try: admin@radio.com / password");
+    } else {
+      redirect("/dashboard");
     }
-    redirect("/dashboard");
   };
 
   return (
@@ -83,9 +90,19 @@ export function LoginForm() {
             )}
             <Button
               type="submit"
-              className="w-full font-sans font-bold"
-              disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
+              className="w-full font-sans font-bold bg-blue-700 hover:bg-blue-600"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div
+                  role="status"
+                  className="flex items-center justify-center gap-2"
+                >
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-100 border-t-transparent"></div>
+                </div>
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </form>
           <div className="mt-4 text-sm text-muted-foreground font-serif">

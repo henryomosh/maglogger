@@ -311,7 +311,8 @@ export function ShowScheduling() {
               value={selectedView}
               onValueChange={(value) =>
                 setSelectedView(value as "week" | "day")
-              }>
+              }
+            >
               <TabsList>
                 <TabsTrigger value="week" className="font-serif">
                   Week View
@@ -327,7 +328,8 @@ export function ShowScheduling() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigateWeek("prev")}>
+                  onClick={() => navigateWeek("prev")}
+                >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="font-serif font-medium min-w-48 text-center">
@@ -345,7 +347,8 @@ export function ShowScheduling() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigateWeek("next")}>
+                  onClick={() => navigateWeek("next")}
+                >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -353,7 +356,8 @@ export function ShowScheduling() {
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentWeek(new Date())}
-                className="font-serif">
+                className="font-serif"
+              >
                 Today
               </Button>
             </div>
@@ -380,7 +384,8 @@ export function ShowScheduling() {
               {daysOfWeek.map((day, index) => (
                 <div
                   key={day}
-                  className="font-serif font-medium text-sm text-center p-2">
+                  className="font-serif font-medium text-sm text-center p-2"
+                >
                   <div>{day}</div>
                   <div className="text-xs text-muted-foreground">
                     {weekDates[index].toLocaleDateString("en-US", {
@@ -417,14 +422,16 @@ export function ShowScheduling() {
                       return (
                         <div
                           key={dayIndex}
-                          className="min-h-16 border-t border-l p-1">
+                          className="min-h-16 border-t border-l p-1"
+                        >
                           {dayShows.map((show) => (
                             <div
                               key={show.id}
                               className={`${show.color} text-white text-xs p-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-opacity`}
                               onClick={() =>
                                 canManageShows && setEditingShow(show)
-                              }>
+                              }
+                            >
                               <div className="font-sans font-bold truncate">
                                 {show.title}
                               </div>
@@ -456,7 +463,8 @@ export function ShowScheduling() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-4 h-4 rounded-full ${show.color}`}></div>
+                        className={`w-4 h-4 rounded-full ${show.color}`}
+                      ></div>
                       <div>
                         <CardTitle className="text-lg font-sans font-bold">
                           {show.title}
@@ -475,7 +483,8 @@ export function ShowScheduling() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() => setEditingShow(show)}>
+                            onClick={() => setEditingShow(show)}
+                          >
                             <Edit className="h-4 w-4 mr-2" />
                             Edit Show
                           </DropdownMenuItem>
@@ -488,7 +497,8 @@ export function ShowScheduling() {
                   <Badge
                     className={`${getStatusColor(
                       show.status
-                    )} font-serif text-xs`}>
+                    )} font-serif text-xs`}
+                  >
                     {show.status.charAt(0).toUpperCase() + show.status.slice(1)}
                   </Badge>
 
@@ -661,7 +671,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
           <Select
             value={formData.djId}
             onValueChange={(value) => setFormData({ ...formData, djId: value })}
-            name="host">
+            name="host"
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select DJ" />
             </SelectTrigger>
@@ -683,7 +694,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             onValueChange={(value) =>
               setFormData({ ...formData, dayOfWeek: Number.parseInt(value) })
             }
-            name="day">
+            name="day"
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -704,7 +716,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             value={formData.color}
             onValueChange={(value) =>
               setFormData({ ...formData, color: value })
-            }>
+            }
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -713,7 +726,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
                 <SelectItem key={color.value} value={color.value}>
                   <div className="flex items-center gap-2">
                     <div
-                      className={`w-4 h-4 rounded-full ${color.value}`}></div>
+                      className={`w-4 h-4 rounded-full ${color.value}`}
+                    ></div>
                     {color.label}
                   </div>
                 </SelectItem>
@@ -760,7 +774,8 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
             value={formData.status}
             onValueChange={(
               value: "scheduled" | "live" | "completed" | "cancelled"
-            ) => setFormData({ ...formData, status: value })}>
+            ) => setFormData({ ...formData, status: value })}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -794,10 +809,11 @@ function ShowForm({ initialData, onClose, onSave }: ShowFormProps) {
           type="button"
           variant="outline"
           onClick={onClose}
-          className="font-serif bg-transparent">
+          className="font-serif bg-transparent"
+        >
           Cancel
         </Button>
-        <Button type="submit" className="font-sans font-bold">
+        <Button variant="success" type="submit" className="font-sans font-bold">
           {initialData ? "Update" : "Schedule"} Show
         </Button>
       </div>

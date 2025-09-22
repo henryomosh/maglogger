@@ -25,23 +25,31 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, AlarmClockCheck } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  AlarmClockCheck,
+  Clock3,
+  Check,
+  CircleX,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/components/auth-provider";
-import { fetchUserSchedule } from "@/lib/data";
-import { createLog } from "@/lib/actions";
+import { fetchUserSchedule, fetchSchedule } from "@/lib/data";
+import { createLog, updateLog } from "@/lib/actions";
 import { toast } from "sonner";
 
 interface Show {
   id: string;
   title: string;
   description: string;
-  showId: string;
+  show: string;
   djId: string;
   djName: string;
   startTime: string;
@@ -66,9 +74,8 @@ interface GuestInterface {
 }
 
 interface ShowFormProps {
-  initialData?: Show;
+  initialData: any;
   onClose: () => void;
-  onSave: (show: Omit<Show, "id">) => void;
 }
 
 interface UserSchedule {
@@ -87,41 +94,27 @@ const daysOfWeek = [
   "Saturday",
 ];
 
-export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
-  const [formData, setFormData] = useState({
-    title: initialData?.title || "",
-    description: initialData?.description || "",
-    showId: initialData?.showId || "",
-    djId: initialData?.djId || "",
-    djName: initialData?.djName || "",
-    startTime: initialData?.startTime || "09:00",
-    endTime: initialData?.endTime || "12:00",
-    dayOfWeek: initialData?.dayOfWeek || 1,
-    category: initialData?.category || "Music",
-    isRecurring: initialData?.isRecurring || true,
-    status: initialData?.status || ("scheduled" as const),
-    color: initialData?.color || "bg-blue-500",
-    segmentItems: [
-      {
-        startTime: initialData?.segmentItems[0].startTime || "",
-        endTime: initialData?.segmentItems[0].endTime || "",
-        description: initialData?.segmentItems[0].description || "",
-      },
-    ],
-  });
-  const [segments, setSegments] = useState<SegmentInterface[]>([
-    { startTime: "--:--", endTime: "--:--", description: "" },
-  ]);
-
-  const [guests, setGuests] = useState<GuestInterface[]>([
-    { guestName: "", topic: "", phone: "" },
-  ]);
+export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
   const { user } = useAuth();
+  const [segments, setSegments] = useState(
+    initialData?.segments || [
+      { startTime: "--:--", endTime: "--:--", description: "" },
+    ]
+  );
+
+  const [guests, setGuests] = useState(initialData?.guests || []);
+
   const [userSchedule, setUserSChedule] = useState<UserSchedule[]>([
     { id: "", title: "", start: "", ends: "" },
   ]);
-  const [selectShow, setSelectShow] = useState<UserSchedule>();
+  const [selectShow, setSelectShow] = useState(initialData || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectData, setSelectData] = useState(initialData?.show || "");
+  const [radioValue, setRadioValue] = useState("pending");
+  const [error, setError] = useState("");
+
+  const canManageShows = user?.role === "admin" || user?.role === "manager";
+
   // Mock DJs for selection
   const availableDJs = [
     { id: "3", name: "Mike DJ" },
@@ -142,9 +135,13 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
   useEffect(() => {
     async function loadData() {
       try {
-        const result = await fetchUserSchedule(user?.id || "");
-        console.log(result);
-        setUserSChedule(result);
+        if (canManageShows) {
+          const { schedule } = await fetchSchedule();
+          setUserSChedule(schedule);
+        } else {
+          const result = await fetchUserSchedule(user?.id || "");
+          setUserSChedule(result);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -152,6 +149,15 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
 
     loadData();
   }, []);
+
+  const handleSelectChange = (value: any) => {
+    setSelectData(value);
+    if (value === "") {
+      setError("Please select an option");
+    } else {
+      setError("");
+    }
+  };
 
   function fetchShow(id: string) {
     const foundItem = userSchedule.find((item) => item.id === id);
@@ -169,7 +175,7 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
   function removeSegment(index: number) {
     let currentItems = segments;
     if (currentItems.length > 1) {
-      setSegments(currentItems.filter((_, i) => i !== index));
+      setSegments(currentItems.filter((_: any, i: any) => i !== index));
     }
   }
 
@@ -178,7 +184,7 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
     index: number
   ) => {
     const { id, value } = e.target;
-    const updatedItems = segments.map((item, idx) =>
+    const updatedItems = segments.map((item: any, idx: any) =>
       index === idx ? { ...item, [id]: value } : item
     );
 
@@ -192,9 +198,7 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
 
   function removeGuest(index: number) {
     let currentItems = guests;
-    if (currentItems.length > 1) {
-      setGuests(currentItems.filter((_, i) => i !== index));
-    }
+    setGuests(currentItems.filter((_: any, i: any) => i !== index));
   }
 
   const handleGuestChange = (
@@ -202,7 +206,7 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
     index: number
   ) => {
     const { id, value } = e.target;
-    const updatedItems = guests.map((item, idx) =>
+    const updatedItems = guests.map((item: any, idx: any) =>
       index === idx ? { ...item, [id]: value } : item
     );
     setGuests(updatedItems);
@@ -210,38 +214,90 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
     const formData2 = new FormData(e.currentTarget);
-    const result = await createLog(formData2);
-    toast.success("Log Created successfully!");
-    setIsSubmitting(false);
-    onClose();
+    const show = formData2.get("show");
+    if (show === "initial") {
+      setError("Please select a show");
+    } else {
+      setIsSubmitting(true);
+
+      console.log(formData2.get("show"));
+      formData2.append("segments", JSON.stringify(segments));
+      formData2.append("guests", JSON.stringify(guests));
+
+      const result = await createLog(formData2);
+      toast.success("Log Created successfully!");
+      setIsSubmitting(false);
+      onClose();
+    }
   };
 
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData2 = new FormData(e.currentTarget);
+    const show = formData2.get("show");
+    if (show === "initial") {
+      setError("Please select a show");
+    } else {
+      setIsSubmitting(true);
+
+      formData2.append("segments", JSON.stringify(segments));
+      formData2.append("guests", JSON.stringify(guests));
+
+      const result = await updateLog(formData2);
+      toast.success("Log Updated successfully!");
+      setIsSubmitting(false);
+      onClose();
+    }
+  };
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={initialData ? handleUpdate : handleSubmit}
+      className="space-y-4"
+    >
       <div
         className={`grid ${selectShow ? "grid-cols-3" : "grid-cols-1"} gap-4`}
       >
         <div className={`space-y-2 ${selectShow ? "col-span-2" : ""}`}>
+          <Input
+            name="logId"
+            className="hidden"
+            type="text"
+            value={initialData?.id || ""}
+            readOnly
+          />
           <Label htmlFor="dj" className="font-serif">
             Show <span className="text-red-500">*</span>
           </Label>
+          {error && <p className="text-xs text-red-600">{error}</p>}
+          <Input
+            className="hidden"
+            name="staff"
+            type="text"
+            value={user?.id}
+            readOnly
+          />
           <Select
             name="show"
-            value={formData.showId}
+            value={selectData}
             onValueChange={(value) => {
-              setFormData({ ...formData, showId: value });
+              handleSelectChange(value);
               fetchShow(value);
             }}
             required
+            disabled={initialData}
           >
-            <SelectTrigger className="border-1 border-blue-400 w-full">
+            <SelectTrigger
+              className={`border-1 ${
+                error ? "border-red-400" : "border-blue-400"
+              } w-full`}
+            >
               <SelectValue placeholder="Select Show" />
             </SelectTrigger>
             <SelectContent>
-              {userSchedule.map((show) => (
-                <SelectItem key={show.id} value={show.id || "Select Show"}>
+              <SelectItem className="hidden" value="initial"></SelectItem>
+              {userSchedule.map((show, index) => (
+                <SelectItem key={show.id} value={show.id || `${index}`}>
                   {show.title}
                 </SelectItem>
               ))}
@@ -276,7 +332,7 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
             Add Segment
           </Button>
         </div>
-        {segments.map((_, index) => (
+        {segments.map((_: any, index: any) => (
           <div className="grid grid-cols-8 gap-4 items-end " key={index}>
             <div className="space-y-2 col-span-2">
               <Label htmlFor="description" className="font-serif">
@@ -345,11 +401,11 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
             Add Guest
           </Button>
         </div>
-        {guests.map((_, index) => (
+        {guests.map((_: any, index: any) => (
           <div className="grid grid-cols-8 gap-4 items-end " key={index}>
             <div className="space-y-2 col-span-3">
               <Label htmlFor="description" className="font-serif">
-                Full Name
+                Full Name <span className="text-red-500">*</span>
               </Label>
               <Input
                 className="border-1 border-blue-400"
@@ -358,11 +414,12 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
                 type="text"
                 value={guests[index].guestName}
                 onChange={(e) => handleGuestChange(e, index)}
+                required
               />
             </div>
             <div className="space-y-2 col-span-2">
               <Label htmlFor="description" className="font-serif">
-                Topic
+                Topic <span className="text-red-500">*</span>
               </Label>
               <Input
                 className="border-1 border-blue-400"
@@ -371,11 +428,12 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
                 type="text"
                 value={guests[index].topic}
                 onChange={(e) => handleGuestChange(e, index)}
+                required
               />
             </div>
             <div className="space-y-2 col-span-2">
               <Label htmlFor="description" className="font-serif">
-                Phone
+                Phone <span className="text-red-500">*</span>
               </Label>
               <Input
                 className="border-1 border-blue-400"
@@ -384,6 +442,7 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
                 type="text"
                 value={guests[index].phone}
                 onChange={(e) => handleGuestChange(e, index)}
+                required
               />
             </div>
             <div className="">
@@ -392,7 +451,6 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
                 size="icon"
                 className="col-span-1 cursor-pointer bg-red-700 hover:bg-red-600 w-full"
                 onClick={() => removeGuest(index)}
-                disabled={guests.length <= 1}
               >
                 <Trash2 className="h-4 w-4" />
                 <span className="sr-only">Remove item</span>
@@ -400,7 +458,87 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
             </div>
           </div>
         ))}
+        {guests.length < 1 && (
+          <div>
+            <p className="text-sm">No guests added!</p>
+          </div>
+        )}
       </div>
+      {/* Log Status */}
+      {initialData && (
+        <fieldset>
+          {canManageShows && (
+            <>
+              <hr className="border-gray-300" />
+              <h3 className=" font-black py-4">Set Log Status</h3>
+              <div className="rounded-md border border-gray-200 bg-white px-[14px] py-3">
+                <div className="flex gap-4 flex-col md:flex-row">
+                  <div className="flex flex-row gap-4">
+                    <div className="flex items-center">
+                      <input
+                        id="pending"
+                        name="status"
+                        type="radio"
+                        value="pending"
+                        className="h-4 w-4 cursor-pointer text-whitefocus:ring-2"
+                        defaultChecked={initialData?.status === "pending"}
+                      />
+                      <label
+                        htmlFor="pending"
+                        className="ml-2 flex cursor-pointer items-center gap-1.5 rounded-full bg-yellow-200 px-3 py-1.5 text-xs font-medium text-gray-600"
+                      >
+                        Pending <Clock3 className="h-4 w-4" />
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        id="approved"
+                        name="status"
+                        type="radio"
+                        value="approved"
+                        className="h-4 w-4 cursor-pointer  bg-white text-white focus:ring-2"
+                        defaultChecked={initialData?.status === "approved"}
+                      />
+                      <label
+                        htmlFor="approved"
+                        className="ml-2 flex cursor-pointer items-center gap-1.5 rounded-full bg-green-500 px-3 py-1.5 text-xs font-medium text-white"
+                      >
+                        Approved <Check className="h-4 w-4" />
+                      </label>
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex items-center">
+                      <input
+                        id="declined"
+                        name="status"
+                        type="radio"
+                        value="declined"
+                        className="h-4 w-4 cursor-pointer text-white focus:ring-2"
+                        defaultChecked={initialData?.status === "declined"}
+                      />
+                      <label
+                        htmlFor="declined"
+                        className="ml-2 flex cursor-pointer items-center gap-1.5 rounded-full bg-red-500 px-3 py-1.5 text-xs font-medium text-white"
+                      >
+                        Declined <CircleX className="h-4 w-4" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="status-error" aria-live="polite" aria-atomic="true">
+                {/* {state?.errors?.status &&
+            state.errors.status.map((error: string) => (
+              <p className="mt-2 text-sm text-red-500" key={error}>
+                {error}
+              </p>
+            ))} */}
+              </div>
+            </>
+          )}
+        </fieldset>
+      )}
 
       <div className="flex justify-end gap-2 pt-4">
         <Button
@@ -411,8 +549,24 @@ export function ShowLogsForm({ initialData, onClose, onSave }: ShowFormProps) {
         >
           Cancel
         </Button>
-        <Button type="submit" className="font-sans font-bold">
-          {initialData ? "Update" : "Add Log Entry"}
+        <Button
+          type="submit"
+          variant="success"
+          className="font-sans font-bold"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <div
+              role="status"
+              className="flex items-center justify-center gap-2"
+            >
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-100 border-t-transparent"></div>
+            </div>
+          ) : initialData ? (
+            "Update"
+          ) : (
+            "Add Log Entry"
+          )}
         </Button>
       </div>
     </form>

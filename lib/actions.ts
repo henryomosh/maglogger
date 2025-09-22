@@ -5,16 +5,6 @@ import { redirect } from "next/navigation";
 import sql from "@/lib/db";
 import bcrypt from "bcryptjs";
 
-function getItemsByPrefix(obj: any, prefix: string) {
-  const result: any = {};
-  for (const [key, value] of obj.entries()) {
-    if (key.startsWith(prefix)) {
-      result[key] = value;
-    }
-  }
-  return result;
-}
-
 export async function createStaff(formData: FormData) {
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
@@ -24,7 +14,7 @@ export async function createStaff(formData: FormData) {
   const status = formData.get("status") as string;
   const bio = formData.get("bio") as string;
 
-  const password = "pass1234";
+  const password = "password";
   const hashedPassword = await bcrypt.hash(password, 10);
   // Saving to a database
 
@@ -72,36 +62,41 @@ export async function updateStaff(formData: FormData) {
 
 export async function deleteStaff(id: string) {
   await sql`DELETE FROM users WHERE id = ${id}`;
+  await sql`DELETE FROM scheduling WHERE staff = ${id}`;
+  await sql`DELETE FROM logs WHERE staff = ${id}`;
   revalidatePath("/dashboard/staff");
 }
 
 export async function createScheduling(formData: FormData) {
   const title = formData.get("title") as string;
-  const category = formData.get("category") as string;
   const description = formData.get("description") as string;
-  const day = formData.get("day") as string;
-  const host = formData.get("host") as string;
+  let day = formData.get("day") as string;
   const color = formData.get("color") as string;
   const startTime = formData.get("startTime") as string;
   const endTime = formData.get("endTime") as string;
   const date = formData.get("date") as string;
   const recurring = formData.get("isRecurring");
-  const status = formData.get("status") as string;
-  const staffId = formData.get("userId") as string;
+  const staffId = formData.get("staffId") as string;
 
   // Saving to a database
 
   const created = new Date();
   const isRecurring = recurring ? true : false;
 
+  if (!isRecurring) {
+    const dayValue = new Date(date);
+    day = String(dayValue.getDay());
+  }
+
   try {
-    await sql` INSERT INTO scheduling (title, category, description, day, host, color, start, ends, recurring, created, date, status, staff)
-    VALUES (${title}, ${category}, ${description}, ${day}, ${host}, ${color}, ${startTime}, ${endTime}, ${isRecurring}, ${created}, ${date},${status}, ${staffId} )
+    await sql` INSERT INTO scheduling (title,  description, day, color, start, ends, recurring, created, date,  staff)
+    VALUES (${title},  ${description}, ${day},  ${color}, ${startTime}, ${endTime}, ${isRecurring}, ${created}, ${date}, ${staffId} )
     `;
     revalidatePath("/dashboard/schedulindg");
   } catch (error: any) {
     if (error) {
-      return { success: false, message: "dsasa" };
+      console.log(error);
+      return { success: false, message: "Opps! Something went wrong." };
     }
   }
 }
@@ -125,12 +120,13 @@ export async function updateScheduling(formData: FormData) {
 
   try {
     await sql` UPDATE 
-     scheduling SET title=${title},category = ${category},description= ${description}, day=${day}, color=${color}, 
+     scheduling SET title=${title},description= ${description}, day=${day}, color=${color}, 
      start=${startTime}, ends=${endTime}, recurring=${isRecurring}, date = ${date},status=${status}
      WHERE id= ${id}
     `;
   } catch (error) {
     if (error) {
+      console.log(error);
       return { success: false, message: "dsasa" };
     }
   }
@@ -141,6 +137,7 @@ export async function updateScheduling(formData: FormData) {
 export async function deleteSchedule(id: string) {
   try {
     await sql`DELETE FROM scheduling WHERE id = ${id}`;
+    await sql`DELETE FROM logs WHERE show = ${id}`;
   } catch (error) {
     if (error) {
       return { success: false };
@@ -151,36 +148,20 @@ export async function deleteSchedule(id: string) {
 
 export async function createLog(formData: FormData) {
   const show = formData.get("show") as string;
-  const startTimeItems = getItemsByPrefix(formData, "startTime_");
-  const endTimeItems = getItemsByPrefix(formData, "endTime_");
-  const descriptionItems = getItemsByPrefix(formData, "description_");
-
-  const guestName = formData.get("guestName")
-    ? getItemsByPrefix(formData, "guestName_")
-    : null;
-  const topic = formData.get("topic")
-    ? getItemsByPrefix(formData, "topic_")
-    : null;
-  const phone = formData.get("phone")
-    ? getItemsByPrefix(formData, "phone_")
-    : null;
-
-  const startTimeJson = JSON.stringify(startTimeItems);
-  const endTimeJson = JSON.stringify(endTimeItems);
-  const descriptionJson = JSON.stringify(descriptionItems);
-
-  const guestNameJson = JSON.stringify(guestName);
-  const topicJson = JSON.stringify(topic);
-  const phoneJson = JSON.stringify(phone);
+  const segments = formData.get("segments") as string;
+  const guests = formData.get("guests") as string;
+  const staff = formData.get("staff") as string;
+  const status = formData.get("status")
+    ? (formData.get("status") as string)
+    : "pending";
 
   const created = new Date();
-
   // Saving to a database
 
   try {
     await sql`
-      INSERT INTO logs (show, start_time, end_time, description, guest_name, topic, phone, created)
-      VALUES (${show}, ${startTimeJson}, ${endTimeJson}, ${descriptionJson}, ${guestNameJson}, ${topicJson}, ${phoneJson}, ${created})
+      INSERT INTO logs (staff, show, segments, guests, status, created)
+      VALUES (${staff}, ${show},  ${segments}, ${guests}, ${status}, ${created} )
     `;
   } catch (error: any) {
     if (error) {
@@ -188,4 +169,37 @@ export async function createLog(formData: FormData) {
     }
   }
   revalidatePath("/dashboard/logs");
+}
+
+export async function updateLog(formData: FormData) {
+  const logId = formData.get("logId") as string;
+  const segments = formData.get("segments") as string;
+  const guests = formData.get("guests") as string;
+  const status = formData.get("status")
+    ? (formData.get("status") as string)
+    : "pending";
+
+  // Saving to a database
+
+  try {
+    await sql`
+       UPDATE logs SET segments=${segments}, guests=${guests}, status=${status} WHERE id=${logId}
+    `;
+  } catch (error: any) {
+    if (error) {
+    }
+    throw error;
+  }
+  revalidatePath("/dashboard/logs");
+}
+
+export async function deleteLog(id: string) {
+  try {
+    await sql`DELETE FROM logs WHERE id = ${id}`;
+  } catch (error) {
+    if (error) {
+      return { success: false };
+    }
+  }
+  revalidatePath("/dashboard/scheduling");
 }

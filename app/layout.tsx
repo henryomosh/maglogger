@@ -2,6 +2,7 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Space_Grotesk, DM_Sans } from "next/font/google";
 import "./globals.css";
+import { AuthProvider, useAuth } from "@/components/auth-provider";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -29,8 +30,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${dmSans.variable} antialiased`}>
-      <body className="font-serif">{children}</body>
+      className={`${spaceGrotesk.variable} ${dmSans.variable} antialiased`}
+    >
+      <body className="font-serif">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

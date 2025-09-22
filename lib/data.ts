@@ -1,4 +1,5 @@
 "use server";
+import Logs from "@/app/dashboard/logs/page";
 import sql from "@/lib/db";
 import { User } from "@/lib/definations";
 
@@ -14,16 +15,22 @@ export async function fetchStaff() {
         users.specialities,
         users.status,
         users.bio
-
       FROM users `;
-    const staff = data.map((member) => ({
+    const activeUsers = await sql<
+      []
+    >`SELECT * from users WHERE status ='active'`;
+    const staffData = data.map((member) => ({
       ...member,
       specialities: member?.specialities ? member.specialities.split(",") : [],
     }));
+    const formStaff = await sql<[]>`SELECT
+      users.id,
+      users.name
+      FROM users`;
 
-    return staff;
+    return { formStaff, staffData, activeUsers };
   } catch (error) {
-    console.error("Database Error:", error);
+    console.log("Database Error:", error);
     throw new Error("Failed to fetch the latest invoices.");
   }
 }
@@ -40,7 +47,6 @@ export async function fetchUser(email: string) {
         users.status,
         users.password,
         users.bio
-
       FROM users
       WHERE users.email = ${email} `;
 
@@ -53,30 +59,83 @@ export async function fetchUser(email: string) {
 
 export async function fetchSchedule() {
   try {
-    const data = await sql`
+    const data = await sql<[]>`
       SELECT 
       scheduling.id,
+      scheduling.staff,
       scheduling.title,
-      scheduling.category,
       scheduling.description,
       scheduling.day,
       scheduling.color,
       scheduling.start,
       scheduling.ends,
       scheduling.recurring,
-      scheduling.date,
-      scheduling.status,
+      TO_CHAR(scheduling.date, 'YYYY-MM-DD') AS date,
       scheduling.created, 
       users.name
       FROM scheduling
       JOIN users ON scheduling.staff = users.id 
       ORDER BY scheduling.created DESC`;
-    const schedule = data.map((item) => ({
+
+    const schedule = data.map((item: any) => ({
       ...item,
       date: item?.date ? item.date : "",
     }));
+    const today = new Date();
+    const todayDayOfWeek = String(today.getDay());
+    const todaySchedule = await sql`      SELECT 
+      scheduling.id,
+      scheduling.title,
+      scheduling.description,
+      scheduling.day,
+      scheduling.color,
+      scheduling.start,
+      scheduling.ends,
+      scheduling.recurring,
+      TO_CHAR(scheduling.date, 'YYYY-MM-DD') AS date,
+      scheduling.created, 
+      users.name
+      FROM scheduling
+      JOIN users ON scheduling.staff = users.id
+      WHERE day=${todayDayOfWeek}`;
 
-    return schedule;
+    const logsData = await sql`SELECT * FROM  logs ORDER BY created DESC`;
+
+    const scheduleLogs = logsData.map((log) => ({
+      ...log,
+      segments: JSON.parse(log.segments),
+      guests: JSON.parse(log.guests),
+      created: new Date(log.created).toUTCString(),
+    }));
+
+    const hourNow = Number(new Date().getHours());
+    const liveShow = todaySchedule.filter((item) => {
+      const startHour = Number(item.start.split(":")[0]);
+      const endHour = Number(item.ends.split(":")[0]);
+
+      return endHour >= hourNow && startHour <= hourNow;
+    });
+
+    const upCommingShows1 = todaySchedule
+      .filter((item) => {
+        const startHour = Number(item.start.split(":")[0]);
+        return startHour >= hourNow;
+      })
+      .sort((a: any, b: any) => a.start.localeCompare(b.start))
+      .slice(0, 4);
+
+    const upCommingShows = upCommingShows1.map((item) => ({
+      ...item,
+      duration: Number(item.start.split(":")[0]) - hourNow,
+    }));
+
+    return {
+      schedule,
+      todaySchedule,
+      liveShow,
+      upCommingShows,
+      scheduleLogs,
+    };
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to fetch the latest invoices.");
@@ -94,6 +153,7 @@ export async function fetchUserSchedule(id: string) {
       FROM scheduling
       WHERE scheduling.staff = ${id}
       ORDER BY scheduling.created DESC`;
+
     return data;
   } catch (error) {
     console.log("Database Error:", error);
@@ -106,33 +166,61 @@ export async function fetchLogs() {
     const data = await sql`
       SELECT 
       logs.id,
+      logs.staff,
       logs.show,
-      logs.start_time,
-      logs.end_time,
-      logs.description,
-      logs.guest_name,
-      logs.topic,
-      logs.phone,
-      logs.created,
+      logs.segments,
+      logs.guests,
+      logs.status,
+      TO_CHAR(logs.created, 'YYYY-MM-DD HH24:MI:SS') AS created ,
       scheduling.title,
+      scheduling.start,
+      scheduling.ends,
       users.name
       FROM logs
       JOIN scheduling ON logs.show = scheduling.id
       JOIN users ON scheduling.staff = users.id 
+      `;
+    const approvedLogs =
+      await sql`SELECT * FROM logs WHERE status = 'approved'`;
 
+    const pendingLogs = await sql`SELECT * FROM logs WHERE status = 'pending'`;
+    const declinedLogs =
+      await sql`SELECT * FROM logs WHERE status = 'declined'`;
+
+    const logsData = data.map((log) => ({
+      ...log,
+      segments: JSON.parse(log.segments),
+      guests: JSON.parse(log.guests),
+    }));
+
+    return { logsData, pendingLogs, approvedLogs, declinedLogs };
+  } catch (error) {
+    console.log("Database Error:", error);
+    throw new Error("Failed to fetch the latest invoices.");
+  }
+}
+
+export async function fetchScheduleLogs(id: string) {
+  try {
+    const scheduleLogs = await sql`
+      SELECT 
+      logs.id,
+      logs.show,
+      logs.segments,
+      logs.guests,
+      logs.status,
+      TO_CHAR(logs.created, 'YYYY-MM-DD HH24:MI:SS') AS created ,
+      scheduling.title,
+      scheduling.start,
+      scheduling.ends,
+      users.name
+      FROM logs
+      JOIN scheduling ON logs.show = scheduling.id
+      JOIN users ON scheduling.staff = users.id 
+      WHERE logs.id = ${id}
       `;
 
-    const logs = data.map((item) => ({
-      ...item,
-      start_time: JSON.parse(item?.start_time),
-      end_time: JSON.parse(item?.end_time),
-      description: JSON.parse(item?.description),
-      guest_name: JSON.parse(item?.guest_name),
-      topic: JSON.parse(item?.topic),
-      phone: JSON.parse(item?.phone),
-    }));
-    console.log(logs);
-    return logs;
+    return scheduleLogs;
   } catch (error) {
     console.log("Database Error:", error);
     throw new Error("Failed to fetch the latest invoices.");
