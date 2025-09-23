@@ -36,6 +36,8 @@ import {
   MoreVertical,
   Trash,
   OctagonAlert,
+  Eye,
+  EyeClosed,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -205,7 +207,7 @@ export function StaffManagement({ data }: { data: any }) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const [staffData, setStaffData] = useState<StaffDataMemmber[]>();
-  console.log(data);
+
   // Check if user has permission to manage staff
   const canManageStaff = user?.role === "admin" || user?.role === "manager";
 
@@ -274,7 +276,7 @@ export function StaffManagement({ data }: { data: any }) {
                 Add Staff Member
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-sans font-bold">
                   Add New Staff Member
@@ -525,7 +527,7 @@ export function StaffManagement({ data }: { data: any }) {
           open={!!editingStaff}
           onOpenChange={() => setEditingStaff(null)}
         >
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-sans font-bold">
                 Edit Staff Member
@@ -561,6 +563,13 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
     message: string;
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [pass, setPass] = useState("");
+  const [error, setError] = useState("");
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const [formData, setFormData] = useState({
     id: initialData?.id || "",
@@ -577,23 +586,21 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    setError("");
     setIsSubmitting(true);
     setStatus(null);
-    onSave({
-      ...formData,
-      specialities: formData.specialities
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    });
+
     const formData2 = new FormData(e.currentTarget);
     const result = await createStaff(formData2);
-
-    setIsSubmitting(false);
-
-    setIsSubmitting(false);
-    toast.success("Staff member created successfully!", {});
+    if (result?.success === false) {
+      setError(result.message);
+      setIsSubmitting(false);
+    }
+    if (result.success === true) {
+      setIsSubmitting(false);
+      toast.success("Staff member created successfully!", {});
+      onClose();
+    }
   };
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -602,9 +609,10 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
 
     const formData2 = new FormData(e.currentTarget);
     const results = await updateStaff(formData2);
-    setStatus(results);
+
     setIsSubmitting(false);
     toast.success("Member details updated successfuly!");
+    onClose();
   };
 
   return (
@@ -612,6 +620,11 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
       onSubmit={initialData ? handleUpdate : handleSubmit}
       className="space-y-4"
     >
+      {error && (
+        <div className="text-sm text-center text-red-700 border-1 rounded-md p-2 bg-red-50">
+          {error}
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name" className="font-serif">
@@ -734,6 +747,35 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
           className="border-1 border-blue-400"
           rows={3}
         />
+      </div>
+      <div className="space-y-2 " style={{ position: "relative" }}>
+        <Label htmlFor="password" className="font-serif">
+          {initialData ? "Change Staff Password" : "Password"}
+          {!initialData && <span className="text-red-500">*</span>}
+        </Label>
+        <Input
+          type={showPassword ? "text" : "password"}
+          id="password"
+          name="password"
+          value={pass}
+          onChange={(e) => setPass(e.target.value)}
+          placeholder="Set staff password"
+          className="border-1 border-blue-400"
+          style={{ width: "100%", paddingRight: "40px" }}
+          required={!initialData}
+        />
+        <span
+          onClick={togglePasswordVisibility}
+          style={{
+            position: "absolute",
+            right: "20px",
+            top: "65%",
+            transform: "translateY(-50%)",
+            cursor: "pointer",
+          }}
+        >
+          <EyeClosed className="h-5 w-5" />
+        </span>
       </div>
       {initialData && (
         <div className="hidden">

@@ -4,8 +4,9 @@ import type { Metadata } from "next";
 import { Space_Grotesk, DM_Sans } from "next/font/google";
 // import "./globals.css";
 import { DashboardLayout } from "@/components/dashboard-components/dashboard-layout";
-
 import { Toaster } from "@/components/ui/sonner";
+import { useAuth } from "@/components/auth-provider";
+import { redirect } from "next/navigation";
 
 // const spaceGrotesk = Space_Grotesk({
 //   subsets: ["latin"],

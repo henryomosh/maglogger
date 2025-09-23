@@ -51,29 +51,25 @@ export function DashboardHome({
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
 
-  const stats = [
-    {
-      title: "Active Presenters",
-      value: "12",
-      change: "+2 this week",
-      icon: Users,
-      color: "text-chart-1",
-    },
-    {
-      title: "Shows Today",
-      value: "8",
-      change: "2 live now",
-      icon: Radio,
-      color: "text-chart-2",
-    },
-    {
-      title: "Playlists",
-      value: "45",
-      change: "3 updated",
-      icon: Music,
-      color: "text-green-700",
-    },
-  ];
+  const canManageStaff = user?.role === "admin" || user?.role === "manager";
+
+  const filterApprovedLogs = canManageStaff
+    ? approvedLogs
+    : approvedLogs.filter((item: any) => {
+        return item.staff === user?.id;
+      });
+
+  const filterDeclinedLogs = canManageStaff
+    ? declinedLogs
+    : declinedLogs.filter((item: any) => {
+        return item.staff === user?.id;
+      });
+
+  const filterPendingLogs = canManageStaff
+    ? pendingLogs
+    : pendingLogs.filter((item: any) => {
+        return item.staff === user?.id;
+      });
 
   const recentActivity = [
     {
@@ -98,17 +94,6 @@ export function DashboardHome({
     },
   ];
 
-  const upcomingShows = [
-    {
-      time: "3:00 PM",
-      show: "Newspaper Review",
-      dj: "Lisa Presenter",
-      duration: "2h",
-    },
-    { time: "5:00 PM", show: "Mass Line", dj: "Tom Presenter", duration: "3h" },
-    { time: "8:00 PM", show: "Music", dj: "Alex Presenter", duration: "1h" },
-    { time: "9:00 PM", show: "Request", dj: "Alex Presenter", duration: "4h" },
-  ];
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
@@ -160,7 +145,7 @@ export function DashboardHome({
             <p className="text-xs text-muted-foreground font-serif">
               {liveShow?.length > 0
                 ? `${liveShow.length} live now`
-                : "No live show"}
+                : "No live show now"}
             </p>
           </CardContent>
         </Card>
@@ -173,13 +158,9 @@ export function DashboardHome({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-sans font-bold">
-              {approvedLogs?.length || 0}
+              {filterApprovedLogs?.length || 0}
             </div>
-            <p className="text-xs text-muted-foreground font-serif">
-              {liveShow?.length > 0
-                ? `${approvedLogs.length} live now`
-                : "No live show"}
-            </p>
+            <p className="text-xs text-muted-foreground font-serif"></p>
           </CardContent>
         </Card>
         <Card>
@@ -191,13 +172,9 @@ export function DashboardHome({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-sans font-bold">
-              {pendingLogs?.length || 0}
+              {filterPendingLogs?.length || 0}
             </div>
-            <p className="text-xs text-muted-foreground font-serif">
-              {liveShow?.length > 0
-                ? `${liveShow.length} live now`
-                : "No live show"}
-            </p>
+            <p className="text-xs text-muted-foreground font-serif"></p>
           </CardContent>
         </Card>
         <Card>
@@ -209,13 +186,9 @@ export function DashboardHome({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-sans font-bold">
-              {declinedLogs?.length || 0}
+              {filterDeclinedLogs?.length || 0}
             </div>
-            <p className="text-xs text-muted-foreground font-serif">
-              {liveShow?.length > 0
-                ? `${liveShow.length} live now`
-                : "No live show"}
-            </p>
+            <p className="text-xs text-muted-foreground font-serif"></p>
           </CardContent>
         </Card>
       </div>
@@ -289,6 +262,12 @@ export function DashboardHome({
                   </Badge>
                 </div>
               ))}
+              {upCommingShows?.length < 1 && (
+                <div className="text-sm items-center">
+                  No upcoming shows today.{" "}
+                  {canManageStaff && <>Go to scheduling to add shows.</>}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

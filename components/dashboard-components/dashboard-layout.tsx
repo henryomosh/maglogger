@@ -25,8 +25,6 @@ import {
   Settings,
   FileText,
 } from "lucide-react";
-import { LoginForm } from "../login-form";
-import { useRouter } from "next/router";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -181,7 +179,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <Settings className="mr-2 h-4 w-4" />
                     <span className="font-serif">Settings</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout}>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      logout();
+                    }}
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span className="font-serif">Log out</span>
                   </DropdownMenuItem>

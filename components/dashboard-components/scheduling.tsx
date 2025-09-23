@@ -240,7 +240,7 @@ export function ShowScheduling({
                 Schedule Show
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-sans font-bold">
                   Schedule New Show
@@ -268,7 +268,7 @@ export function ShowScheduling({
             open={isDeleteDialogOpen}
             onOpenChange={setIsDeleteDialogOpen}
           >
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-sans font-bold">
                   <div className="flex gap-4">

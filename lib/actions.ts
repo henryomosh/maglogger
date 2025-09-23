@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import sql from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { fetchUser } from "@/lib/data";
 
 export async function createStaff(formData: FormData) {
   const name = formData.get("name") as string;
@@ -14,8 +15,14 @@ export async function createStaff(formData: FormData) {
   const status = formData.get("status") as string;
   const bio = formData.get("bio") as string;
 
-  const password = "password";
+  const password = formData.get("password") as string;
   const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = await fetchUser(email);
+  if (user) {
+    return { success: false, message: "A user with that email exists!" };
+  }
+
   // Saving to a database
 
   try {
@@ -25,11 +32,11 @@ export async function createStaff(formData: FormData) {
     `;
   } catch (error: any) {
     if (error) {
-      console.log(error?.detail);
+      return { success: false, message: "Server error occured" };
     }
   }
   revalidatePath("/dashboard/staff");
-  redirect("/dashboard/staff");
+  return { success: true, message: "" };
 }
 
 export async function updateStaff(formData: FormData) {
@@ -41,14 +48,19 @@ export async function updateStaff(formData: FormData) {
   const specialities = formData.get("specialities") as string;
   const status = formData.get("status") as string;
   const bio = formData.get("bio") as string;
+  const password = formData.get("password") as string;
 
-  // Saving to a database
-
+  const user = await fetchUser(email);
+  const hashedPassword = await bcrypt.hash(password, 10);
+  let setPassword = user?.password;
+  if (password !== "") {
+    setPassword = hashedPassword;
+  }
   try {
     await sql`
-      UPDATE users 
+      UPDATE users
       SET role = ${role}, name = ${name} , email = ${email} , phone = ${phone},
-      specialities = ${specialities}, status = ${status}, bio = ${bio}
+      specialities = ${specialities}, status = ${status}, bio = ${bio} , password=${setPassword}
       WHERE id = ${id}
     `;
   } catch (error: any) {

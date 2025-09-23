@@ -15,29 +15,29 @@ import {
 } from "@/components/ui/card";
 import { useAuth } from "./auth-provider";
 import { RadioIcon } from "lucide-react";
-import { redirect } from "next/navigation";
+import { loginUser } from "@/auth";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login, isLoading, isAuthenticated } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      redirect("/dashboard");
-    }
-  }, []);
+  const { login } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
+    setIsLoading(true);
 
-    const success = await login(email, password);
-    if (!success) {
-      setError("Invalid credentials. Try: admin@radio.com / password");
-    } else {
-      redirect("/dashboard");
+    const formData = new FormData(e.currentTarget);
+    const result = await loginUser(formData);
+    if (result?.success === false) {
+      setError(result?.error);
+      setIsLoading(false);
+    }
+    if (result?.success === true) {
+      const user = result.user;
+      login(user);
     }
   };
 
@@ -65,6 +65,7 @@ export function LoginForm() {
               </Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -78,6 +79,7 @@ export function LoginForm() {
               </Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
