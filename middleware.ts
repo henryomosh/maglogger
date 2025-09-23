@@ -4,20 +4,27 @@ import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 
 const protectedRoutes = ["/dashboard"];
-const publicRoutes = ["/login", "/signup", "/"];
+const publicRoutes = ["/login", "/signup"];
+const lockedRoutes = ["/"];
 
 export async function middleware(request: NextRequest) {
   // Check if the current route is protected or public
   const path = request.nextUrl.pathname;
   const isProtectedRoute = path.startsWith("/dashboard");
   const isPublicRoute = publicRoutes.includes(path);
+  const isLockedRoute = lockedRoutes.includes(path);
 
   const cookie = (await cookies()).get("session")?.value;
 
   if (isProtectedRoute && !cookie) {
     return NextResponse.redirect(new URL("/login", request.nextUrl));
   }
-
+  if (isLockedRoute && cookie) {
+    return NextResponse.redirect(new URL("/dashboard", request.nextUrl));
+  }
+  if (isLockedRoute && !cookie) {
+    return NextResponse.redirect(new URL("/login", request.nextUrl));
+  }
   if (
     isPublicRoute &&
     cookie &&
