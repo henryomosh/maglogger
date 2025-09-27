@@ -2,7 +2,7 @@
 import Logs from "@/app/dashboard/logs/page";
 import sql from "@/lib/db";
 import { User } from "@/lib/definations";
-
+import { DateTime } from "luxon";
 export async function fetchStaff() {
   try {
     const data = await sql`
@@ -14,6 +14,8 @@ export async function fetchStaff() {
         users.phone,
         users.specialities,
         users.status,
+        users.login,
+        users.logout,
         users.bio
       FROM users `;
     const activeUsers = await sql<
@@ -63,9 +65,10 @@ export async function fetchSchedule() {
       SELECT 
       scheduling.id,
       scheduling.staff,
+      scheduling.standin,
       scheduling.title,
       scheduling.description,
-      scheduling.day,
+      scheduling.days,
       scheduling.color,
       scheduling.start,
       scheduling.ends,
@@ -80,14 +83,16 @@ export async function fetchSchedule() {
     const schedule = data.map((item: any) => ({
       ...item,
       date: item?.date ? item.date : "",
+      days: JSON.parse(item.days),
     }));
     const today = new Date();
     const todayDayOfWeek = String(today.getDay());
-    const todaySchedule = await sql`      SELECT 
+    const todaySchedule1 = await sql`SELECT 
       scheduling.id,
       scheduling.title,
+      scheduling.standin,
       scheduling.description,
-      scheduling.day,
+      scheduling.days,
       scheduling.color,
       scheduling.start,
       scheduling.ends,
@@ -97,7 +102,12 @@ export async function fetchSchedule() {
       users.name
       FROM scheduling
       JOIN users ON scheduling.staff = users.id
-      WHERE day=${todayDayOfWeek}`;
+     `;
+
+    const todaySchedule = todaySchedule1.map((item: any) => ({
+      ...item,
+      days: JSON.parse(item.days),
+    }));
 
     const logsData = await sql`SELECT * FROM  logs ORDER BY created DESC`;
 
@@ -110,7 +120,7 @@ export async function fetchSchedule() {
 
     const hourNow = Number(new Date().getHours());
     const liveShow = todaySchedule.filter((item) => {
-      const startHour = Number(item.start.split(":")[0]);
+      const startHour = Number(item?.start.split(":")[0]);
       const endHour = Number(item.ends.split(":")[0]);
 
       return endHour >= hourNow && startHour <= hourNow;
@@ -148,6 +158,7 @@ export async function fetchUserSchedule(id: string) {
       SELECT 
       scheduling.id,
       scheduling.title,
+      scheduling.standin,
       scheduling.start,
       scheduling.ends
       FROM scheduling
@@ -170,9 +181,11 @@ export async function fetchLogs() {
       logs.show,
       logs.segments,
       logs.guests,
+      logs.adverts,
       logs.status,
-      TO_CHAR(logs.created, 'YYYY-MM-DD HH24:MI:SS') AS created ,
+      logs.created,
       scheduling.title,
+          scheduling.standin,
       scheduling.start,
       scheduling.ends,
       users.name
@@ -191,6 +204,7 @@ export async function fetchLogs() {
       ...log,
       segments: JSON.parse(log.segments),
       guests: JSON.parse(log.guests),
+      adverts: JSON.parse(log.adverts),
     }));
 
     return { logsData, pendingLogs, approvedLogs, declinedLogs };
@@ -209,8 +223,10 @@ export async function fetchScheduleLogs(id: string) {
       logs.segments,
       logs.guests,
       logs.status,
-      TO_CHAR(logs.created, 'YYYY-MM-DD HH24:MI:SS') AS created ,
+      logs.adverts,
+      logs.created,
       scheduling.title,
+      scheduling.standin,
       scheduling.start,
       scheduling.ends,
       users.name

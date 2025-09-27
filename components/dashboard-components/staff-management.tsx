@@ -38,6 +38,9 @@ import {
   OctagonAlert,
   Eye,
   EyeClosed,
+  LogIn,
+  LogOut,
+  Users,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -51,6 +54,7 @@ import { deleteStaff } from "@/lib/actions";
 import { fetchStaff } from "@/lib/data";
 import { User } from "@/lib/definations";
 import { toast } from "sonner";
+import { formatTime } from "@/lib/utils";
 
 interface StaffMember {
   id: string;
@@ -72,6 +76,8 @@ interface StaffMember {
     saturday?: string;
     sunday?: string;
   };
+  login: string;
+  logout: string;
 }
 
 interface StaffDataMemmber {
@@ -83,6 +89,8 @@ interface StaffDataMemmber {
   status: string;
   bio?: string;
   specialties?: [];
+  login?: string;
+  logout: string;
 }
 
 interface StaffFormProps {
@@ -104,97 +112,27 @@ const mockStaff: StaffMember[] = [
     status: "active",
     bio: "Experienced radio station manager with 15+ years in broadcasting.",
     specialities: ["Management", "Operations", "Strategy"],
-  },
-  {
-    id: "2",
-    name: "Sarah Manager",
-    email: "manager@radio.com",
-    phone: "(555) 234-5678",
-    role: "manager",
-    department: "Programming",
-    hireDate: "2021-03-20",
-    status: "active",
-    bio: "Programming director focused on content strategy and audience engagement.",
-    specialities: ["Programming", "Content Strategy", "Analytics"],
-    schedule: {
-      monday: "9:00 AM - 6:00 PM",
-      tuesday: "9:00 AM - 6:00 PM",
-      wednesday: "9:00 AM - 6:00 PM",
-      thursday: "9:00 AM - 6:00 PM",
-      friday: "9:00 AM - 5:00 PM",
-    },
-  },
-  {
-    id: "3",
-    name: "Mike DJ",
-    email: "dj@radio.com",
-    phone: "(555) 345-6789",
-    role: "dj",
-    department: "On-Air",
-    hireDate: "2022-06-10",
-    status: "active",
-    bio: "Popular afternoon drive-time DJ with a passion for rock and alternative music.",
-    specialities: ["Rock Music", "Live Shows", "Audience Interaction"],
-    schedule: {
-      monday: "2:00 PM - 6:00 PM",
-      tuesday: "2:00 PM - 6:00 PM",
-      wednesday: "2:00 PM - 6:00 PM",
-      thursday: "2:00 PM - 6:00 PM",
-      friday: "2:00 PM - 6:00 PM",
-    },
-  },
-  {
-    id: "4",
-    name: "Lisa Staff",
-    email: "staff@radio.com",
-    phone: "(555) 456-7890",
-    role: "staff",
-    department: "Production",
-    hireDate: "2023-02-14",
-    status: "active",
-    bio: "Audio production specialist and sound engineer.",
-    specialities: ["Audio Production", "Sound Engineering", "Editing"],
-    schedule: {
-      monday: "10:00 AM - 7:00 PM",
-      wednesday: "10:00 AM - 7:00 PM",
-      friday: "10:00 AM - 7:00 PM",
-      saturday: "12:00 PM - 8:00 PM",
-      sunday: "12:00 PM - 8:00 PM",
-    },
-  },
-  {
-    id: "5",
-    name: "Tom DJ",
-    email: "tom@radio.com",
-    phone: "(555) 567-8901",
-    role: "dj",
-    department: "On-Air",
-    hireDate: "2021-11-08",
-    status: "on-leave",
-    bio: "Evening jazz specialist currently on medical leave.",
-    specialities: ["Jazz", "Classical", "Evening Shows"],
-  },
-  {
-    id: "6",
-    name: "Alex DJ",
-    email: "alex@radio.com",
-    phone: "(555) 678-9012",
-    role: "dj",
-    department: "On-Air",
-    hireDate: "2023-08-22",
-    status: "active",
-    bio: "Night shift DJ specializing in electronic and dance music.",
-    specialities: ["Electronic", "Dance", "Late Night"],
-    schedule: {
-      thursday: "10:00 PM - 2:00 AM",
-      friday: "10:00 PM - 2:00 AM",
-      saturday: "10:00 PM - 2:00 AM",
-      sunday: "10:00 PM - 2:00 AM",
-    },
+    login: "",
+    logout: "",
   },
 ];
 
-export function StaffManagement({ data }: { data: any }) {
+const daysOfWeek = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+export function StaffManagement({
+  data,
+  schedule,
+}: {
+  data: any;
+  schedule: any;
+}) {
   const { user } = useAuth();
   const [staff, setStaff] = useState<StaffMember[]>(mockStaff);
   const [searchTerm, setSearchTerm] = useState("");
@@ -220,6 +158,27 @@ export function StaffManagement({ data }: { data: any }) {
       filterStatus === "all" || member.status === filterStatus;
     return matchesSearch && matchesRole && matchesStatus;
   });
+  const getStaffShows = (id: any) => {
+    return schedule?.filter((item: any, index: any) => item?.staff === id);
+  };
+
+  const showDays = (show: any) => {
+    const days: number[] = [];
+    return show?.days
+      ?.map((day: any, index: number) => (day.value === true ? index : -1))
+      .filter((index: any) => index !== -1);
+  };
+
+  const activeStaff = data?.filter(
+    (member: any) => member?.status === "active"
+  );
+  const onleavStaff = data?.filter(
+    (member: any) => member?.status === "on-leave"
+  );
+
+  const inactiveStaff = data?.filter(
+    (member: any) => member?.status === "inactive"
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -258,16 +217,67 @@ export function StaffManagement({ data }: { data: any }) {
   };
   return (
     <div className="space-y-6">
+      <h1 className="text-3xl font-sans font-bold text-foreground">
+        Staff Management
+      </h1>
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded rounded-2xl pl-1 bg-green-700">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-md font-serif font-medium">
+                Active staff
+              </CardTitle>
+              <Users className="h-6 w-6 text-green-700" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-sans font-bold text-green-700">
+                {activeStaff.length || 0}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="rounded rounded-2xl pl-1 bg-cyan-700">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-md font-serif font-medium">
+                On-leave Staff
+              </CardTitle>
+              <Users className="h-6 w-6 text-cyan-700" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-sans font-bold text-cyan-700">
+                {onleavStaff.length || 0}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="rounded rounded-2xl pl-1 bg-yellow-500">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-md font-serif font-medium">
+                Inactive Staff
+              </CardTitle>
+              <Users className="h-6 w-6 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-sans font-bold text-yellow-500">
+                {inactiveStaff.length || 0}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-sans font-bold text-foreground">
-            Staff Management
-          </h1>
           <p className="text-muted-foreground font-serif mt-1">
             Manage your radio station team and their roles.
           </p>
         </div>
+
         {canManageStaff && (
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
@@ -453,6 +463,24 @@ export function StaffManagement({ data }: { data: any }) {
                   <span className="font-serif">{member.phone}</span>
                 </div>
               </div>
+              <div className=" text-sm space-y-2 ">
+                {member?.login && (
+                  <div className="flex items-center gap-2">
+                    <LogIn className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-serif">
+                      Login Time: {formatTime(member?.login || "")}
+                    </span>
+                  </div>
+                )}
+                {member?.logout && (
+                  <div className="flex items-center gap-2">
+                    <LogOut className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-serif">
+                      Logout Time: {formatTime(member?.logout || "")}
+                    </span>
+                  </div>
+                )}
+              </div>
 
               {member.bio && (
                 <p className="text-sm text-muted-foreground font-serif line-clamp-2">
@@ -479,7 +507,7 @@ export function StaffManagement({ data }: { data: any }) {
                 </div>
               )}
 
-              {/* {member.schedule && (
+              {getStaffShows(member.id).length > 0 && (
                 <div className="pt-2 border-t">
                   <div className="flex items-center gap-2 mb-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
@@ -487,25 +515,43 @@ export function StaffManagement({ data }: { data: any }) {
                       This Week
                     </span>
                   </div>
-                  <div className="space-y-1">
-                    {Object.entries(member.schedule)
-                      .slice(0, 2)
-                      .map(([day, time]) => (
-                        <div key={day} className="flex justify-between text-xs">
-                          <span className="font-serif capitalize">{day}</span>
-                          <span className="font-serif text-muted-foreground">
-                            {time}
-                          </span>
-                        </div>
-                      ))}
-                    {Object.keys(member.schedule).length > 2 && (
-                      <p className="text-xs text-muted-foreground font-serif">
-                        +{Object.keys(member.schedule).length - 2} more days
-                      </p>
-                    )}
+                  <div className="">
+                    {getStaffShows(member.id)?.map((show: any) => (
+                      <div key={show.id}>
+                        <p className="text-green-500 text-sm font-bold pb-1">
+                          {show.title}
+                        </p>
+                        {showDays(show)
+                          ?.map((day: any, index: any) => (
+                            <div
+                              key={index}
+                              className="flex justify-between text-xs"
+                            >
+                              <span className="font-serif capitalize">
+                                {daysOfWeek[day]}
+                              </span>
+                              <span className="font-serif text-muted-foreground">
+                                {formatTime(show.start)} -{" "}
+                                {formatTime(show.ends)}
+                              </span>
+                            </div>
+                          ))
+                          .slice(0, 2)}
+                        {showDays(show).length > 2 && (
+                          <p className="text-xs text-muted-foreground font-serif">
+                            +{showDays(show).length - 2} more days
+                          </p>
+                        )}
+                        {getStaffShows(member.id).length > 1 && (
+                          <p className="text-xs text-muted-foreground font-serif">
+                            +{getStaffShows(member.id).length - 1} more shows
+                          </p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
-              )} */}
+              )}
             </CardContent>
           </Card>
         ))}
@@ -582,6 +628,8 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
     status: initialData?.status || ("active" as const),
     bio: initialData?.bio || "",
     specialities: initialData?.specialities?.join(", ") || "",
+    login: initialData?.login || "",
+    logout: initialData?.logout || "",
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -747,6 +795,41 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
           className="border-1 border-blue-400"
           rows={3}
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 space-y-2">
+        <div className="space-y-2">
+          <Label htmlFor="login" className="font-serif">
+            Log In Time
+          </Label>
+          <Input
+            type="time"
+            id="login"
+            name="login"
+            value={formData.login}
+            onChange={(e) =>
+              setFormData({ ...formData, login: e.target.value })
+            }
+            className="border-1 border-blue-400"
+            placeholder="Reporting time"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="logout" className="font-serif">
+            Log Out Time
+          </Label>
+          <Input
+            type="time"
+            id="logout"
+            name="logout"
+            value={formData.logout}
+            onChange={(e) =>
+              setFormData({ ...formData, logout: e.target.value })
+            }
+            className="border-1 border-blue-400"
+            placeholder="Leaving time"
+          />
+        </div>
       </div>
       <div className="space-y-2 " style={{ position: "relative" }}>
         <Label htmlFor="password" className="font-serif">

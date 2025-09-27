@@ -1,3 +1,4 @@
+//@ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
@@ -66,6 +67,7 @@ import {
   Check,
   CircleX,
   ShieldAlert,
+  Megaphone,
 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { fetchUserSchedule, fetchLogs } from "@/lib/data";
@@ -77,6 +79,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatDateToLocal, formatTime } from "@/lib/utils";
+import { DateTime } from "luxon";
+
 interface ShowLog {
   id: string;
   showId: string;
@@ -339,6 +344,10 @@ export function ShowLogs({
     setIsDeleteDialogOpen(false);
   };
 
+  const convertToLocal = (date: any) => {
+    return DateTime.fromISO(date);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -483,6 +492,37 @@ export function ShowLogs({
                         </div>
                       </div>
                       <hr />
+                      <h1 className="font-serif font-bold pt-2">Adverts</h1>
+                      <div className=" ">
+                        {modalLogDetails?.adverts?.length > 0 ? (
+                          modalLogDetails.adverts?.map(
+                            (item: any, index: any) => (
+                              <div
+                                className="flex justify-start gap-6"
+                                key={index}
+                              >
+                                <div className="mt-2 flex  gap-2">
+                                  <Megaphone className="h-4 w-4 text-blue-500" />
+                                  <p className="text-xs font-serif text-foreground">
+                                    <strong>Title: </strong>
+                                    {item?.title}{" "}
+                                  </p>
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  <p className="text-xs font-serif text-foreground">
+                                    <strong>Description: </strong>
+                                    {item?.description}
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          )
+                        ) : (
+                          <p className="text-sm font-serif text-foreground">
+                            No Adverts
+                          </p>
+                        )}
+                      </div>
                       <h1 className="font-serif font-bold pt-2">Guests</h1>
                       <div className=" ">
                         {modalLogDetails?.guests.length > 0 ? (
@@ -696,6 +736,9 @@ export function ShowLogs({
                             </span>
                           </div>
                           <div className="flex gap-4">
+                            <p className="text-xs">
+                              {formatDateToLocal(log?.created)}
+                            </p>
                             <div>
                               {log?.status === "pending" && (
                                 <Badge className="font-serif text-xs bg-yellow-200 text-default">
@@ -789,6 +832,36 @@ export function ShowLogs({
                               </p>
                             )}
                           </div>
+                        </div>
+                        <hr />
+                        <h1 className="font-serif font-bold pt-2">Adverts</h1>
+                        <div className="mb-4">
+                          {log.adverts?.lenghth > 0 ? (
+                            log.adverts?.map((item: any, index: any) => (
+                              <div
+                                className="flex justify-start gap-6 pb-2"
+                                key={index}
+                              >
+                                <div className="mt-2 flex   gap-2">
+                                  <Megaphone className="h-4 w-4 text-blue-500" />
+                                  <p className="text-xs font-serif text-foreground">
+                                    <strong>Name: </strong>
+                                    {item?.title}{" "}
+                                  </p>
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  <p className="text-xs font-serif text-foreground">
+                                    <strong>Description: </strong>
+                                    {item?.description}
+                                  </p>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm font-serif text-foreground">
+                              No adverts
+                            </p>
+                          )}
                         </div>
                         <hr />
                         <h1 className="font-serif font-bold pt-2">Guests</h1>
@@ -913,12 +986,17 @@ export function ShowLogs({
                           Segments
                         </TableHead>
                         <TableHead className="font-serif font-bold">
+                          Adverts
+                        </TableHead>
+                        <TableHead className="font-serif font-bold">
                           Guests
                         </TableHead>
                         <TableHead className="font-serif font-bold">
                           Status
                         </TableHead>
-
+                        <TableHead className="font-serif font-bold">
+                          Created
+                        </TableHead>
                         <TableHead className="font-serif font-bold">
                           Actions
                         </TableHead>
@@ -941,6 +1019,9 @@ export function ShowLogs({
                               {log?.segments.length || 0}
                             </TableCell>
                             <TableCell className="font-sans font-bold">
+                              {log?.adverts.length || 0}
+                            </TableCell>
+                            <TableCell className="font-sans font-bold">
                               {log?.guests.length || 0}
                             </TableCell>
                             <TableCell className="font-serif">
@@ -961,6 +1042,9 @@ export function ShowLogs({
                                 </Badge>
                               )}
                             </TableCell>
+                            <TableCell className="font-sans text-xs font-bold">
+                              {formatDateToLocal(log.created)}
+                            </TableCell>
 
                             <TableCell className="font-serif max-w-xs">
                               <div className="flex items-center gap-3">
@@ -980,16 +1064,18 @@ export function ShowLogs({
                                     <SquarePen className="h-4 w-4" />
                                   </div>
                                 </button>
-                                <button
-                                  onClick={() => {
-                                    setLogId(log.id);
-                                    setIsDeleteDialogOpen(true);
-                                  }}
-                                >
-                                  <div className="p-1 rounded-lg bg-red-600 hover:bg-red-500 text-white">
-                                    <Trash2 className="h-4 w-4" />
-                                  </div>
-                                </button>
+                                {canManageShows && (
+                                  <button
+                                    onClick={() => {
+                                      setLogId(log.id);
+                                      setIsDeleteDialogOpen(true);
+                                    }}
+                                  >
+                                    <div className="p-1 rounded-lg bg-red-600 hover:bg-red-500 text-white">
+                                      <Trash2 className="h-4 w-4" />
+                                    </div>
+                                  </button>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>

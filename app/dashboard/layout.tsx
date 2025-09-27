@@ -34,7 +34,7 @@ export default function Layout({
   return (
     <div>
       <DashboardLayout children={children}></DashboardLayout>
-      <Toaster position="top-right" richColors theme="dark" duration={6000} />
+      <Toaster position="top-right" richColors theme="dark" duration={2000} />
     </div>
   );
 }

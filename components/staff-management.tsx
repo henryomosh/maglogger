@@ -208,7 +208,7 @@ export function StaffManagement({ data }: { data: any }) {
     fetchData();
   }, []);
 
-  const filteredStaff = data?.filter((member:any) => {
+  const filteredStaff = data?.filter((member: any) => {
     const matchesSearch =
       member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -378,7 +378,8 @@ export function StaffManagement({ data }: { data: any }) {
                 <Badge
                   className={`${getStatusColor(
                     member.status
-                  )} font-serif text-xs`}>
+                  )} font-serif text-xs`}
+                >
                   {member.status.charAt(0).toUpperCase() +
                     member.status.slice(1).replace("-", " ")}
                 </Badge>
@@ -411,7 +412,8 @@ export function StaffManagement({ data }: { data: any }) {
                     <Badge
                       key={specialty}
                       variant="outline"
-                      className="font-serif text-xs">
+                      className="font-serif text-xs"
+                    >
                       {specialty}
                     </Badge>
                   ))}
@@ -469,7 +471,8 @@ export function StaffManagement({ data }: { data: any }) {
       {editingStaff && (
         <Dialog
           open={!!editingStaff}
-          onOpenChange={() => setEditingStaff(null)}>
+          onOpenChange={() => setEditingStaff(null)}
+        >
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle className="font-sans font-bold">
@@ -605,7 +608,8 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
             value={formData.role}
             onValueChange={(value: UserRole) =>
               setFormData({ ...formData, role: value })
-            }>
+            }
+          >
             <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue />
             </SelectTrigger>
@@ -643,7 +647,8 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
             name="status"
             onValueChange={(value: "active" | "inactive" | "on-leave") =>
               setFormData({ ...formData, status: value })
-            }>
+            }
+          >
             <SelectTrigger className="border-1 border-blue-400 w-full">
               <SelectValue />
             </SelectTrigger>
@@ -676,7 +681,8 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
           type="button"
           variant="outline"
           onClick={onClose}
-          className="font-serif bg-transparent">
+          className="font-serif bg-transparent"
+        >
           Cancel
         </Button>
         <Button type="submit" className="font-sans font-bold">

@@ -101,7 +101,8 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
       { startTime: "--:--", endTime: "--:--", description: "" },
     ]
   );
-
+  console.log(initialData);
+  const [adverts, setAdverts] = useState(initialData?.adverts || []);
   const [guests, setGuests] = useState(initialData?.guests || []);
 
   const [userSchedule, setUserSChedule] = useState<UserSchedule[]>([
@@ -190,6 +191,29 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
 
     setSegments(updatedItems);
   };
+  // Adverts functions
+  function addAdvert() {
+    const currentItems = adverts;
+    setAdverts([...currentItems, { title: "", description: "" }]);
+  }
+
+  function removeAdverts(index: number) {
+    let currentItems = adverts;
+    setAdverts(currentItems.filter((_: any, i: any) => i !== index));
+  }
+
+  const handleAdvertChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const { id, value } = e.target;
+    const updatedItems = adverts.map((item: any, idx: any) =>
+      index === idx ? { ...item, [id]: value } : item
+    );
+
+    setAdverts(updatedItems);
+  };
+
   // Guest functions
   function addGuest() {
     const currentItems = guests;
@@ -211,7 +235,6 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
     );
     setGuests(updatedItems);
   };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData2 = new FormData(e.currentTarget);
@@ -223,6 +246,7 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
 
       console.log(formData2.get("show"));
       formData2.append("segments", JSON.stringify(segments));
+      formData2.append("adverts", JSON.stringify(adverts));
       formData2.append("guests", JSON.stringify(guests));
 
       const result = await createLog(formData2);
@@ -243,6 +267,7 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
 
       formData2.append("segments", JSON.stringify(segments));
       formData2.append("guests", JSON.stringify(guests));
+      formData2.append("adverts", JSON.stringify(adverts));
 
       const result = await updateLog(formData2);
       toast.success("Log Updated successfully!");
@@ -264,7 +289,7 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
             className="hidden"
             type="text"
             value={initialData?.id || ""}
-            readOnly
+            onChange={() => null}
           />
           <Label htmlFor="dj" className="font-serif">
             Show <span className="text-red-500">*</span>
@@ -318,6 +343,7 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
         )}
       </div>
       <hr className="border-gray-300" />
+
       {/* Segments */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
@@ -392,6 +418,65 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
         ))}
       </div>
       <hr className="border-gray-300" />
+      {/* Adverts */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className=" font-black">Adverts</h3>
+          <Button type="button" variant="outline" size="sm" onClick={addAdvert}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Advert
+          </Button>
+        </div>
+        {adverts?.map((_: any, index: any) => (
+          <div className="grid grid-cols-8 gap-4 items-end " key={index}>
+            <div className="space-y-2 col-span-3">
+              <Label htmlFor="title" className="font-serif">
+                Title <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                className="border-1 border-blue-400"
+                name={`title_${index}`}
+                id="title"
+                type="text"
+                value={adverts[index].title}
+                onChange={(e) => handleAdvertChange(e, index)}
+                required
+              />
+            </div>
+            <div className="space-y-2 col-span-4">
+              <Label htmlFor="description" className="font-serif">
+                Description
+              </Label>
+              <Input
+                className="border-1 border-blue-400"
+                name={`description_${index}`}
+                id="description"
+                type="text"
+                value={adverts[index]?.description}
+                onChange={(e) => handleAdvertChange(e, index)}
+              />
+            </div>
+
+            <div className="">
+              <Button
+                type="button"
+                size="icon"
+                className="col-span-1 cursor-pointer bg-red-700 hover:bg-red-600 w-full"
+                onClick={() => removeAdverts(index)}
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Remove item</span>
+              </Button>
+            </div>
+          </div>
+        ))}
+        {adverts.length < 1 && (
+          <div>
+            <p className="text-sm">No advert added!</p>
+          </div>
+        )}
+      </div>
+      <hr />
       {/* Guests */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">

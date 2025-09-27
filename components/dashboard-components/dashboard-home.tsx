@@ -125,9 +125,7 @@ export function DashboardHome({
             <div className="text-2xl font-sans font-bold">
               {activeUsers.length || 0}
             </div>
-            <p className="text-xs text-muted-foreground font-serif">
-              +2 this week
-            </p>
+            <p className="text-xs text-muted-foreground font-serif"></p>
           </CardContent>
         </Card>
 
