@@ -106,10 +106,12 @@ export function DashboardHome({
             Here's what's happening at your radio station today.
           </p>
         </div>
-        <Badge variant="secondary" className="font-serif">
+<a href="https://zeno.fm/radio/mitumeradio/">
+          <Badge variant="secondary" className="font-serif">
           <div className="w-4 h-4 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-          Live Broadcasting
+          Mitume Radio Live
         </Badge>
+</a>
       </div>
 
       {/* Stats Grid */}
@@ -192,9 +194,9 @@ export function DashboardHome({
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-1">
         {/* Recent Activity */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className="font-sans font-bold">
               Recent Activity
@@ -223,7 +225,7 @@ export function DashboardHome({
               ))}
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Upcoming Shows */}
         <Card>

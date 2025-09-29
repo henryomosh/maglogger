@@ -404,9 +404,9 @@ export function StaffManagement({
                     <CardTitle className="text-lg font-sans font-bold">
                       {member.name}
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground font-serif">
+                    {/* <p className="text-sm text-muted-foreground font-serif">
                       place
-                    </p>
+                    </p> */}
                   </div>
                 </div>
                 {canManageStaff && (
