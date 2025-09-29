@@ -51,7 +51,7 @@ export function LoginForm() {
             </div>
           </div>
           <CardTitle className="text-2xl font-sans font-bold">
-            Magnet Logger
+            MagLogger
           </CardTitle>
           <CardDescription className="font-serif">
             Sign in to access your dashboard
@@ -107,12 +107,6 @@ export function LoginForm() {
               )}
             </Button>
           </form>
-          <div className="mt-4 text-sm text-muted-foreground font-serif">
-            <p>Demo credentials:</p>
-            <p>Admin Email: admin@magnet.com Password: password</p>
-            {/* <p>manager@radio.com / password</p> */}
-            <p>Staff Email: staff@magnet.com Password: password</p>
-          </div>
         </CardContent>
       </Card>
     </div>

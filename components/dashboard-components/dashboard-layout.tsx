@@ -102,7 +102,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             <div>
               <h1 className="font-sans font-bold text-sidebar-foreground">
-                Magnet Logger
+                MagLogger
               </h1>
               <p className="text-xs text-sidebar-foreground/60 font-serif">
                 System Dashboard
