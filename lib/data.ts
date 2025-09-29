@@ -86,8 +86,8 @@ export async function fetchSchedule() {
       days: JSON.parse(item.days),
     }));
     const today = new Date();
-    const todayDayOfWeek = String(today.getDay());
-    const todaySchedule1 = await sql`SELECT 
+    const todayNum = today.getDay();
+    const schedule1 = await sql`SELECT 
       scheduling.id,
       scheduling.title,
       scheduling.standin,
@@ -104,11 +104,12 @@ export async function fetchSchedule() {
       JOIN users ON scheduling.staff = users.id
      `;
 
-    const todaySchedule = todaySchedule1.map((item: any) => ({
+    const schedule2 = schedule1.map((item: any) => ({
       ...item,
       days: JSON.parse(item.days),
     }));
 
+    const todaySchedule= schedule2.filter((item:any) => item.days[todayNum].value === true)
     const logsData = await sql`SELECT * FROM  logs ORDER BY created DESC`;
 
     const scheduleLogs = logsData.map((log) => ({
@@ -129,7 +130,7 @@ export async function fetchSchedule() {
     const upCommingShows1 = todaySchedule
       .filter((item) => {
         const startHour = Number(item.start.split(":")[0]);
-        return startHour >= hourNow;
+        return startHour > hourNow;
       })
       .sort((a: any, b: any) => a.start.localeCompare(b.start))
       .slice(0, 4);
