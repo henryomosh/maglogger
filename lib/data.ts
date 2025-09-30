@@ -205,7 +205,9 @@ export async function fetchSchedule() {
       days: JSON.parse(item.days),
     }));
 
-    const todaySchedule= schedule2.filter((item:any) => item.days[todayNum].value === true)
+    const todaySchedule = schedule2.filter(
+      (item: any) => item.days[todayNum].value === true
+    );
     const logsData = await sql`SELECT * FROM  logs ORDER BY created DESC`;
 
     const scheduleLogs = logsData.map((log) => ({
@@ -215,9 +217,6 @@ export async function fetchSchedule() {
       created: new Date(log.created).toUTCString(),
     }));
 
-    const todaySchedule = schedule2.filter(
-      (item: any) => item?.days[todayNum].value === true
-    );
     const hourNow = Number(new Date().getHours());
     const liveShow = todaySchedule.filter((item) => {
       const startHour = Number(item?.start.split(":")[0]);
