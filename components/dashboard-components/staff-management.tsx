@@ -55,6 +55,9 @@ import { fetchStaff } from "@/lib/data";
 import { User } from "@/lib/definations";
 import { toast } from "sonner";
 import { formatTime } from "@/lib/utils";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useDebouncedCallback } from "use-debounce";
+import { fetchUserSchedule } from "@/lib/data";
 
 interface StaffMember {
   id: string;
@@ -129,9 +132,11 @@ const daysOfWeek = [
 export function StaffManagement({
   data,
   schedule,
+  staffDashboardData,
 }: {
   data: any;
   schedule: any;
+  staffDashboardData: any;
 }) {
   const { user } = useAuth();
   const [staff, setStaff] = useState<StaffMember[]>(mockStaff);
@@ -148,6 +153,26 @@ export function StaffManagement({
 
   // Check if user has permission to manage staff
   const canManageStaff = user?.role === "admin" || user?.role === "manager";
+  //param search
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
+
+  const handleSearch = useDebouncedCallback((term) => {
+    console.log(`Searching... ${term}`);
+
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+    if (term) {
+      params.set("query", term);
+      if (term === "all") {
+        params.delete("query");
+      }
+    } else {
+      params.delete("query");
+    }
+    replace(`${pathname}?${params.toString()}`);
+  }, 300);
 
   const filteredStaff = data?.filter((member: any) => {
     const matchesSearch =
@@ -232,7 +257,7 @@ export function StaffManagement({
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-sans font-bold text-green-700">
-                {activeStaff.length || 0}
+                {staffDashboardData.activeUsers || 0}
               </div>
             </CardContent>
           </Card>
@@ -248,7 +273,7 @@ export function StaffManagement({
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-sans font-bold text-cyan-700">
-                {onleavStaff.length || 0}
+                {staffDashboardData.onLeaveUsers || 0}
               </div>
             </CardContent>
           </Card>
@@ -264,7 +289,7 @@ export function StaffManagement({
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-sans font-bold text-yellow-500">
-                {inactiveStaff.length || 0}
+                {staffDashboardData.inactiveUsers || 0}
               </div>
             </CardContent>
           </Card>
@@ -351,12 +376,18 @@ export function StaffManagement({
             <div className="flex-1">
               <Input
                 placeholder="Search staff members..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                defaultValue={searchParams.get("query")?.toString()}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="font-serif border-1 border-blue-300"
               />
             </div>
-            <Select value={filterRole} onValueChange={setFilterRole}>
+            <Select
+              value={filterRole}
+              onValueChange={(value) => {
+                setFilterRole(value);
+                handleSearch(value);
+              }}
+            >
               <SelectTrigger className="w-full sm:w-40 border-1 border-blue-300">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
@@ -367,7 +398,13 @@ export function StaffManagement({
                 <SelectItem value="staff">Staff</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <Select
+              value={filterStatus}
+              onValueChange={(value) => {
+                setFilterStatus(value);
+                handleSearch(value);
+              }}
+            >
               <SelectTrigger className="w-full sm:w-40 border-1 border-blue-300">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -488,7 +525,7 @@ export function StaffManagement({
                 </p>
               )}
 
-              {member.specialities && member.specialities.length > 0 && (
+              {/* {member.specialities && member.specialities.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {member.specialities.slice(0, 3).map((specialty: any) => (
                     <Badge
@@ -499,15 +536,15 @@ export function StaffManagement({
                       {specialty}
                     </Badge>
                   ))}
-                  {/* {member.specialties.length > 3 && (
+                  {member.specialties.length > 3 && (
                     <Badge variant="outline" className="font-serif text-xs">
                       +{member.specialties.length - 3} more
                     </Badge>
-                  )} */}
+                  )}
                 </div>
-              )}
+              )} */}
 
-              {getStaffShows(member.id).length > 0 && (
+              {getStaffShows(member.id)?.length > 0 && (
                 <div className="pt-2 border-t">
                   <div className="flex items-center gap-2 mb-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
@@ -521,32 +558,29 @@ export function StaffManagement({
                         <p className="text-green-500 text-sm font-bold pb-1">
                           {show.title}
                         </p>
-                        {showDays(show)
-                          ?.map((day: any, index: any) => (
-                            <div
-                              key={index}
-                              className="flex justify-between text-xs"
-                            >
-                              <span className="font-serif capitalize">
-                                {daysOfWeek[day]}
-                              </span>
-                              <span className="font-serif text-muted-foreground">
-                                {formatTime(show.start)} -{" "}
-                                {formatTime(show.ends)}
-                              </span>
-                            </div>
-                          ))
-                          .slice(0, 2)}
-                        {showDays(show).length > 2 && (
-                          <p className="text-xs text-muted-foreground font-serif">
-                            +{showDays(show).length - 2} more days
-                          </p>
-                        )}
-                        {getStaffShows(member.id).length > 1 && (
-                          <p className="text-xs text-muted-foreground font-serif">
-                            +{getStaffShows(member.id).length - 1} more shows
-                          </p>
-                        )}
+                        {showDays(show)?.map((day: any, index: any) => (
+                          <div
+                            key={index}
+                            className="flex justify-between text-xs"
+                          >
+                            <span className="font-serif capitalize">
+                              {daysOfWeek[day]}
+                            </span>
+                            <span className="font-serif text-muted-foreground">
+                              {formatTime(show.start)} - {formatTime(show.ends)}
+                            </span>
+                          </div>
+                        ))}
+                        {/* {showDays(show).length > 2 && (
+                            <p className="text-xs text-muted-foreground font-serif">
+                              +{showDays(show).length - 2} more days
+                            </p>
+                          )} */}
+                        {/* {getStaffShows(member.id).length > 1 && (
+                            <p className="text-xs text-muted-foreground font-serif">
+                              +{getStaffShows(member.id).length - 1} more shows
+                            </p>
+                          )} */}
                       </div>
                     ))}
                   </div>
@@ -627,7 +661,7 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
     hireDate: initialData?.hireDate || new Date().toISOString().split("T")[0],
     status: initialData?.status || ("active" as const),
     bio: initialData?.bio || "",
-    specialities: initialData?.specialities?.join(", ") || "",
+    specialities: initialData?.specialities || "",
     login: initialData?.login || "",
     logout: initialData?.logout || "",
   });
@@ -643,6 +677,7 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
     if (result?.success === false) {
       setError(result.message);
       setIsSubmitting(false);
+      toast.error(result.message);
     }
     if (result.success === true) {
       setIsSubmitting(false);
@@ -657,10 +692,16 @@ function StaffForm({ initialData, onClose, onSave }: StaffFormProps) {
 
     const formData2 = new FormData(e.currentTarget);
     const results = await updateStaff(formData2);
-
-    setIsSubmitting(false);
-    toast.success("Member details updated successfuly!");
-    onClose();
+    if (results?.success === false) {
+      setError(results.message);
+      setIsSubmitting(false);
+      toast.error(results.message);
+    }
+    if (results?.success === true) {
+      setIsSubmitting(false);
+      toast.success("Member details updated successfuly!");
+      onClose();
+    }
   };
 
   return (

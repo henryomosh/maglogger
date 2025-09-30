@@ -1,8 +1,10 @@
 "use server";
-import Logs from "@/app/dashboard/logs/page";
+
 import sql from "@/lib/db";
 import { User } from "@/lib/definations";
 import { DateTime } from "luxon";
+
+// Users
 export async function fetchStaff() {
   try {
     const data = await sql`
@@ -59,6 +61,100 @@ export async function fetchUser(email: string) {
   }
 }
 
+export async function fetchUserById(id: string) {
+  try {
+    const data = await sql`
+      SELECT 
+        users.id,
+        users.role,
+        users.name,
+        users.email,
+        users.phone,
+        users.status,
+        users.password,
+        users.bio
+      FROM users
+      WHERE users.id = ${id} `;
+
+    return data[0];
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch the latest invoices.");
+  }
+}
+
+const ITEMS_PER_PAGE = 5;
+export async function fetchFilteredStaff(query: string, currentPage: number) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const schedules = await sql`
+      SELECT 
+        users.id,
+        users.role,
+        users.name,
+        users.email,
+        users.phone,
+        users.specialities,
+        users.status,
+        users.login,
+        users.logout,
+        users.bio
+      FROM users
+      WHERE
+        users.role ILIKE ${`%${query}%`} OR
+        users.name ILIKE ${`%${query}%`} OR
+        users.email ILIKE ${`%${query}%`} OR
+        users.phone ILIKE ${`%${query}%`} OR
+        users.status ILIKE ${`%${query}%`} OR
+        users.logout ILIKE ${`%${query}%`} OR
+        users.bio ILIKE ${`%${query}%`}   
+      ORDER BY users.name
+    `;
+
+    return schedules;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchStaffDashboard() {
+  try {
+    const activeUsersPromise = await sql`
+      SELECT 
+        users.id,
+        users.role,
+        users.status
+      FROM users
+      WHERE status = 'active'
+    `;
+    const onLeaveUsersPromise = await sql`
+      SELECT 
+        users.id,
+        users.role,
+        users.status
+      FROM users
+      WHERE status = 'on-leave'
+    `;
+    const inactiveUsersPromise = await sql`
+      SELECT 
+        users.id,
+        users.role,
+        users.status
+      FROM users
+      WHERE status = 'inactive'
+    `;
+    const activeUsers = activeUsersPromise?.length;
+    const onLeaveUsers = onLeaveUsersPromise?.length;
+    const inactiveUsers = inactiveUsersPromise?.length;
+
+    return { activeUsers, onLeaveUsers, inactiveUsers };
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+//SCHEDULE
 export async function fetchSchedule() {
   try {
     const data = await sql<[]>`
@@ -86,8 +182,8 @@ export async function fetchSchedule() {
       days: JSON.parse(item.days),
     }));
     const today = new Date();
-    const todayDayOfWeek = String(today.getDay());
-    const todaySchedule1 = await sql`SELECT 
+    const todayNum = today.getDay();
+    const schedule1 = await sql`SELECT 
       scheduling.id,
       scheduling.title,
       scheduling.standin,
@@ -104,7 +200,7 @@ export async function fetchSchedule() {
       JOIN users ON scheduling.staff = users.id
      `;
 
-    const todaySchedule = todaySchedule1.map((item: any) => ({
+    const schedule2 = schedule1.map((item: any) => ({
       ...item,
       days: JSON.parse(item.days),
     }));
@@ -118,6 +214,9 @@ export async function fetchSchedule() {
       created: new Date(log.created).toUTCString(),
     }));
 
+    const todaySchedule = schedule2.filter(
+      (item: any) => item?.days[todayNum].value === true
+    );
     const hourNow = Number(new Date().getHours());
     const liveShow = todaySchedule.filter((item) => {
       const startHour = Number(item?.start.split(":")[0]);
@@ -172,6 +271,7 @@ export async function fetchUserSchedule(id: string) {
   }
 }
 
+// LOGS
 export async function fetchLogs() {
   try {
     const data = await sql`
@@ -185,7 +285,7 @@ export async function fetchLogs() {
       logs.status,
       logs.created,
       scheduling.title,
-          scheduling.standin,
+      scheduling.standin,
       scheduling.start,
       scheduling.ends,
       users.name
@@ -240,5 +340,81 @@ export async function fetchScheduleLogs(id: string) {
   } catch (error) {
     console.log("Database Error:", error);
     throw new Error("Failed to fetch the latest invoices.");
+  }
+}
+
+export async function fetchFilteredLogs(
+  query: string,
+  currentPage: number,
+  totalItemPage: number
+) {
+  const offset = (currentPage - 1) * totalItemPage;
+
+  try {
+    const logs = await sql`
+      SELECT 
+      logs.id,
+      logs.staff,
+      logs.show,
+      logs.segments,
+      logs.guests,
+      logs.adverts,
+      logs.status,
+      logs.created,
+      scheduling.title,
+      scheduling.standin,
+      scheduling.start,
+      scheduling.ends,
+      users.name
+      FROM logs
+      JOIN scheduling ON logs.show = scheduling.id
+      JOIN users ON scheduling.staff = users.id 
+      WHERE
+        users.name ILIKE ${`%${query}%`} OR
+        scheduling.standin ILIKE ${`%${query}%`} OR
+        scheduling.title ILIKE ${`%${query}%`} OR
+        logs.status ILIKE ${`%${query}%`} OR
+        logs.created::TEXT ILIKE ${`%${query}%`}
+      ORDER BY logs.created DESC
+       LIMIT ${totalItemPage} OFFSET ${offset}
+    `;
+
+    const parsedLogs = logs.map((item: any) => ({
+      ...item,
+      segments: JSON.parse(item.segments),
+      guests: JSON.parse(item.guests),
+      adverts: JSON.parse(item.adverts),
+    }));
+
+    return parsedLogs;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchLogPages(totalItemPage: number) {
+  try {
+    const data = await sql`SELECT COUNT(*)
+    FROM logs
+  `;
+    const totalPages = Math.ceil(Number(data[0].count) / totalItemPage);
+
+    return totalPages;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch total number of invoices.");
+  }
+}
+
+export async function fetchTotalLogs() {
+  try {
+    const data = await sql`SELECT COUNT(*)
+    FROM logs
+  `;
+
+    return data[0];
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch total number of invoices.");
   }
 }

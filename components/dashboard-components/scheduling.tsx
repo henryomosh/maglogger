@@ -116,9 +116,11 @@ interface LiveEvent {
 export function ShowScheduling({
   data,
   scheduleLogs,
+  todaySchedule,
 }: {
   data: any;
   scheduleLogs: any;
+  todaySchedule: any;
 }) {
   const { user } = useAuth();
   const [shows, setShows] = useState<Show[]>(data);
@@ -630,7 +632,7 @@ export function ShowScheduling({
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {todayShow().map((show: any) => (
+          {todaySchedule.map((show: any) => (
             <Card key={show.id} className="relative">
               <CardHeader className="">
                 <div className="flex items-start justify-between">
@@ -732,8 +734,11 @@ export function ShowScheduling({
               </CardContent>
             </Card>
           ))}
-          {data.filter((show: any) => show.day === new Date().getDay()).length <
-            1 && <p className="flex justify-center text-sm">No shows today</p>}
+          {todaySchedule?.length === 0 && (
+            <p className="flex justify-center items-center text-sm">
+              No shows today
+            </p>
+          )}
         </div>
       )}
     </div>

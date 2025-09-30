@@ -1,4 +1,3 @@
-//@ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
@@ -81,6 +80,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatDateToLocal, formatTime } from "@/lib/utils";
 import { DateTime } from "luxon";
+import {
+  useSearchParams,
+  usePathname,
+  useRouter,
+  redirect,
+} from "next/navigation";
+import { useDebouncedCallback } from "use-debounce";
 
 interface ShowLog {
   id: string;
@@ -115,67 +121,6 @@ interface ModalLogsDetails {
   topic: any;
   phone: any;
 }
-const mockLogs: ShowLog[] = [
-  {
-    id: "1",
-    showId: "show-1",
-    showTitle: "Morning Drive",
-    djName: "Mike DJ",
-    timestamp: "2024-01-15T08:15:00Z",
-    type: "song",
-    content: "Played: Blinding Lights",
-    metadata: { artist: "The Weeknd", duration: "3:20" },
-  },
-  {
-    id: "2",
-    showId: "show-1",
-    showTitle: "Morning Drive",
-    djName: "Mike DJ",
-    timestamp: "2024-01-15T08:18:30Z",
-    type: "announcement",
-    content:
-      "Traffic update for Highway 101 - expect delays due to construction",
-  },
-  {
-    id: "3",
-    showId: "show-2",
-    showTitle: "Afternoon Vibes",
-    djName: "Sarah DJ",
-    timestamp: "2024-01-15T14:22:00Z",
-    type: "listener_call",
-    content: "Caller requested song dedication",
-    metadata: { caller: "Jenny from downtown" },
-  },
-  {
-    id: "4",
-    showId: "show-1",
-    showTitle: "Morning Drive",
-    djName: "Mike DJ",
-    timestamp: "2024-01-15T08:45:00Z",
-    type: "technical",
-    content: "Microphone audio levels adjusted",
-    metadata: { severity: "low" },
-  },
-  {
-    id: "5",
-    showId: "show-3",
-    showTitle: "Evening Jazz",
-    djName: "Tom DJ",
-    timestamp: "2024-01-15T19:30:00Z",
-    type: "commercial",
-    content: "Played 30-second ad for Local Coffee Shop",
-    metadata: { sponsor: "Local Coffee Shop", duration: "0:30" },
-  },
-  {
-    id: "6",
-    showId: "show-2",
-    showTitle: "Afternoon Vibes",
-    djName: "Sarah DJ",
-    timestamp: "2024-01-15T15:10:00Z",
-    type: "weather",
-    content: "Weather update: Sunny, 75°F, light winds from the west",
-  },
-];
 
 const logTypeConfig = {
   song: { icon: Music, color: "bg-blue-500", label: "Song" },
@@ -205,12 +150,16 @@ const logStatus = {
 export function ShowLogs({
   schedule,
   showLogs,
+  totalPages,
+  totalLogs,
 }: {
   schedule: any;
   showLogs: any;
+  totalPages: any;
+  totalLogs: any;
 }) {
   const { user } = useAuth();
-  const [logs, setLogs] = useState<ShowLog[]>(mockLogs);
+  const [logs, setLogs] = useState<ShowLog[]>();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterShow, setFilterShow] = useState<string>("all");
@@ -223,12 +172,13 @@ export function ShowLogs({
     name: "",
     segments: [],
     guests: [],
+    adverts: [],
     start: "",
     ends: "",
   });
   const [viewMode, setViewMode] = useState<"cards" | "table">("table");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
   const [newLog, setNewLog] = useState({
     showId: "",
     showTitle: "",
@@ -241,8 +191,47 @@ export function ShowLogs({
   const [logId, setLogId] = useState("");
 
   const canManageShows = user?.role === "admin" || user?.role === "manager";
+  //param search
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
 
-  const uniqueShows = Array.from(new Set(logs.map((log) => log.showTitle)));
+  const createPageURL = (pageNumber: number | string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", pageNumber.toString());
+    return `${pathname}?${params.toString()}`;
+  };
+
+  const handleSearch = useDebouncedCallback((term) => {
+    console.log(`Searching... ${term}`);
+
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+
+    if (term) {
+      params.set("query", term);
+      if (term === "all") {
+        params.delete("query");
+      }
+    } else {
+      params.delete("query");
+    }
+    replace(`${pathname}?${params.toString()}`);
+  }, 300);
+
+  const handleTotalPages = useDebouncedCallback((term) => {
+    console.log(`Searching... ${term}`);
+
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+
+    if (term) {
+      params.set("total", term);
+    } else {
+      params.delete("total");
+    }
+    replace(`${pathname}?${params.toString()}`);
+  }, 300);
 
   const filteredUserLogs = canManageShows
     ? showLogs
@@ -326,7 +315,7 @@ export function ShowLogs({
     window.URL.revokeObjectURL(url);
   };
 
-  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  // const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedLogs = filteredLogs.slice(startIndex, endIndex);
@@ -640,15 +629,19 @@ export function ShowLogs({
               <Input
                 placeholder="Search logs..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  handleSearch(e.target.value);
+                  setSearchTerm(e.target.value);
+                }}
                 className="pl-10 font-serif border-1 border-blue-400"
               />
             </div>
             <Select
               value={filterType}
-              onValueChange={(value) =>
-                handleFilterChange(() => setFilterType(value))
-              }
+              onValueChange={(value) => {
+                setFilterType(value);
+                handleSearch(value);
+              }}
             >
               <SelectTrigger className="font-serif border-1 border-blue-400">
                 <SelectValue placeholder="Filter by status" />
@@ -667,7 +660,10 @@ export function ShowLogs({
             <Select
               value={filterShow}
               onValueChange={(value) =>
-                handleFilterChange(() => setFilterShow(value))
+                handleFilterChange(() => {
+                  handleSearch(value);
+                  setFilterShow(value);
+                })
               }
             >
               <SelectTrigger className="font-serif border-1 border-blue-400">
@@ -677,7 +673,7 @@ export function ShowLogs({
                 <SelectItem value="all" className="font-serif">
                   All Shows
                 </SelectItem>
-                {showLogs.map((log: any) => (
+                {schedule?.map((log: any) => (
                   <SelectItem
                     key={log.id}
                     value={log.title}
@@ -691,9 +687,10 @@ export function ShowLogs({
             <Input
               type="date"
               value={selectedDate}
-              onChange={(e) =>
-                handleFilterChange(() => setSelectedDate(e.target.value))
-              }
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                handleSearch(e.target.value);
+              }}
               className="font-serif border-1 border-blue-400"
             />
           </div>
@@ -709,12 +706,12 @@ export function ShowLogs({
                 <Calendar className="h-5 w-5" />
               </CardTitle>
               <CardDescription className="font-serif">
-                {filteredLogs.length} log entries
+                {showLogs?.length} log entries
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {filteredLogs.map((log: any) => {
+                {showLogs?.map((log: any) => {
                   return (
                     <div
                       key={log.id}
@@ -799,8 +796,8 @@ export function ShowLogs({
                         <h1 className="font-serif font-bold pt-2">Segments</h1>
                         <div className="flex gap-4 pb-2">
                           <div>
-                            {log.segments.length > 0 ? (
-                              log.segments.map((item: any, index: any) => (
+                            {log?.segments?.length > 0 ? (
+                              log?.segments?.map((item: any, index: any) => (
                                 <div className="flex gap-6" key={index}>
                                   <div className="mt-2 flex gap-2">
                                     <ListCheck className="h-4 w-4 text-green-500" />
@@ -927,50 +924,49 @@ export function ShowLogs({
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="font-sans font-bold">
+                <CardTitle className="font-sans font-bold text-cyan-500">
                   Radio Show Logs Table
                 </CardTitle>
-                <CardDescription className="font-serif">
-                  {filteredLogs.length} log entries in table format
+                <CardDescription className="font-serif text-cyan-500">
+                  {showLogs.length} log entries in table format
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-serif text-muted-foreground">
-                  Show:
-                </span>
+                <span className="text-sm font-serif text-cyan-500">Show:</span>
                 <Select
                   value={itemsPerPage.toString()}
                   onValueChange={(value) => {
                     setItemsPerPage(Number(value));
                     setCurrentPage(1);
+                    handleTotalPages(value);
                   }}
                 >
-                  <SelectTrigger className="w-20 font-serif">
+                  <SelectTrigger className="w-20 font-serif border-1 border-cyan-500">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5" className="font-serif">
+                    <SelectItem value="5" className="font-serif text-cyan-500">
                       5
                     </SelectItem>
-                    <SelectItem value="10" className="font-serif">
+                    <SelectItem value="10" className="font-serif text-cyan-500">
                       10
                     </SelectItem>
-                    <SelectItem value="25" className="font-serif">
+                    <SelectItem value="25" className="font-serif text-cyan-500">
                       25
                     </SelectItem>
-                    <SelectItem value="50" className="font-serif">
+                    <SelectItem value="50" className="font-serif text-cyan-500">
                       50
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                <span className="text-sm font-serif text-muted-foreground">
+                <span className="text-sm font-serif text-cyan-500">
                   per page
                 </span>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            {filteredLogs.length > 0 ? (
+            {showLogs.length > 0 ? (
               <div className="space-y-4">
                 <div className="rounded-md border">
                   <Table>
@@ -1003,7 +999,7 @@ export function ShowLogs({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {paginatedLogs.map((log: any) => {
+                      {showLogs.map((log: any) => {
                         // const config = logTypeConfig[log.type];
                         // const IconComponent = config.icon;
 
@@ -1087,18 +1083,25 @@ export function ShowLogs({
 
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground font-serif">
+                    <div className="text-sm  text-cyan-500 font-bold font-serif">
                       Showing {startIndex + 1} to{" "}
-                      {Math.min(endIndex, filteredLogs.length)} of{" "}
-                      {filteredLogs.length} entries
+                      {startIndex + itemsPerPage < totalLogs?.count
+                        ? currentPage === 1
+                          ? startIndex + itemsPerPage
+                          : startIndex + 1 + itemsPerPage
+                        : totalLogs?.count}{" "}
+                      of {totalLogs?.count} Entries
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(currentPage - 1)}
+                        onClick={() => {
+                          setCurrentPage(currentPage - 1);
+                          redirect(createPageURL(currentPage - 1));
+                        }}
                         disabled={currentPage === 1}
-                        className="font-serif"
+                        className="font-serif hover:bg-cyan-500"
                       >
                         <ChevronLeft className="h-4 w-4 mr-1" />
                         Previous
@@ -1114,8 +1117,15 @@ export function ShowLogs({
                               currentPage === page ? "default" : "outline"
                             }
                             size="sm"
-                            onClick={() => setCurrentPage(page)}
-                            className="w-8 h-8 p-0 font-serif"
+                            onClick={() => {
+                              setCurrentPage(page);
+                              redirect(createPageURL(page));
+                            }}
+                            className={`w-8 h-8 p-0 font-serif  ${
+                              currentPage === page
+                                ? "bg-cyan-600 hover:bg-cyan-500"
+                                : "hover:bg-cyan-600"
+                            }`}
                           >
                             {page}
                           </Button>
@@ -1124,9 +1134,12 @@ export function ShowLogs({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(currentPage + 1)}
+                        onClick={() => {
+                          setCurrentPage(currentPage + 1);
+                          redirect(createPageURL(currentPage + 1));
+                        }}
                         disabled={currentPage === totalPages}
-                        className="font-serif"
+                        className="font-serif hover:bg-cyan-500"
                       >
                         Next
                         <ChevronRight className="h-4 w-4 ml-1" />

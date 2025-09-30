@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import sql from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { fetchUser } from "@/lib/data";
+import { fetchUser, fetchUserById } from "@/lib/data";
 import { formatDateToLocal } from "./utils";
 import { DateTime } from "luxon";
 
@@ -56,12 +56,21 @@ export async function updateStaff(formData: FormData) {
   const login = formData.get("login") as string;
   const logout = formData.get("logout") as string;
 
-  const user = await fetchUser(email);
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await fetchUserById(id);
   let setPassword = user?.password;
+
+  if (user.email !== email) {
+    const checkEmail = await fetchUser(email);
+    if (checkEmail) {
+      return { success: false, message: "A user with that email exist!" };
+    }
+  }
+
   if (password !== "") {
+    const hashedPassword = await bcrypt.hash(password, 10);
     setPassword = hashedPassword;
   }
+
   try {
     await sql`
       UPDATE users
@@ -71,7 +80,8 @@ export async function updateStaff(formData: FormData) {
     `;
   } catch (error: any) {
     if (error) {
-      console.log(error?.detail);
+      console.log(error);
+      return { success: false, message: "Server error occured" };
     }
   }
   revalidatePath("/dashboard/staff");
