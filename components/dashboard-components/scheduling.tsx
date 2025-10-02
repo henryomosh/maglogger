@@ -88,15 +88,7 @@ const timeSlots: TimeSlot[] = Array.from({ length: 24 }, (_, i) => ({
   label: `${i.toString().padStart(2, "0")}:00`,
 }));
 
-const daysOfWeek = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
+const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const weekDays = [
   { name: "S", value: false },
@@ -133,7 +125,11 @@ export function ShowScheduling({
   const [scheduleId, setScheduleId] = useState("");
   const [scheduleLogModal, setScheduleLogModal] = useState(false);
   const [showLogs, setShowLogs] = useState(null);
-  const [modalShow, setModalShow] = useState({ title: "" });
+  const [modalShow, setModalShow] = useState({
+    title: "",
+    name: "",
+    staff: "",
+  });
   const [staff, setStaff] = useState([]);
 
   useEffect(() => {
@@ -362,20 +358,26 @@ export function ShowScheduling({
           <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-sans font-bold">
-                Show Logs for{" "}
                 <span className="text-purple-700 text-xl">
-                  {modalShow?.title}
+                  {" "}
+                  {modalShow?.title}{" "}
                 </span>
+                hosted by{" "}
+                <span className="text-green-500">{modalShow?.name}</span>
               </DialogTitle>
-              <DialogDescription className="font-serif">
-                Track activities during the show.
-              </DialogDescription>
+              {(canManageShows || user?.id === modalShow.staff) && (
+                <DialogDescription className="font-serif">
+                  Recent logs.
+                </DialogDescription>
+              )}
             </DialogHeader>
-            <ShowLogsManager
-              logs={showLogs}
-              scheduleId={scheduleId}
-              modalShow={modalShow}
-            />
+            {(canManageShows || user?.id === modalShow.staff) && (
+              <ShowLogsManager
+                logs={showLogs}
+                scheduleId={scheduleId}
+                modalShow={modalShow}
+              />
+            )}
           </DialogContent>
         </Dialog>
       </div>
@@ -411,42 +413,48 @@ export function ShowScheduling({
               </TabsList>
             </Tabs>
 
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+            <div className="hidden md:block">
+              <div
+                className={`flex items-center gap-4 ${
+                  selectedView === "day" ? "hidden" : ""
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Button
+                    className="bg-green-700 hover:bg-green-600"
+                    size="xs"
+                    onClick={() => navigateWeek("prev")}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="font-serif font-medium min-w-48 text-center">
+                    {weekDates[0].toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                    })}{" "}
+                    -{" "}
+                    {weekDates[6].toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <Button
+                    className="bg-green-700 hover:bg-green-600"
+                    size="xs"
+                    onClick={() => navigateWeek("next")}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
                 <Button
-                  className="bg-green-700 hover:bg-green-600"
+                  className="font-serif bg-green-700 hover:bg-green-600"
                   size="xs"
-                  onClick={() => navigateWeek("prev")}
+                  onClick={() => setCurrentWeek(new Date())}
                 >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="font-serif font-medium min-w-48 text-center">
-                  {weekDates[0].toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                  })}{" "}
-                  -{" "}
-                  {weekDates[6].toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
-                <Button
-                  className="bg-green-700 hover:bg-green-600"
-                  size="xs"
-                  onClick={() => navigateWeek("next")}
-                >
-                  <ChevronRight className="h-4 w-4" />
+                  This Week
                 </Button>
               </div>
-              <Button
-                className="font-serif bg-green-700 hover:bg-green-600"
-                size="xs"
-                onClick={() => setCurrentWeek(new Date())}
-              >
-                Today
-              </Button>
             </div>
           </div>
         </CardContent>
@@ -454,16 +462,16 @@ export function ShowScheduling({
 
       {/* Schedule Grid */}
       {selectedView === "week" ? (
-        <Card>
+        <Card className="overflow-x-auto">
           <CardHeader>
-            <CardTitle className="font-sans font-bold text-xl">
+            <CardTitle className="font-sans font-bold text-sm md:text-xl">
               Weekly Schedule
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-8 gap-2">
               {/* Time column header */}
-              <div className="font-serif font-bold text-md text-muted-foreground">
+              <div className="font-serif font-bold text-sm md:text-md text-muted-foreground ">
                 Time
               </div>
 
@@ -471,10 +479,10 @@ export function ShowScheduling({
               {daysOfWeek.map((day, index) => (
                 <div
                   key={day}
-                  className="font-serif font-medium text-sm text-center p-2"
+                  className="font-serif font-medium text-sm text-center  "
                 >
                   <div className="text-xs text-muted-foreground">
-                    <div className="text-lg font-bold text-cyan-500">
+                    <div className="text-xs md:text-lg font-bold text-cyan-500">
                       {weekDates[index].toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -491,7 +499,7 @@ export function ShowScheduling({
                 .map((slot) => (
                   <React.Fragment key={slot.hour}>
                     {/* Time label */}
-                    <div className="text-xs text-muted-foreground font-serif py-2 border-t">
+                    <div className="text-xs text-muted-foreground font-serif border-t   ">
                       {formatTime(slot.label)}
                     </div>
 
@@ -522,7 +530,7 @@ export function ShowScheduling({
                                     setModalShow(show);
                                     setScheduleLogModal(true);
                                   }}
-                                  className={`${show.color} text-white text-xs pl-1 pb-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-opacity`}
+                                  className={`${show.color} text-white text-xs pl-1 pb-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-opacity `}
                                 >
                                   <div className="flex items start justify-between ">
                                     <div className="font-sans font-bold truncate pt-2">
@@ -711,26 +719,29 @@ export function ShowScheduling({
                     {show.description}
                   </p>
                 )}
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="font-serif text-xs"
-                    onClick={() => {
-                      handleLogs(show.id);
-                      setModalShow(show);
-                      setScheduleLogModal(true);
-                    }}
-                  >
-                    <FileText className="h-3 w-3 mr-1 text-cyan-500" />
-                    View Logs (
-                    {
-                      scheduleLogs?.filter((item: any) => item.show === show.id)
-                        .length
-                    }
-                    )
-                  </Button>
-                </div>
+                {(canManageShows || user?.id === show?.staff) && (
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-serif text-xs"
+                      onClick={() => {
+                        handleLogs(show.id);
+                        setModalShow(show);
+                        setScheduleLogModal(true);
+                      }}
+                    >
+                      <FileText className="h-3 w-3 mr-1 text-cyan-500" />
+                      View Logs (
+                      {
+                        scheduleLogs?.filter(
+                          (item: any) => item.show === show.id
+                        ).length
+                      }
+                      )
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

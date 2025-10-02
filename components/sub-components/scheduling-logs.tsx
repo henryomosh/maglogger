@@ -80,60 +80,62 @@ export function ShowLogsManager({
       {logs.length < 1 && (
         <div className="text-center">No logs added to this show!</div>
       )}
-      {logs.map((item: any) => (
-        <div
-          className="border-2 border-indigo-200 rounded rounded-md py-2 px-2 my-4"
-          key={item.id}
-        >
-          <div className="flex justify-between pb-2">
-            <Badge className={`${getStatusColor(item.status)}`}>
-              {item.status}
-            </Badge>
-            <div className="text-xs">Created: {item.created}</div>
-          </div>
-          <hr className="text-gray-500" />
-          <div className="pt-1">
-            <h1 className="text-sm font-bold pb-2">Segments</h1>
-            {item.segments.map((segment: any, index: any) => (
-              <div className="flex gap-2 pb-2" key={index}>
-                <ListCheck className="h-4 w-4 text-green-500" />
-                <p className="text-xs">
-                  <strong>Starts:</strong> {segment.startTime}
-                </p>
-                <p className="text-xs">
-                  <strong>Ends:</strong> {segment.endTime}
-                </p>
-                <p className="text-xs">
-                  <strong>Description:</strong> {segment.description}
-                </p>
-              </div>
-            ))}
-          </div>
+      {logs
+        .map((item: any) => (
+          <div
+            className="border-2 border-indigo-200 rounded rounded-md py-2 px-2 my-4"
+            key={item.id}
+          >
+            <div className="flex justify-between pb-2">
+              <Badge className={`${getStatusColor(item.status)}`}>
+                {item.status}
+              </Badge>
+              <div className="text-xs">Created: {item.created}</div>
+            </div>
+            <hr className="text-gray-500" />
+            <div className="pt-1">
+              <h1 className="text-sm font-bold pb-2">Segments</h1>
+              {item.segments.map((segment: any, index: any) => (
+                <div className="flex gap-2 pb-2" key={index}>
+                  <ListCheck className="h-4 w-4 text-green-500" />
+                  <p className="text-xs">
+                    <strong>Starts:</strong> {segment.startTime}
+                  </p>
+                  <p className="text-xs">
+                    <strong>Ends:</strong> {segment.endTime}
+                  </p>
+                  <p className="text-xs">
+                    <strong>Description:</strong> {segment.description}
+                  </p>
+                </div>
+              ))}
+            </div>
 
-          <div className="pt-1">
-            {item?.guests?.length > 0 && (
-              <>
-                <hr className="text-gray-500" />
-                <h1 className="text-sm font-bold pb-2">Guests</h1>
-                {item?.guests.map((guest: any, index: any) => (
-                  <div className="flex gap-2 pb-2" key={index}>
-                    <ContactRound className="h-4 w-4 text-indigo-500" />
-                    <p className="text-xs">
-                      <strong>Name:</strong> {guest.name}
-                    </p>
-                    <p className="text-xs">
-                      <strong>Topic:</strong> {guest.topic}
-                    </p>
-                    <p className="text-xs">
-                      <strong>Phone:</strong> {guest.phone}
-                    </p>
-                  </div>
-                ))}
-              </>
-            )}
+            <div className="pt-1">
+              {item?.guests?.length > 0 && (
+                <>
+                  <hr className="text-gray-500" />
+                  <h1 className="text-sm font-bold pb-2">Guests</h1>
+                  {item?.guests.map((guest: any, index: any) => (
+                    <div className="flex gap-2 pb-2" key={index}>
+                      <ContactRound className="h-4 w-4 text-indigo-500" />
+                      <p className="text-xs">
+                        <strong>Name:</strong> {guest.name}
+                      </p>
+                      <p className="text-xs">
+                        <strong>Topic:</strong> {guest.topic}
+                      </p>
+                      <p className="text-xs">
+                        <strong>Phone:</strong> {guest.phone}
+                      </p>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        ))
+        .slice(0, 2)}
     </div>
   );
 }

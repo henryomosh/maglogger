@@ -41,6 +41,7 @@ import {
   LogIn,
   LogOut,
   Users,
+  MicVocal,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -133,10 +134,12 @@ export function StaffManagement({
   data,
   schedule,
   staffDashboardData,
+  currentUser,
 }: {
   data: any;
   schedule: any;
   staffDashboardData: any;
+  currentUser: any;
 }) {
   const { user } = useAuth();
   const [staff, setStaff] = useState<StaffMember[]>(mockStaff);
@@ -241,67 +244,71 @@ export function StaffManagement({
     setIsDeleteDialogOpen(false);
   };
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <h1 className="text-3xl font-sans font-bold text-foreground">
-        Staff Management
+        {canManageStaff ? "Staff Management" : "My Profile"}
       </h1>
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded rounded-2xl pl-1 bg-green-700">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-md font-serif font-medium">
-                Active staff
-              </CardTitle>
-              <Users className="h-6 w-6 text-green-700" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-sans font-bold text-green-700">
-                {staffDashboardData.activeUsers || 0}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {canManageStaff && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded rounded-2xl pl-1 bg-green-700">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-md font-serif font-medium">
+                  Active staff
+                </CardTitle>
+                <Users className="h-6 w-6 text-green-700" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-sans font-bold text-green-700">
+                  {staffDashboardData.activeUsers || 0}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-        <div className="rounded rounded-2xl pl-1 bg-cyan-700">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-md font-serif font-medium">
-                On-leave Staff
-              </CardTitle>
-              <Users className="h-6 w-6 text-cyan-700" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-sans font-bold text-cyan-700">
-                {staffDashboardData.onLeaveUsers || 0}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+          <div className="rounded rounded-2xl pl-1 bg-cyan-700">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-md font-serif font-medium">
+                  On-leave Staff
+                </CardTitle>
+                <Users className="h-6 w-6 text-cyan-700" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-sans font-bold text-cyan-700">
+                  {staffDashboardData.onLeaveUsers || 0}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-        <div className="rounded rounded-2xl pl-1 bg-yellow-500">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-md font-serif font-medium">
-                Inactive Staff
-              </CardTitle>
-              <Users className="h-6 w-6 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-sans font-bold text-yellow-500">
-                {staffDashboardData.inactiveUsers || 0}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="rounded rounded-2xl pl-1 bg-yellow-500">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-md font-serif font-medium">
+                  Inactive Staff
+                </CardTitle>
+                <Users className="h-6 w-6 text-yellow-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-sans font-bold text-yellow-500">
+                  {staffDashboardData.inactiveUsers || 0}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-muted-foreground font-serif mt-1">
-            Manage your radio station team and their roles.
-          </p>
-        </div>
+        {canManageStaff && (
+          <div>
+            <p className="text-muted-foreground font-serif mt-1">
+              Manage your radio station team and their roles.
+            </p>
+          </div>
+        )}
 
         {canManageStaff && (
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -370,68 +377,253 @@ export function StaffManagement({
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Search staff members..."
-                defaultValue={searchParams.get("query")?.toString()}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="font-serif border-1 border-blue-300"
-              />
+      {canManageStaff && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search staff members..."
+                  defaultValue={searchParams.get("query")?.toString()}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="font-serif border-1 border-blue-300"
+                />
+              </div>
+              <Select
+                value={filterRole}
+                onValueChange={(value) => {
+                  setFilterRole(value);
+                  handleSearch(value);
+                }}
+              >
+                <SelectTrigger className="w-full sm:w-40 border-1 border-blue-300">
+                  <SelectValue placeholder="Filter by role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  <SelectItem value="staff">Staff</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={filterStatus}
+                onValueChange={(value) => {
+                  setFilterStatus(value);
+                  handleSearch(value);
+                }}
+              >
+                <SelectTrigger className="w-full sm:w-40 border-1 border-blue-300">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="on-leave">On Leave</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select
-              value={filterRole}
-              onValueChange={(value) => {
-                setFilterRole(value);
-                handleSearch(value);
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-40 border-1 border-blue-300">
-                <SelectValue placeholder="Filter by role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="manager">Manager</SelectItem>
-                <SelectItem value="staff">Staff</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={filterStatus}
-              onValueChange={(value) => {
-                setFilterStatus(value);
-                handleSearch(value);
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-40 border-1 border-blue-300">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="on-leave">On Leave</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
+          </CardContent>
+        </Card>
+      )}
       {/* Staff Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredStaff?.map((member: any) => (
-          <Card key={member.id} className="relative">
+        {canManageStaff && (
+          <>
+            {" "}
+            {filteredStaff?.map((member: any) => (
+              <Card key={member.id} className="relative">
+                <CardHeader className="pb-3">
+                  {member.id === user?.id && (
+                    <Badge className="bg-green-500 mb-2">Current user</Badge>
+                  )}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarFallback className="bg-cyan-500 text-primary-foreground font-sans font-bold">
+                          {member.name
+                            .split(" ")
+                            .map((n: any) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-lg font-sans font-bold">
+                          {member.name}
+                        </CardTitle>
+                        {/* <p className="text-sm text-muted-foreground font-serif">
+                      place
+                    </p> */}
+                      </div>
+                    </div>
+                    {canManageStaff && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => setEditingStaff(member)}
+                          >
+                            <Edit className="h-4 w-4 mr-2 text-green-600" />
+                            Edit Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setIsDeleteDialogOpen(true);
+                              setStaffId(member.id);
+                            }}
+                            disabled={member.id === user.id}
+                          >
+                            <Trash className="h-4 w-4 mr-2 text-red-600" />
+                            Delete Member
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Badge
+                      className={`${getRoleColor(
+                        member.role
+                      )} font-serif text-xs`}
+                    >
+                      {member.role.charAt(0).toUpperCase() +
+                        member.role.slice(1)}
+                    </Badge>
+                    <Badge
+                      className={`${getStatusColor(
+                        member.status
+                      )} font-serif text-xs`}
+                    >
+                      {member.status.charAt(0).toUpperCase() +
+                        member.status.slice(1).replace("-", " ")}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-serif">{member.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-serif">{member.phone}</span>
+                    </div>
+                  </div>
+                  <div className=" text-sm space-y-2 ">
+                    {member?.login && (
+                      <div className="flex items-center gap-2">
+                        <LogIn className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-serif">
+                          Login Time: {formatTime(member?.login || "")}
+                        </span>
+                      </div>
+                    )}
+                    {member?.logout && (
+                      <div className="flex items-center gap-2">
+                        <LogOut className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-serif">
+                          Logout Time: {formatTime(member?.logout || "")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {member.bio && (
+                    <p className="text-sm text-muted-foreground font-serif line-clamp-2">
+                      {member.bio}
+                    </p>
+                  )}
+
+                  {member.specialities[0] !== "" &&
+                    member?.specialities?.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {member?.specialities
+                          ?.slice(0, 3)
+                          .map((specialty: any) => (
+                            <Badge
+                              key={specialty}
+                              className="font-serif text-xs bg-indigo-500"
+                            >
+                              {specialty}
+                            </Badge>
+                          ))}
+                        {member?.specialities?.length > 3 && (
+                          <Badge
+                            variant="outline"
+                            className="font-serif text-xs"
+                          >
+                            +{member?.specialities?.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
+                  {getStaffShows(member.id)?.length > 0 && (
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-serif font-medium">
+                          This Week
+                        </span>
+                      </div>
+                      <div className="">
+                        {getStaffShows(member.id)?.map((show: any) => (
+                          <div key={show.id}>
+                            <p className="text-green-500 text-sm font-bold pb-1 flex">
+                              <MicVocal className="w-4 h-4 text-indigo-500" />{" "}
+                              {show.title}
+                            </p>
+                            {showDays(show)?.map((day: any, index: any) => (
+                              <div
+                                key={index}
+                                className="flex justify-between text-xs"
+                              >
+                                <span className="font-serif capitalize">
+                                  {daysOfWeek[day]}
+                                </span>
+                                <span className="font-serif text-muted-foreground">
+                                  {formatTime(show.start)} -{" "}
+                                  {formatTime(show.ends)}
+                                </span>
+                              </div>
+                            ))}
+                            {/* {showDays(show).length > 2 && (
+                            <p className="text-xs text-muted-foreground font-serif">
+                              +{showDays(show).length - 2} more days
+                            </p>
+                          )} */}
+                            {/* {getStaffShows(member.id).length > 1 && (
+                            <p className="text-xs text-muted-foreground font-serif">
+                              +{getStaffShows(member.id).length - 1} more shows
+                            </p>
+                          )} */}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </>
+        )}
+      </div>
+      <div>
+        {!canManageStaff && (
+          <Card className="relative">
             <CardHeader className="pb-3">
-              {member.id === user?.id && (
-                <Badge className="bg-green-500 mb-2">Current user</Badge>
-              )}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
                     <AvatarFallback className="bg-cyan-500 text-primary-foreground font-sans font-bold">
-                      {member.name
+                      {user?.name
                         .split(" ")
                         .map((n: any) => n[0])
                         .join("")}
@@ -439,7 +631,7 @@ export function StaffManagement({
                   </Avatar>
                   <div>
                     <CardTitle className="text-lg font-sans font-bold">
-                      {member.name}
+                      {currentUser.name}
                     </CardTitle>
                     {/* <p className="text-sm text-muted-foreground font-serif">
                       place
@@ -454,16 +646,18 @@ export function StaffManagement({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setEditingStaff(member)}>
+                      <DropdownMenuItem
+                        onClick={() => setEditingStaff(currentUser)}
+                      >
                         <Edit className="h-4 w-4 mr-2 text-green-600" />
                         Edit Profile
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
                           setIsDeleteDialogOpen(true);
-                          setStaffId(member.id);
+                          setStaffId(currentUser.id);
                         }}
-                        disabled={member.id === user.id}
+                        disabled={currentUser.id === user.id}
                       >
                         <Trash className="h-4 w-4 mr-2 text-red-600" />
                         Delete Member
@@ -476,75 +670,80 @@ export function StaffManagement({
             <CardContent className="space-y-4">
               <div className="flex gap-2">
                 <Badge
-                  className={`${getRoleColor(member.role)} font-serif text-xs`}
+                  className={`${getRoleColor(
+                    currentUser.role
+                  )} font-serif text-xs`}
                 >
-                  {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                  {currentUser.role.charAt(0).toUpperCase() +
+                    currentUser.role.slice(1)}
                 </Badge>
                 <Badge
                   className={`${getStatusColor(
-                    member.status
+                    currentUser.status
                   )} font-serif text-xs`}
                 >
-                  {member.status.charAt(0).toUpperCase() +
-                    member.status.slice(1).replace("-", " ")}
+                  {currentUser.status.charAt(0).toUpperCase() +
+                    currentUser.status.slice(1).replace("-", " ")}
                 </Badge>
               </div>
 
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-serif">{member.email}</span>
+                  <span className="font-serif">{currentUser.email}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-serif">{member.phone}</span>
+                  <span className="font-serif">{currentUser.phone}</span>
                 </div>
               </div>
               <div className=" text-sm space-y-2 ">
-                {member?.login && (
+                {currentUser?.login && (
                   <div className="flex items-center gap-2">
                     <LogIn className="h-4 w-4 text-muted-foreground" />
                     <span className="font-serif">
-                      Login Time: {formatTime(member?.login || "")}
+                      Login Time: {formatTime(currentUser?.login || "")}
                     </span>
                   </div>
                 )}
-                {member?.logout && (
+                {currentUser?.logout && (
                   <div className="flex items-center gap-2">
                     <LogOut className="h-4 w-4 text-muted-foreground" />
                     <span className="font-serif">
-                      Logout Time: {formatTime(member?.logout || "")}
+                      Logout Time: {formatTime(currentUser?.logout || "")}
                     </span>
                   </div>
                 )}
               </div>
 
-              {member.bio && (
+              {currentUser.bio && (
                 <p className="text-sm text-muted-foreground font-serif line-clamp-2">
-                  {member.bio}
+                  {currentUser.bio}
                 </p>
               )}
 
-              {/* {member.specialities && member.specialities.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {member.specialities.slice(0, 3).map((specialty: any) => (
-                    <Badge
-                      key={specialty}
-                      variant="outline"
-                      className="font-serif text-xs"
-                    >
-                      {specialty}
-                    </Badge>
-                  ))}
-                  {member.specialties.length > 3 && (
-                    <Badge variant="outline" className="font-serif text-xs">
-                      +{member.specialties.length - 3} more
-                    </Badge>
-                  )}
-                </div>
-              )} */}
+              {currentUser.specialities[0] !== "" &&
+                currentUser?.specialities?.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {currentUser?.specialities
+                      ?.slice(0, 3)
+                      .map((specialty: any) => (
+                        <Badge
+                          key={specialty}
+                          className="font-serif text-xs bg-indigo-500"
+                        >
+                          {specialty}
+                        </Badge>
+                      ))}
+                    {currentUser?.specialities?.length > 3 && (
+                      <Badge variant="outline" className="font-serif text-xs">
+                        +{currentUser?.specialities?.length - 3} more
+                      </Badge>
+                    )}
+                  </div>
+                )}
 
-              {getStaffShows(member.id)?.length > 0 && (
+              {getStaffShows(currentUser.id)?.length > 0 && (
                 <div className="pt-2 border-t">
                   <div className="flex items-center gap-2 mb-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
@@ -553,20 +752,18 @@ export function StaffManagement({
                     </span>
                   </div>
                   <div className="">
-                    {getStaffShows(member.id)?.map((show: any) => (
+                    {getStaffShows(currentUser.id)?.map((show: any) => (
                       <div key={show.id}>
-                        <p className="text-green-500 text-sm font-bold pb-1">
+                        <p className="text-green-500 text-sm font-bold pb-1 flex gap-2">
+                          <MicVocal className="w-4 h-4 text-indigo-500" />{" "}
                           {show.title}
                         </p>
                         {showDays(show)?.map((day: any, index: any) => (
-                          <div
-                            key={index}
-                            className="flex justify-between text-xs"
-                          >
+                          <div key={index} className="flex gap-12 text-xs">
                             <span className="font-serif capitalize">
                               {daysOfWeek[day]}
                             </span>
-                            <span className="font-serif text-muted-foreground">
+                            <span className="font-serif text-muted-foreground flex items-end">
                               {formatTime(show.start)} - {formatTime(show.ends)}
                             </span>
                           </div>
@@ -588,17 +785,21 @@ export function StaffManagement({
               )}
             </CardContent>
           </Card>
-        ))}
+        )}
       </div>
 
-      {filteredStaff?.length === 0 && (
-        <Card>
-          <CardContent className="py-12 text-center ">
-            <p className="text-muted-foreground font-serif">
-              No staff members found matching your criteria.
-            </p>
-          </CardContent>
-        </Card>
+      {canManageStaff && (
+        <>
+          {filteredStaff?.length === 0 && (
+            <Card>
+              <CardContent className="py-12 text-center ">
+                <p className="text-muted-foreground font-serif">
+                  No staff members found matching your criteria.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
 
       {/* Edit Staff Dialog */}

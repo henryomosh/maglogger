@@ -13,7 +13,7 @@ export async function loginUser(formData: FormData) {
     return { success: false, message: "", error: "Email does not exist!" };
   }
 
-  const passwordMatch = await bcrypt.compare(password, user.password);
+  const passwordMatch = await bcrypt.compare(password, user?.password);
   if (user && passwordMatch) {
     await createSession(user?.id);
 

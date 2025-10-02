@@ -116,12 +116,12 @@ export function DashboardHome({
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-serif font-medium">
+        <Card className="shadow-sm shadow-green-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 ">
+            <CardTitle className="text-sm font-serif font-xl font-bold">
               Active Presenters
             </CardTitle>
-            <Users className="h-4 w-4 text-chart-1" />
+            <Users className="h-6 w-6 text-chart-1" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-sans font-bold">
@@ -131,12 +131,12 @@ export function DashboardHome({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-sm shadow-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-serif font-medium">
+            <CardTitle className="text-sm font-serif font-xl font-bold">
               Shows Today
             </CardTitle>
-            <Radio className="h-4 w-4 text-chart-2" />
+            <Radio className="h-6 w-6 text-chart-2" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-sans font-bold">
@@ -149,12 +149,12 @@ export function DashboardHome({
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm shadow-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-serif font-medium">
+            <CardTitle className="text-sm font-serif font-xl font-bold">
               Approved Logs
             </CardTitle>
-            <Check className="h-4 w-4 text-green-600" />
+            <Check className="h-6 w-6 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-sans font-bold">
@@ -163,12 +163,12 @@ export function DashboardHome({
             <p className="text-xs text-muted-foreground font-serif"></p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm shadow-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-serif font-medium">
+            <CardTitle className="text-sm font-serif font-xl font-bold">
               Pending Logs
             </CardTitle>
-            <Clock3 className="h-4 w-4 text-yellow-600" />
+            <Clock3 className="h-6 w-6 text-yellow-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-sans font-bold">
@@ -177,12 +177,12 @@ export function DashboardHome({
             <p className="text-xs text-muted-foreground font-serif"></p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm shadow-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-serif font-medium">
+            <CardTitle className="text-sm font-serif font-xl font-bold">
               Declined Logs
             </CardTitle>
-            <CircleX className="h-4 w-4 text-red-500" />
+            <CircleX className="h-6 w-6 text-red-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-sans font-bold">
@@ -228,7 +228,7 @@ export function DashboardHome({
         </Card> */}
 
         {/* Upcoming Shows */}
-        <Card>
+        <Card className="shadow-sm shadow-green-500">
           <CardHeader>
             <CardTitle className="font-sans font-bold">
               Upcoming Shows
@@ -274,7 +274,7 @@ export function DashboardHome({
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="shadow-sm shadow-green-500">
         <CardHeader>
           <CardTitle className="font-sans font-bold">Quick Actions</CardTitle>
           <CardDescription className="font-serif">

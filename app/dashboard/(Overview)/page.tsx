@@ -8,6 +8,8 @@ import {
   fetchLogs,
 } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function Dashboard() {
   const { staffData, activeUsers } = await fetchStaff();
   const { todaySchedule, liveShow, upCommingShows } = await fetchSchedule();

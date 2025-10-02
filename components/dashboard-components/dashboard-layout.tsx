@@ -30,56 +30,56 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-const navigation = [
-  {
-    name: "Dashboard",
-    icon: BarChart3,
-    href: "#dashboard",
-    key: "dashboard",
-    link: "/dashboard",
-  },
-  {
-    name: "Staff",
-    icon: Users,
-    href: "#staff",
-    key: "staff",
-    link: "/dashboard/staff",
-  },
-
-  {
-    name: "Shows and Scheduling",
-    icon: Calendar,
-    href: "#scheduling",
-    key: "scheduling",
-    link: "/dashboard/scheduling",
-  },
-  {
-    name: "Show Logs",
-    icon: FileText,
-    href: "/dashboard/logs",
-    key: "logs",
-    link: "/dashboard/logs",
-  },
-  // {
-  //   name: "Playlists",
-  //   icon: Music,
-  //   href: "#playlists",
-  //   key: "playlists",
-  //   link: "#",
-  // },
-  // {
-  //   name: "Analytics",
-  //   icon: BarChart3,
-  //   href: "#analytics",
-  //   key: "analytics",
-  //   link: "#",
-  // },
-];
-
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const [activeSection2, setActiveSection2] = useState("");
+
+  const navigation = [
+    {
+      name: "Dashboard",
+      icon: BarChart3,
+      href: "#dashboard",
+      key: "dashboard",
+      link: "/dashboard",
+    },
+    {
+      name: user?.role === "admin" ? "Staff" : "My Profile",
+      icon: Users,
+      href: "#staff",
+      key: "staff",
+      link: "/dashboard/staff",
+    },
+
+    {
+      name: "Shows and Scheduling",
+      icon: Calendar,
+      href: "#scheduling",
+      key: "scheduling",
+      link: "/dashboard/scheduling",
+    },
+    {
+      name: "Show Logs",
+      icon: FileText,
+      href: "/dashboard/logs",
+      key: "logs",
+      link: "/dashboard/logs",
+    },
+    // {
+    //   name: "Playlists",
+    //   icon: Music,
+    //   href: "#playlists",
+    //   key: "playlists",
+    //   link: "#",
+    // },
+    // {
+    //   name: "Analytics",
+    //   icon: BarChart3,
+    //   href: "#analytics",
+    //   key: "analytics",
+    //   link: "#",
+    // },
+  ];
 
   useEffect(() => {
     if (!user) {
@@ -195,7 +195,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Page content */}
         <main className="py-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-1">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-2">
             {children}
           </div>
         </main>

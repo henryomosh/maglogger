@@ -63,7 +63,7 @@ export async function fetchUser(email: string) {
 
 export async function fetchUserById(id: string) {
   try {
-    const data = await sql`
+    const data = await sql<User[]>`
       SELECT 
         users.id,
         users.role,
@@ -71,12 +71,18 @@ export async function fetchUserById(id: string) {
         users.email,
         users.phone,
         users.status,
-        users.password,
-        users.bio
+        users.specialities,
+        users.login,
+        users.logout,
+        users.bio,
+        users.password
       FROM users
       WHERE users.id = ${id} `;
-
-    return data[0];
+    const userData = data.map((user: any) => ({
+      ...user,
+      specialities: user.specialities.split(","),
+    }));
+    return userData[0];
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to fetch the latest invoices.");
@@ -88,7 +94,7 @@ export async function fetchFilteredStaff(query: string, currentPage: number) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
-    const schedules = await sql`
+    const staff = await sql`
       SELECT 
         users.id,
         users.role,
@@ -111,8 +117,12 @@ export async function fetchFilteredStaff(query: string, currentPage: number) {
         users.bio ILIKE ${`%${query}%`}   
       ORDER BY users.name
     `;
-
-    return schedules;
+    const newStaff = staff.map((item: any) => ({
+      ...item,
+      specialities: item?.specialities?.split(","),
+      len: item?.specialities?.split(",").length,
+    }));
+    return newStaff;
   } catch (error) {
     console.log(error);
   }
@@ -392,10 +402,79 @@ export async function fetchFilteredLogs(
   }
 }
 
+export async function fetchFilteredLogsById(
+  query: string,
+  currentPage: number,
+  totalItemPage: number,
+  id: string
+) {
+  const offset = (currentPage - 1) * totalItemPage;
+
+  try {
+    const logs = await sql`
+      SELECT 
+      logs.id,
+      logs.staff,
+      logs.show,
+      logs.segments,
+      logs.guests,
+      logs.adverts,
+      logs.status,
+      logs.created,
+      scheduling.title,
+      scheduling.standin,
+      scheduling.start,
+      scheduling.ends,
+      users.name
+      FROM logs
+      JOIN scheduling ON logs.show = scheduling.id
+      JOIN users ON scheduling.staff = users.id 
+      WHERE
+        logs.staff = ${id} AND (users.name ILIKE ${`%${query}%`} OR
+        scheduling.standin ILIKE ${`%${query}%`} OR
+        scheduling.title ILIKE ${`%${query}%`} OR
+        logs.status ILIKE ${`%${query}%`} OR
+        logs.created::TEXT ILIKE ${`%${query}%`})
+        
+      ORDER BY logs.created DESC
+       LIMIT ${totalItemPage} OFFSET ${offset}
+    `;
+
+    const parsedLogs = logs.map((item: any) => ({
+      ...item,
+      segments: JSON.parse(item.segments),
+      guests: JSON.parse(item.guests),
+      adverts: JSON.parse(item.adverts),
+    }));
+
+    return parsedLogs;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export async function fetchLogPages(totalItemPage: number) {
   try {
     const data = await sql`SELECT COUNT(*)
     FROM logs
+  `;
+    const totalPages = Math.ceil(Number(data[0].count) / totalItemPage);
+
+    return totalPages;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch total number of invoices.");
+  }
+}
+
+export async function fetchtotalCurentUserPages(
+  totalItemPage: number,
+  id: string
+) {
+  try {
+    const data = await sql`SELECT COUNT(*)
+    FROM logs
+    WHERE staff = ${id}
   `;
     const totalPages = Math.ceil(Number(data[0].count) / totalItemPage);
 
@@ -412,6 +491,20 @@ export async function fetchTotalLogs() {
     FROM logs
   `;
 
+    return data[0];
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch total number of invoices.");
+  }
+}
+
+export async function fetchTotalCurrentUserLogs(id: string) {
+  try {
+    const data = await sql`SELECT COUNT(*)
+    FROM logs
+    WHERE staff = ${id}
+  `;
+    console.log(data);
     return data[0];
   } catch (error) {
     console.error("Database Error:", error);

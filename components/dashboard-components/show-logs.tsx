@@ -152,11 +152,15 @@ export function ShowLogs({
   showLogs,
   totalPages,
   totalLogs,
+  totalCurentUserLogs,
+  totalCurentUserPages,
 }: {
   schedule: any;
   showLogs: any;
   totalPages: any;
   totalLogs: any;
+  totalCurentUserLogs: any;
+  totalCurentUserPages: any;
 }) {
   const { user } = useAuth();
   const [logs, setLogs] = useState<ShowLog[]>();
@@ -233,42 +237,6 @@ export function ShowLogs({
     replace(`${pathname}?${params.toString()}`);
   }, 300);
 
-  const filteredUserLogs = canManageShows
-    ? showLogs
-    : showLogs.filter((item: any) => {
-        return item?.staff === user?.id;
-      });
-
-  const filteredLogs1 = filteredUserLogs?.filter((log: any) => {
-    const matchesSearch =
-      log.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.start.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.ends.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.status.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const timestamp = log.created;
-    const matchesStatus = filterType === "all" || log.status === filterType;
-    const matchesShow = filterShow === "all" || log.title === filterShow;
-
-    const matchesDate = !selectedDate || timestamp.startsWith(selectedDate);
-
-    return matchesSearch && matchesStatus && matchesShow && matchesDate;
-  });
-  const filteredLogs = filteredLogs1.sort(
-    (a: any, b: any) =>
-      new Date(b.created).getTime() - new Date(a.created).getTime()
-  );
-
-  const groupedLogs = filteredLogs.reduce((groups: any, log: any) => {
-    const date = new Date(log.timestamp).toDateString();
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(log);
-    return groups;
-  }, {} as Record<string, ShowLog[]>);
-
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString([], {
       hour: "2-digit",
@@ -291,7 +259,7 @@ export function ShowLogs({
         "Show Starts",
         "Show Ends",
       ].join(","),
-      ...filteredLogs.map((log: any) =>
+      ...showLogs.map((log: any) =>
         [
           formatDate(log.created),
           log.title,
@@ -318,7 +286,6 @@ export function ShowLogs({
   // const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedLogs = filteredLogs.slice(startIndex, endIndex);
 
   const handleFilterChange = (filterFn: () => void) => {
     filterFn();
@@ -340,16 +307,19 @@ export function ShowLogs({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="md:flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-sans font-bold text-foreground">
             Show Logs
           </h1>
-          <p className="text-muted-foreground font-serif mt-1">
-            Comprehensive activity logs from all radio shows
+          <p className="text-muted-foreground font-serif mt-1 py-2">
+            Comprehensive activity logs from {canManageShows ? "all" : "your"}{" "}
+            radio shows
           </p>
         </div>
-        <div className="flex gap-2">
+        <div
+          className={`flex gap-2 ${canManageShows ? "" : "justify-between"}`}
+        >
           <div className="flex border rounded-lg">
             <Button
               variant={viewMode === "cards" ? "success" : "ghost"}
@@ -370,14 +340,16 @@ export function ShowLogs({
               Table
             </Button>
           </div>
-          <Button
-            onClick={exportLogs}
-            variant="outline"
-            className="font-serif bg-transparent hover:bg-green-600"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
+          {canManageShows && (
+            <Button
+              onClick={exportLogs}
+              variant="outline"
+              className="font-serif bg-transparent hover:bg-green-600 w-1/4 px-4"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+          )}
           {(user?.role === "admin" ||
             user?.role === "manager" ||
             user?.role === "staff") && (
@@ -1081,71 +1053,145 @@ export function ShowLogs({
                   </Table>
                 </div>
 
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm  text-cyan-500 font-bold font-serif">
-                      Showing {startIndex + 1} to{" "}
-                      {startIndex + itemsPerPage < totalLogs?.count
-                        ? currentPage === 1
-                          ? startIndex + itemsPerPage
-                          : startIndex + 1 + itemsPerPage
-                        : totalLogs?.count}{" "}
-                      of {totalLogs?.count} Entries
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setCurrentPage(currentPage - 1);
-                          redirect(createPageURL(currentPage - 1));
-                        }}
-                        disabled={currentPage === 1}
-                        className="font-serif hover:bg-cyan-500"
-                      >
-                        <ChevronLeft className="h-4 w-4 mr-1" />
-                        Previous
-                      </Button>
-                      <div className="flex items-center gap-1">
-                        {Array.from(
-                          { length: totalPages },
-                          (_, i) => i + 1
-                        ).map((page) => (
+                {canManageShows ? (
+                  <>
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm  text-cyan-500 font-bold font-serif">
+                          Showing {startIndex + 1} to{" "}
+                          {startIndex + itemsPerPage < totalLogs?.count
+                            ? currentPage === 1
+                              ? startIndex + itemsPerPage
+                              : startIndex + 1 + itemsPerPage
+                            : totalLogs?.count}{" "}
+                          of {totalLogs?.count} Entries
+                        </div>
+                        <div className="flex items-center gap-2">
                           <Button
-                            key={page}
-                            variant={
-                              currentPage === page ? "default" : "outline"
-                            }
+                            variant="outline"
                             size="sm"
                             onClick={() => {
-                              setCurrentPage(page);
-                              redirect(createPageURL(page));
+                              setCurrentPage(currentPage - 1);
+                              redirect(createPageURL(currentPage - 1));
                             }}
-                            className={`w-8 h-8 p-0 font-serif  ${
-                              currentPage === page
-                                ? "bg-cyan-600 hover:bg-cyan-500"
-                                : "hover:bg-cyan-600"
-                            }`}
+                            disabled={currentPage === 1}
+                            className="font-serif hover:bg-cyan-500"
                           >
-                            {page}
+                            <ChevronLeft className="h-4 w-4 mr-1" />
+                            Previous
                           </Button>
-                        ))}
+                          <div className="flex items-center gap-1">
+                            {Array.from(
+                              { length: totalPages },
+                              (_, i) => i + 1
+                            ).map((page) => (
+                              <Button
+                                key={page}
+                                variant={
+                                  currentPage === page ? "default" : "outline"
+                                }
+                                size="sm"
+                                onClick={() => {
+                                  setCurrentPage(page);
+                                  redirect(createPageURL(page));
+                                }}
+                                className={`w-8 h-8 p-0 font-serif  ${
+                                  currentPage === page
+                                    ? "bg-cyan-600 hover:bg-cyan-500"
+                                    : "hover:bg-cyan-600"
+                                }`}
+                              >
+                                {page}
+                              </Button>
+                            ))}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setCurrentPage(currentPage + 1);
+                              redirect(createPageURL(currentPage + 1));
+                            }}
+                            disabled={currentPage === totalPages}
+                            className="font-serif hover:bg-cyan-500"
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4 ml-1" />
+                          </Button>
+                        </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setCurrentPage(currentPage + 1);
-                          redirect(createPageURL(currentPage + 1));
-                        }}
-                        disabled={currentPage === totalPages}
-                        className="font-serif hover:bg-cyan-500"
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </div>
-                  </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm  text-cyan-500 font-bold font-serif">
+                          Showing {startIndex + 1} to{" "}
+                          {startIndex + itemsPerPage <
+                          totalCurentUserLogs?.count
+                            ? currentPage === 1
+                              ? startIndex + itemsPerPage
+                              : startIndex + 1 + itemsPerPage
+                            : totalCurentUserLogs?.count}{" "}
+                          of {totalCurentUserLogs?.count} Entries
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setCurrentPage(currentPage - 1);
+                              redirect(createPageURL(currentPage - 1));
+                            }}
+                            disabled={currentPage === 1}
+                            className="font-serif hover:bg-cyan-500"
+                          >
+                            <ChevronLeft className="h-4 w-4 mr-1" />
+                            Previous
+                          </Button>
+                          <div className="flex items-center gap-1">
+                            {Array.from(
+                              { length: totalCurentUserPages },
+                              (_, i) => i + 1
+                            ).map((page) => (
+                              <Button
+                                key={page}
+                                variant={
+                                  currentPage === page ? "default" : "outline"
+                                }
+                                size="sm"
+                                onClick={() => {
+                                  setCurrentPage(page);
+                                  redirect(createPageURL(page));
+                                }}
+                                className={`w-8 h-8 p-0 font-serif  ${
+                                  currentPage === page
+                                    ? "bg-cyan-600 hover:bg-cyan-500"
+                                    : "hover:bg-cyan-600"
+                                }`}
+                              >
+                                {page}
+                              </Button>
+                            ))}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setCurrentPage(currentPage + 1);
+                              redirect(createPageURL(currentPage + 1));
+                            }}
+                            disabled={currentPage === totalCurentUserPages}
+                            className="font-serif hover:bg-cyan-500"
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4 ml-1" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ) : (
