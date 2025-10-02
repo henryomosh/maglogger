@@ -19,7 +19,8 @@ export async function fetchStaff() {
         users.login,
         users.logout,
         users.bio
-      FROM users `;
+      FROM users 
+      ORDER BY users.name`;
     const activeUsers = await sql<
       []
     >`SELECT * from users WHERE status ='active'`;
@@ -30,7 +31,8 @@ export async function fetchStaff() {
     const formStaff = await sql<[]>`SELECT
       users.id,
       users.name
-      FROM users`;
+      FROM users
+      ORDER BY users.name`;
 
     return { formStaff, staffData, activeUsers };
   } catch (error) {
@@ -184,7 +186,7 @@ export async function fetchSchedule() {
       users.name
       FROM scheduling
       JOIN users ON scheduling.staff = users.id 
-      ORDER BY scheduling.created DESC`;
+      ORDER BY scheduling.title`;
 
     const schedule = data.map((item: any) => ({
       ...item,

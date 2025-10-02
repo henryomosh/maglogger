@@ -37,7 +37,7 @@ export default async function Logs(props: {
   );
 
   const currentUser = await fetchUserById(cookieStore);
-  if (currentUser.role === "admin") {
+  if (currentUser?.role === "admin") {
     const allLogs = await fetchFilteredLogs(query, currentPage, totalItemPage);
     filteredLogs = allLogs!;
   } else {

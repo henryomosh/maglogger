@@ -109,7 +109,7 @@ export function DashboardHome({
         <a href="https://zeno.fm/radio/mitumeradio/">
           <Badge variant="secondary" className="font-serif">
             <div className="w-4 h-4 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-            Live Broadcasting
+            Mitume Radio Live
           </Badge>
         </a>
       </div>
