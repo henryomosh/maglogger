@@ -32,6 +32,9 @@ import {
   Clock3,
   Check,
   CircleX,
+  ListCheck,
+  Megaphone,
+  ContactRound,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -347,60 +350,67 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
       {/* Segments */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className=" font-black">Show Segments</h3>
+          <h3 className=" font-black flex gap-2">
+            <ListCheck className="h-6 w-6 text-green-500" /> Show Segments
+          </h3>
           <Button
             type="button"
-            variant="outline"
             size="sm"
             onClick={addSegment}
+            className="bg-indigo-500 hover:bg-indigo-400 cursor-pointer"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Segment
           </Button>
         </div>
         {segments.map((_: any, index: any) => (
-          <div className="grid grid-cols-8 gap-4 items-end " key={index}>
-            <div className="space-y-2 col-span-2">
-              <Label htmlFor="description" className="font-serif">
-                Start Time <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                className="border-1 border-blue-400"
-                name={`startTime_${index}`}
-                id="startTime"
-                type="time"
-                value={segments[index].startTime}
-                onChange={(e) => handleSegmentChange(e, index)}
-                required
-              />
-            </div>
-            <div className="space-y-2 col-span-2">
-              <Label htmlFor="description" className="font-serif">
-                End Time <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                className="border-1 border-blue-400"
-                name={`endTime_${index}`}
-                id="endTime"
-                type="time"
-                value={segments[index].endTime}
-                onChange={(e) => handleSegmentChange(e, index)}
-                required
-              />
-            </div>
-            <div className="space-y-2 col-span-3">
-              <Label htmlFor="description" className="font-serif">
-                Description <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                className="border-1 border-blue-400"
-                name={`description_${index}`}
-                id="description"
-                type="text"
-                value={segments[index].description}
-                onChange={(e) => handleSegmentChange(e, index)}
-                required
-              />
+          <div
+            className="grid border-2 border-blue-300 rounded-md p-4  grid-cols-8 gap-4 items-end "
+            key={index}
+          >
+            <div className="grid grid-cols-4 md:grid-cols-7 gap-4 col-span-7">
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="description" className="font-serif">
+                  Start Time <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  className="border-1 border-blue-400"
+                  name={`startTime_${index}`}
+                  id="startTime"
+                  type="time"
+                  value={segments[index].startTime}
+                  onChange={(e) => handleSegmentChange(e, index)}
+                  required
+                />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="description" className="font-serif">
+                  End Time <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  className="border-1 border-blue-400"
+                  name={`endTime_${index}`}
+                  id="endTime"
+                  type="time"
+                  value={segments[index].endTime}
+                  onChange={(e) => handleSegmentChange(e, index)}
+                  required
+                />
+              </div>
+              <div className="space-y-2 col-span-4 md:col-span-3">
+                <Label htmlFor="description" className="font-serif">
+                  Description <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  className="border-1 border-blue-400"
+                  name={`description_${index}`}
+                  id="description"
+                  type="text"
+                  value={segments[index].description}
+                  onChange={(e) => handleSegmentChange(e, index)}
+                  required
+                />
+              </div>
             </div>
             <div className="">
               <Button
@@ -421,8 +431,17 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
       {/* Adverts */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className=" font-black">Adverts</h3>
-          <Button type="button" variant="outline" size="sm" onClick={addAdvert}>
+          <h3 className=" font-black flex gap-2">
+            {" "}
+            <Megaphone className="h-6 w-6 text-green-500" />
+            Adverts
+          </h3>
+          <Button
+            type="button"
+            className="bg-indigo-500 hover:bg-indigo-400 cursor-pointer "
+            size="sm"
+            onClick={addAdvert}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Advert
           </Button>
@@ -480,55 +499,68 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
       {/* Guests */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className=" font-black">Show Guests</h3>
-          <Button type="button" variant="outline" size="sm" onClick={addGuest}>
+          <h3 className=" font-black flex gap-2">
+            {" "}
+            <ContactRound className="h-6 w-6 text-green-500" /> Show Guests
+          </h3>
+          <Button
+            type="button"
+            className="bg-indigo-500 hover:bg-indigo-400 cursor-pointer "
+            size="sm"
+            onClick={addGuest}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Guest
           </Button>
         </div>
         {guests.map((_: any, index: any) => (
-          <div className="grid grid-cols-8 gap-4 items-end " key={index}>
-            <div className="space-y-2 col-span-3">
-              <Label htmlFor="description" className="font-serif">
-                Full Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                className="border-1 border-blue-400"
-                name={`guestName_${index}`}
-                id="guestName"
-                type="text"
-                value={guests[index].guestName}
-                onChange={(e) => handleGuestChange(e, index)}
-                required
-              />
-            </div>
-            <div className="space-y-2 col-span-2">
-              <Label htmlFor="description" className="font-serif">
-                Topic <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                className="border-1 border-blue-400"
-                name={`topic_${index}`}
-                id="topic"
-                type="text"
-                value={guests[index].topic}
-                onChange={(e) => handleGuestChange(e, index)}
-                required
-              />
-            </div>
-            <div className="space-y-2 col-span-2">
-              <Label htmlFor="description" className="font-serif">
-                Phone <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                className="border-1 border-blue-400"
-                name={`phone_${index}`}
-                id="phone"
-                type="text"
-                value={guests[index].phone}
-                onChange={(e) => handleGuestChange(e, index)}
-                required
-              />
+          <div
+            className="grid border-2 border-blue-300 rounded-md p-4  grid-cols-8 gap-4 items-end "
+            key={index}
+          >
+            <div className="grid grid-cols-4 md:grid-cols-7 gap-4 col-span-7">
+              <div className="space-y-2 col-span-2 md:col-span-3 ">
+                <Label htmlFor="description" className="font-serif">
+                  Full Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  className="border-1 border-blue-400"
+                  name={`guestName_${index}`}
+                  id="guestName"
+                  type="text"
+                  value={guests[index].guestName}
+                  onChange={(e) => handleGuestChange(e, index)}
+                  required
+                />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="description" className="font-serif">
+                  Topic <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  className="border-1 border-blue-400"
+                  name={`topic_${index}`}
+                  id="topic"
+                  type="text"
+                  value={guests[index].topic}
+                  onChange={(e) => handleGuestChange(e, index)}
+                  required
+                />
+              </div>
+              <div className="space-y-2 col-span-4 md:col-span-2">
+                <Label htmlFor="description" className="font-serif">
+                  Phone <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  className="border-1 border-blue-400"
+                  name={`phone_${index}`}
+                  id="phone"
+                  type="text"
+                  value={guests[index].phone}
+                  onChange={(e) => handleGuestChange(e, index)}
+                  required
+                />
+              </div>
             </div>
             <div className="">
               <Button

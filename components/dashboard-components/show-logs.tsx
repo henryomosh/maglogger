@@ -136,7 +136,7 @@ const logTypeConfig = {
     color: "bg-orange-500",
     label: "Commercial",
   },
-  weather: { icon: Calendar, color: "bg-cyan-500", label: "Weather" },
+  weather: { icon: Calendar, color: "bg-green-500", label: "Weather" },
   traffic: { icon: Calendar, color: "bg-yellow-500", label: "Traffic" },
   news: { icon: MessageSquare, color: "bg-indigo-500", label: "News" },
 };
@@ -317,9 +317,7 @@ export function ShowLogs({
             radio shows
           </p>
         </div>
-        <div
-          className={`flex gap-2 ${canManageShows ? "" : "justify-between"}`}
-        >
+        <div className={`flex gap-2 justify-between`}>
           <div className="flex border rounded-lg">
             <Button
               variant={viewMode === "cards" ? "success" : "ghost"}
@@ -341,14 +339,16 @@ export function ShowLogs({
             </Button>
           </div>
           {canManageShows && (
-            <Button
-              onClick={exportLogs}
-              variant="outline"
-              className="font-serif bg-transparent hover:bg-green-600 w-1/4 px-4"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
+            <div className="max-sm:hidden">
+              <Button
+                onClick={exportLogs}
+                variant="outline"
+                className=" font-serif bg-transparent hover:bg-green-600  px-4"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
           )}
           {(user?.role === "admin" ||
             user?.role === "manager" ||
@@ -381,7 +381,7 @@ export function ShowLogs({
             <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-start gap-2 font-sans font-bold text-xl">
-                  <div className={`p-2 rounded-full bg-cyan-500 text-white`}>
+                  <div className={`p-2 rounded-full bg-green-500 text-white`}>
                     <FileText className="h-4 w-4" />
                   </div>
                   Log Details
@@ -587,17 +587,19 @@ export function ShowLogs({
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="shadow-sm shadow-green-500">
         <CardHeader>
-          <CardTitle className="font-sans font-bold">Filter Logs</CardTitle>
-          <CardDescription className="font-serif">
+          <CardTitle className="font-sans font-bold text-green-500 font bold">
+            Filter Logs
+          </CardTitle>
+          <CardDescription className="font-serif text-green-500 font bold">
             Search and filter show activity logs
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-4">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-green-500" />
               <Input
                 placeholder="Search logs..."
                 value={searchTerm}
@@ -605,65 +607,69 @@ export function ShowLogs({
                   handleSearch(e.target.value);
                   setSearchTerm(e.target.value);
                 }}
-                className="pl-10 font-serif border-1 border-blue-400"
+                className="pl-10 font-serif border-2 text-green-500 border-green-400"
               />
             </div>
-            <Select
-              value={filterType}
-              onValueChange={(value) => {
-                setFilterType(value);
-                handleSearch(value);
-              }}
-            >
-              <SelectTrigger className="font-serif border-1 border-blue-400">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="font-serif">
-                  All status
-                </SelectItem>
-                {Object.entries(logStatus).map(([key, config]) => (
-                  <SelectItem key={key} value={key} className="font-serif">
-                    {config}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={filterShow}
-              onValueChange={(value) =>
-                handleFilterChange(() => {
+            <div className="flex gap-4">
+              <Select
+                value={filterType}
+                onValueChange={(value) => {
+                  setFilterType(value);
                   handleSearch(value);
-                  setFilterShow(value);
-                })
-              }
-            >
-              <SelectTrigger className="font-serif border-1 border-blue-400">
-                <SelectValue placeholder="Filter by show" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="font-serif">
-                  All Shows
-                </SelectItem>
-                {schedule?.map((log: any) => (
-                  <SelectItem
-                    key={log.id}
-                    value={log.title}
-                    className="font-serif"
-                  >
-                    {log.title}
+                }}
+              >
+                <SelectTrigger className="font-serif border-2 border-green-400 w-full text-green-500">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="font-serif">
+                    All status
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  {Object.entries(logStatus).map(([key, config]) => (
+                    <SelectItem key={key} value={key} className="font-serif">
+                      {config}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={filterShow}
+                onValueChange={(value) =>
+                  handleFilterChange(() => {
+                    handleSearch(value);
+                    setFilterShow(value);
+                  })
+                }
+              >
+                <SelectTrigger className="font-serif border-2 text-green-500 border-green-400 w-full">
+                  <SelectValue placeholder="Filter by show" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="font-serif">
+                    All Shows
+                  </SelectItem>
+                  {schedule?.map((log: any) => (
+                    <SelectItem
+                      key={log.id}
+                      value={log.title}
+                      className="font-serif"
+                    >
+                      {log.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div></div>
             <Input
+              placeholder="Select Date"
               type="date"
               value={selectedDate}
               onChange={(e) => {
                 setSelectedDate(e.target.value);
                 handleSearch(e.target.value);
               }}
-              className="font-serif border-1 border-blue-400"
+              className="font-serif border-2 text-green-500 border-green-400"
             />
           </div>
         </CardContent>
@@ -690,7 +696,7 @@ export function ShowLogs({
                       className="flex items-start gap-4 p-4 border rounded-lg"
                     >
                       <div
-                        className={`p-2 rounded-full bg-cyan-500 text-white hidden md:block`}
+                        className={`p-2 rounded-full bg-green-500 text-white hidden md:block`}
                       >
                         <FileText className="h-4 w-4" />
                       </div>
@@ -740,6 +746,7 @@ export function ShowLogs({
                                   Edit Log
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
+                                  disabled={!canManageShows}
                                   onClick={() => {
                                     setLogId(log.id);
                                     setIsDeleteDialogOpen(true);
@@ -892,19 +899,19 @@ export function ShowLogs({
           )}
         </div>
       ) : (
-        <Card>
+        <Card className="shadow-sm shadow-green-500">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="font-sans font-bold text-cyan-500">
+                <CardTitle className="font-sans font-bold text-green-500">
                   Radio Show Logs Table
                 </CardTitle>
-                <CardDescription className="font-serif text-cyan-500">
+                <CardDescription className="font-serif text-green-500">
                   {showLogs.length} log entries in table format
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-serif text-cyan-500">Show:</span>
+                <span className="text-sm font-serif text-green-500">Show:</span>
                 <Select
                   value={itemsPerPage.toString()}
                   onValueChange={(value) => {
@@ -913,25 +920,34 @@ export function ShowLogs({
                     handleTotalPages(value);
                   }}
                 >
-                  <SelectTrigger className="w-20 font-serif border-1 border-cyan-500">
+                  <SelectTrigger className="w-20 font-serif border-1 border-green-500">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5" className="font-serif text-cyan-500">
+                    <SelectItem value="5" className="font-serif text-green-500">
                       5
                     </SelectItem>
-                    <SelectItem value="10" className="font-serif text-cyan-500">
+                    <SelectItem
+                      value="10"
+                      className="font-serif text-green-500"
+                    >
                       10
                     </SelectItem>
-                    <SelectItem value="25" className="font-serif text-cyan-500">
+                    <SelectItem
+                      value="25"
+                      className="font-serif text-green-500"
+                    >
                       25
                     </SelectItem>
-                    <SelectItem value="50" className="font-serif text-cyan-500">
+                    <SelectItem
+                      value="50"
+                      className="font-serif text-green-500"
+                    >
                       50
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                <span className="text-sm font-serif text-cyan-500">
+                <span className="text-sm font-serif text-green-500">
                   per page
                 </span>
               </div>
@@ -1032,18 +1048,23 @@ export function ShowLogs({
                                     <SquarePen className="h-4 w-4" />
                                   </div>
                                 </button>
-                                {canManageShows && (
-                                  <button
-                                    onClick={() => {
-                                      setLogId(log.id);
-                                      setIsDeleteDialogOpen(true);
-                                    }}
+                                <button
+                                  disabled={!canManageShows}
+                                  onClick={() => {
+                                    setLogId(log.id);
+                                    setIsDeleteDialogOpen(true);
+                                  }}
+                                >
+                                  <div
+                                    className={`p-1 rounded-lg ${
+                                      canManageShows
+                                        ? "bg-red-600 hover:bg-red-500"
+                                        : "bg-red-400"
+                                    } text-white`}
                                   >
-                                    <div className="p-1 rounded-lg bg-red-600 hover:bg-red-500 text-white">
-                                      <Trash2 className="h-4 w-4" />
-                                    </div>
-                                  </button>
-                                )}
+                                    <Trash2 className="h-4 w-4" />
+                                  </div>
+                                </button>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -1057,7 +1078,7 @@ export function ShowLogs({
                   <>
                     {totalPages > 1 && (
                       <div className="flex items-center justify-between">
-                        <div className="text-sm  text-cyan-500 font-bold font-serif">
+                        <div className="text-sm  text-green-500 font-bold font-serif">
                           Showing {startIndex + 1} to{" "}
                           {startIndex + itemsPerPage < totalLogs?.count
                             ? currentPage === 1
@@ -1075,7 +1096,7 @@ export function ShowLogs({
                               redirect(createPageURL(currentPage - 1));
                             }}
                             disabled={currentPage === 1}
-                            className="font-serif hover:bg-cyan-500"
+                            className="font-serif hover:bg-green-500"
                           >
                             <ChevronLeft className="h-4 w-4 mr-1" />
                             Previous
@@ -1097,8 +1118,8 @@ export function ShowLogs({
                                 }}
                                 className={`w-8 h-8 p-0 font-serif  ${
                                   currentPage === page
-                                    ? "bg-cyan-600 hover:bg-cyan-500"
-                                    : "hover:bg-cyan-600"
+                                    ? "bg-green-600 hover:bg-green-500"
+                                    : "hover:bg-green-600"
                                 }`}
                               >
                                 {page}
@@ -1113,7 +1134,7 @@ export function ShowLogs({
                               redirect(createPageURL(currentPage + 1));
                             }}
                             disabled={currentPage === totalPages}
-                            className="font-serif hover:bg-cyan-500"
+                            className="font-serif hover:bg-green-500"
                           >
                             Next
                             <ChevronRight className="h-4 w-4 ml-1" />
@@ -1126,7 +1147,7 @@ export function ShowLogs({
                   <>
                     {totalPages > 1 && (
                       <div className="flex items-center justify-between">
-                        <div className="text-sm  text-cyan-500 font-bold font-serif">
+                        <div className="text-sm  text-green-500 font-bold font-serif">
                           Showing {startIndex + 1} to{" "}
                           {startIndex + itemsPerPage <
                           totalCurentUserLogs?.count
@@ -1145,7 +1166,7 @@ export function ShowLogs({
                               redirect(createPageURL(currentPage - 1));
                             }}
                             disabled={currentPage === 1}
-                            className="font-serif hover:bg-cyan-500"
+                            className="font-serif hover:bg-green-500"
                           >
                             <ChevronLeft className="h-4 w-4 mr-1" />
                             Previous
@@ -1167,8 +1188,8 @@ export function ShowLogs({
                                 }}
                                 className={`w-8 h-8 p-0 font-serif  ${
                                   currentPage === page
-                                    ? "bg-cyan-600 hover:bg-cyan-500"
-                                    : "hover:bg-cyan-600"
+                                    ? "bg-green-600 hover:bg-green-500"
+                                    : "hover:bg-green-600"
                                 }`}
                               >
                                 {page}
@@ -1183,7 +1204,7 @@ export function ShowLogs({
                               redirect(createPageURL(currentPage + 1));
                             }}
                             disabled={currentPage === totalCurentUserPages}
-                            className="font-serif hover:bg-cyan-500"
+                            className="font-serif hover:bg-green-500"
                           >
                             Next
                             <ChevronRight className="h-4 w-4 ml-1" />
