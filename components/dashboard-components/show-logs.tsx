@@ -1077,7 +1077,7 @@ export function ShowLogs({
                 {canManageShows ? (
                   <>
                     {totalPages > 1 && (
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between flex-wrap gap-4">
                         <div className="text-sm  text-green-500 font-bold font-serif">
                           Showing {startIndex + 1} to{" "}
                           {startIndex + itemsPerPage < totalLogs?.count
@@ -1102,29 +1102,209 @@ export function ShowLogs({
                             Previous
                           </Button>
                           <div className="flex items-center gap-1">
-                            {Array.from(
-                              { length: totalPages },
-                              (_, i) => i + 1
-                            ).map((page) => (
-                              <Button
-                                key={page}
-                                variant={
-                                  currentPage === page ? "default" : "outline"
-                                }
-                                size="sm"
-                                onClick={() => {
-                                  setCurrentPage(page);
-                                  redirect(createPageURL(page));
-                                }}
-                                className={`w-8 h-8 p-0 font-serif  ${
-                                  currentPage === page
-                                    ? "bg-green-600 hover:bg-green-500"
-                                    : "hover:bg-green-600"
-                                }`}
-                              >
-                                {page}
-                              </Button>
-                            ))}
+                            {totalPages > 4 ? (
+                              <>
+                                {currentPage < 4 ? (
+                                  <>
+                                    <Button
+                                      variant={
+                                        currentPage === 1
+                                          ? "default"
+                                          : "outline"
+                                      }
+                                      size="sm"
+                                      onClick={() => {
+                                        setCurrentPage(1);
+                                        redirect(createPageURL(1));
+                                      }}
+                                      className={`w-8 h-8 p-0 font-serif   ${
+                                        currentPage === 1
+                                          ? "bg-green-600 hover:bg-green-500"
+                                          : "hover:bg-green-600"
+                                      }`}
+                                    >
+                                      1
+                                    </Button>{" "}
+                                    {Array.from(
+                                      { length: totalPages },
+                                      (_, i) => i + 1
+                                    )
+                                      .map((page) => (
+                                        <Button
+                                          key={page}
+                                          variant={
+                                            currentPage === page
+                                              ? "default"
+                                              : "outline"
+                                          }
+                                          size="sm"
+                                          onClick={() => {
+                                            setCurrentPage(page);
+                                            redirect(createPageURL(page));
+                                          }}
+                                          className={`w-8 h-8 p-0 font-serif  ${
+                                            currentPage === page
+                                              ? "bg-green-600 hover:bg-green-500"
+                                              : "hover:bg-green-600"
+                                          }`}
+                                        >
+                                          {page}
+                                        </Button>
+                                      ))
+                                      .slice(1, 3)}
+                                    <Button
+                                      className={`w-8 h-8 p-0 font-serif bg-gray-400 hover:bg-gray-400 ${
+                                        currentPage === totalPages - 1 ||
+                                        currentPage === totalPages
+                                          ? "hidden"
+                                          : ""
+                                      }`}
+                                    >
+                                      ...
+                                    </Button>
+                                    <Button
+                                      variant={
+                                        currentPage === totalPages
+                                          ? "default"
+                                          : "outline"
+                                      }
+                                      size="sm"
+                                      onClick={() => {
+                                        setCurrentPage(totalPages);
+                                        redirect(createPageURL(totalPages));
+                                      }}
+                                      className={`w-8 h-8 p-0 font-serif ${
+                                        currentPage === totalPages
+                                          ? "hidden"
+                                          : ""
+                                      }  ${
+                                        currentPage === totalPages
+                                          ? "bg-green-600 hover:bg-green-500"
+                                          : "hover:bg-green-600"
+                                      }`}
+                                    >
+                                      {totalPages}
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      variant={
+                                        currentPage === 1
+                                          ? "default"
+                                          : "outline"
+                                      }
+                                      size="sm"
+                                      onClick={() => {
+                                        setCurrentPage(1);
+                                        redirect(createPageURL(1));
+                                      }}
+                                      className={`w-8 h-8 p-0 font-serif   ${
+                                        currentPage === 1
+                                          ? "bg-green-600 hover:bg-green-500"
+                                          : "hover:bg-green-600"
+                                      }`}
+                                    >
+                                      1
+                                    </Button>{" "}
+                                    <Button
+                                      className={`w-8 h-8 p-0 font-serif bg-gray-400 hover:bg-gray-400 `}
+                                    >
+                                      ...
+                                    </Button>
+                                    {Array.from(
+                                      { length: totalPages },
+                                      (_, i) => i + 1
+                                    )
+                                      .map((page) => (
+                                        <Button
+                                          key={page}
+                                          variant={
+                                            currentPage === page
+                                              ? "default"
+                                              : "outline"
+                                          }
+                                          size="sm"
+                                          onClick={() => {
+                                            setCurrentPage(page);
+                                            redirect(createPageURL(page));
+                                          }}
+                                          className={`w-8 h-8 p-0 font-serif  ${
+                                            currentPage === page
+                                              ? "bg-green-600 hover:bg-green-500"
+                                              : "hover:bg-green-600"
+                                          }`}
+                                        >
+                                          {page}
+                                        </Button>
+                                      ))
+                                      .slice(currentPage - 2, currentPage)}
+                                    <Button
+                                      className={`w-8 h-8 p-0 font-serif bg-gray-400 hover:bg-gray-400 ${
+                                        currentPage === totalPages - 1 ||
+                                        currentPage === totalPages
+                                          ? "hidden"
+                                          : ""
+                                      }`}
+                                    >
+                                      ...
+                                    </Button>
+                                    <Button
+                                      variant={
+                                        currentPage === totalPages
+                                          ? "default"
+                                          : "outline"
+                                      }
+                                      size="sm"
+                                      onClick={() => {
+                                        setCurrentPage(totalPages);
+                                        redirect(createPageURL(totalPages));
+                                      }}
+                                      className={`w-8 h-8 p-0 font-serif ${
+                                        currentPage === totalPages
+                                          ? "hidden"
+                                          : ""
+                                      } ${
+                                        currentPage === totalPages
+                                          ? "bg-green-600 hover:bg-green-500"
+                                          : "hover:bg-green-600"
+                                      }`}
+                                    >
+                                      {totalPages}
+                                    </Button>
+                                  </>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                {" "}
+                                {Array.from(
+                                  { length: totalPages },
+                                  (_, i) => i + 1
+                                ).map((page) => (
+                                  <Button
+                                    key={page}
+                                    variant={
+                                      currentPage === page
+                                        ? "default"
+                                        : "outline"
+                                    }
+                                    size="sm"
+                                    onClick={() => {
+                                      setCurrentPage(page);
+                                      redirect(createPageURL(page));
+                                    }}
+                                    className={`w-8 h-8 p-0 font-serif  ${
+                                      currentPage === page
+                                        ? "bg-green-600 hover:bg-green-500"
+                                        : "hover:bg-green-600"
+                                    }`}
+                                  >
+                                    {page}
+                                  </Button>
+                                ))}
+                              </>
+                            )}
                           </div>
                           <Button
                             variant="outline"
