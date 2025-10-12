@@ -244,3 +244,149 @@ export async function deleteLog(id: string) {
   }
   revalidatePath("/dashboard/scheduling");
 }
+
+export async function createRequest(formData: FormData) {
+  const type = formData.get("type") as string;
+  const reason = formData.get("reason") as string;
+  const startDate = formData.get("startDate") as string;
+  const endtDate = formData.get("endDate") as string;
+  const standIn = formData.get("standIn") as string;
+  const staffId = formData.get("staffId") as string;
+  const status = formData.get("status") as string;
+  const notes = formData.get("notes") as string;
+
+  const created = new Date();
+
+  if (type === "initial") {
+    return { success: false, message: "Please select type of request!" };
+  }
+  // Saving to a database
+
+  try {
+    await sql`
+      INSERT INTO requests (staff_id, type, reason, start_date, end_date, stand_in, created, status, notes
+      )
+      VALUES (${staffId}, ${type}, ${reason},  ${startDate}, ${endtDate}, ${standIn}, ${created}, ${status}, ${notes})
+    `;
+    revalidatePath("/dashboard/requests");
+    return { success: true, message: "Request added successfully" };
+  } catch (error: any) {
+    if (error) {
+      console.log(error?.detail);
+      return { success: false, message: "Some error occured" };
+    }
+  }
+}
+
+export async function updateRequest(formData: FormData) {
+  const type = formData.get("type") as string;
+  const reason = formData.get("reason") as string;
+  const startDate = formData.get("startDate") as string;
+  const endtDate = formData.get("endDate") as string;
+  const standIn = formData.get("standIn") as string;
+  const id = formData.get("id") as string;
+  const status = formData.get("status") as string;
+  const notes = formData.get("notes") as string;
+
+  // Saving to a database
+
+  try {
+    await sql`
+       UPDATE requests SET type=${type}, reason=${reason}, start_date = ${startDate}, end_date=${endtDate}, stand_in=${standIn}, status =${status}, notes=${notes} WHERE id=${id}
+    `;
+    revalidatePath("/dashboard/requests");
+    return { success: true, message: "Request updated successfully" };
+  } catch (error: any) {
+    if (error) {
+    }
+
+    return { success: false, message: "Some error occured" };
+  }
+}
+
+export async function deleteRequest(id: string) {
+  try {
+    await sql`DELETE FROM requests WHERE id = ${id}`;
+    revalidatePath("/dashboard/scheduling");
+    return { success: true, message: "Request Deleted!" };
+  } catch (error) {
+    if (error) {
+      return { success: false };
+    }
+  }
+}
+
+export async function createAdvert(formData: FormData) {
+  const title = formData.get("title") as string;
+  const status = formData.get("status") as string;
+  const slot = formData.get("slot") as string;
+  const shows = formData.get("shows") as string;
+
+  const created = new Date();
+
+  if (status === "initial") {
+    return { success: false, message: "Please select advert status!" };
+  }
+
+  if (slot === "initial") {
+    return { success: false, message: "Please select advert slot!" };
+  }
+  // Saving to a database
+  console.log(title, status, slot, shows, created);
+  try {
+    await sql`
+      INSERT INTO adverts (title, status, slot, shows, created)
+      VALUES (${title}, ${status}, ${slot},  ${shows},${created})
+    `;
+    revalidatePath("/dashboard/market");
+    return { success: true, message: "Advert added successfully" };
+  } catch (error: any) {
+    if (error) {
+      console.log(error?.detail);
+      return { success: false, message: "Some error occured" };
+    }
+  }
+}
+
+export async function updateAdvert(formData: FormData) {
+  const title = formData.get("title") as string;
+  const status = formData.get("status") as string;
+  const slot = formData.get("slot") as string;
+  const shows = formData.get("shows") as string;
+  const id = formData.get("id") as string;
+
+  if (status === "initial") {
+    return { success: false, message: "Please select advert status!" };
+  }
+
+  if (slot === "initial") {
+    return { success: false, message: "Please select advert slot!" };
+  }
+  // Saving to a database
+
+  try {
+    await sql`
+      UPDATE adverts SET title =${title}, status =${status}, slot =${slot}, shows =${shows} 
+      WHERE id=${id}
+    `;
+    revalidatePath("/dashboard/market");
+    return { success: true, message: "Advert added successfully" };
+  } catch (error: any) {
+    if (error) {
+      console.log(error?.detail);
+      return { success: false, message: "Some error occured" };
+    }
+  }
+}
+
+export async function deleteAdvert(id: string) {
+  try {
+    await sql`DELETE FROM adverts WHERE id = ${id}`;
+    revalidatePath("/dashboard/market");
+    return { success: true, message: "Advert Deleted!" };
+  } catch (error) {
+    if (error) {
+      return { success: false };
+    }
+  }
+}

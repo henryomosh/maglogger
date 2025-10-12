@@ -283,6 +283,15 @@ export async function fetchUserSchedule(id: string) {
   }
 }
 
+export async function fetchAdSchedule() {
+  try {
+    const show =
+      await sql`SELECT id AS value, title AS label FROM scheduling ORDER BY title`;
+    return show;
+  } catch (error) {
+    console.log(error);
+  }
+}
 // LOGS
 export async function fetchLogs() {
   try {
@@ -511,5 +520,234 @@ export async function fetchTotalCurrentUserLogs(id: string) {
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to fetch total number of invoices.");
+  }
+}
+
+export async function fetchRequetsPages(totalItemPage: number) {
+  try {
+    const data = await sql`SELECT COUNT(*)
+    FROM requests
+  `;
+    const totalPages = Math.ceil(Number(data[0].count) / totalItemPage);
+
+    return totalPages;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch total number of invoices.");
+  }
+}
+
+export async function fetchtotalCurentUserRequestsPages(
+  totalItemPage: number,
+  id: string
+) {
+  try {
+    const data = await sql`SELECT COUNT(*)
+    FROM requests
+    WHERE staff_id = ${id}
+  `;
+    const totalPages = Math.ceil(Number(data[0].count) / totalItemPage);
+
+    return totalPages;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch total number of invoices.");
+  }
+}
+
+export async function fetchFilteredRequests(
+  query: string,
+  currentPage: number,
+  totalItemPage: number
+) {
+  const offset = (currentPage - 1) * totalItemPage;
+
+  try {
+    const requests = await sql`
+      SELECT 
+      requests.id,
+      requests.staff_id,
+      requests.type,
+      requests.reason,
+      requests.start_date,
+      requests.end_date,
+      requests.stand_in,
+      requests.status,
+      requests.notes,
+      requests.created,
+      users.name,
+      (SELECT users.name FROM users WHERE users.id::TEXT= requests.stand_in) as standin
+      FROM requests
+      JOIN users ON users.id = requests.staff_id 
+      WHERE
+        requests.type ILIKE ${`%${query}%`} OR
+        requests.reason ILIKE ${`%${query}%`} OR
+        requests.start_date ILIKE ${`%${query}%`} OR
+        requests.end_date ILIKE ${`%${query}%`} OR
+        requests.status ILIKE ${`%${query}%`} OR
+        users.name ILIKE ${`%${query}%`} OR
+        requests.created::TEXT ILIKE ${`%${query}%`}
+      ORDER BY requests.created DESC
+       LIMIT ${totalItemPage} OFFSET ${offset}
+    `;
+
+    return requests;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchFilteredRequestsById(
+  query: string,
+  currentPage: number,
+  totalItemPage: number,
+  id: string
+) {
+  const offset = (currentPage - 1) * totalItemPage;
+
+  try {
+    const requests = await sql`
+      SELECT 
+      requests.id,
+      requests.staff_id,
+      requests.type,
+      requests.reason,
+      requests.start_date,
+      requests.end_date,
+      requests.stand_in,
+      requests.status,
+      requests.notes,
+      requests.created,
+      logs.status,
+      users.name
+      FROM requests
+      JOIN users ON users.id = requests.staff_id 
+      WHERE
+        requests.staff_id = ${id} AND (        requests.type ILIKE ${`%${query}%`} OR
+        requests.reason ILIKE ${`%${query}%`} OR
+        requests.start_date ILIKE ${`%${query}%`} OR
+        requests.end_date ILIKE ${`%${query}%`} OR
+        requests.status ILIKE ${`%${query}%`} OR
+        users.name ILIKE ${`%${query}%`} OR
+        requests.created::TEXT ILIKE ${`%${query}%`})
+        
+      ORDER BY logs.created DESC
+       LIMIT ${totalItemPage} OFFSET ${offset}
+    `;
+
+    return requests;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchTotalRequests() {
+  try {
+    const data = await sql`SELECT COUNT(*)
+    FROM requests
+  `;
+
+    return data[0];
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch total number of invoices.");
+  }
+}
+
+export async function fetchTotalCurrentUserRequests(id: string) {
+  try {
+    const data = await sql`SELECT COUNT(*)
+    FROM requests
+    WHERE staff_id = ${id}
+  `;
+
+    return data[0];
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch total number of invoices.");
+  }
+}
+
+export async function fetchRequestfDashboard() {
+  try {
+    const emergency = await sql`
+      SELECT 
+        COUNT(*)
+      FROM requests
+      WHERE type = 'emergency'
+    `;
+    const leave = await sql`
+      SELECT 
+        COUNT(*)
+      FROM requests
+      WHERE type = 'leave'
+    `;
+
+    const offDuty = await sql`
+      SELECT 
+        COUNT(*)
+      FROM requests
+      WHERE type = 'off-duty'
+    `;
+    const facilitation = await sql`
+      SELECT 
+        COUNT(*)
+      FROM requests
+      WHERE type = 'facilitation'
+    `;
+
+    return { leave, emergency, offDuty, facilitation };
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchPendingRequest() {
+  try {
+    const pending = await sql`
+      SELECT 
+        COUNT(*)
+      FROM requests
+      WHERE status = 'pending'
+    `;
+
+    return pending;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchAdverts() {
+  try {
+    const advert = await sql`
+      SELECT 
+        *
+      FROM adverts
+      ORDER BY title
+    `;
+
+    const newad = advert.map((item: any) => ({
+      ...item,
+      shows: JSON.parse(item.shows),
+    }));
+
+    return newad;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchAdvertStats() {
+  try {
+    const advertCount = await sql`
+      SELECT 
+        COUNT(*)
+      FROM adverts
+  
+    `;
+
+    return advertCount;
+  } catch (error) {
+    console.log(error);
   }
 }

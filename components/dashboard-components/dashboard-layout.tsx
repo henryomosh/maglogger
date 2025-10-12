@@ -24,6 +24,8 @@ import {
   LogOut,
   Settings,
   FileText,
+  Hourglass,
+  Airplay,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -64,6 +66,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       href: "/dashboard/logs",
       key: "logs",
       link: "/dashboard/logs",
+    },
+    {
+      name: "Requests",
+      icon: Hourglass,
+      href: "/dashboard/requests",
+      key: "requests",
+      link: "/dashboard/requests",
+    },
+    {
+      name: "Advert Management",
+      icon: Airplay,
+      href: "/dashboard/market",
+      key: "market",
+      link: "/dashboard/market",
     },
     // {
     //   name: "Playlists",

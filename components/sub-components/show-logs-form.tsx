@@ -120,21 +120,6 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
   const canManageShows = user?.role === "admin" || user?.role === "manager";
 
   // Mock DJs for selection
-  const availableDJs = [
-    { id: "3", name: "Mike DJ" },
-    { id: "4", name: "Lisa Staff" },
-    { id: "5", name: "Tom DJ" },
-    { id: "6", name: "Alex DJ" },
-  ];
-
-  const showColors = [
-    { value: "bg-blue-500", label: "Blue" },
-    { value: "bg-green-500", label: "Green" },
-    { value: "bg-purple-500", label: "Purple" },
-    { value: "bg-pink-500", label: "Pink" },
-    { value: "bg-orange-500", label: "Orange" },
-    { value: "bg-red-500", label: "Red" },
-  ];
 
   useEffect(() => {
     async function loadData() {

@@ -70,12 +70,46 @@ async function seedLogs() {
     );
   `;
 }
+
+async function seedRequests() {
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS requests (
+      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      staff_id UUID NOT NULL,
+      type VARCHAR(255) NOT NULL,
+      reason VARCHAR(255) NOT NULL,
+      start_date VARCHAR(255) NOT NULL,
+      end_date VARCHAR(255) NOT NULL,
+      stand_in VARCHAR(255),
+      status VARCHAR(255) NOT NULL,
+      notes VARCHAR(10000),
+      created TIMESTAMPTZ NOT NULL
+    );
+  `;
+}
+
+async function seedAdverts() {
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS adverts (
+      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      status VARCHAR(255) NOT NULL,
+      slot VARCHAR(255) NOT NULL,
+      shows JSONB,
+      created TIMESTAMPTZ NOT NULL
+    );
+  `;
+}
 export async function GET() {
   try {
     const result = await sql.begin((sql) => [
       seedUsers(),
       seedSheduling(),
       seedLogs(),
+      seedRequests(),
+      seedAdverts(),
     ]);
 
     return Response.json({ message: "Database seeded successfully" });

@@ -6,6 +6,8 @@ import {
   fetchSchedule,
   fetchUserSchedule,
   fetchLogs,
+  fetchAdvertStats,
+  fetchPendingRequest,
 } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +17,8 @@ export default async function Dashboard() {
   const { todaySchedule, liveShow, upCommingShows } = await fetchSchedule();
   const { logsData, approvedLogs, pendingLogs, declinedLogs } =
     await fetchLogs();
+  const pendingRequests = await fetchPendingRequest();
+  const advertsCount = await fetchAdvertStats();
 
   return (
     <>
@@ -28,6 +32,8 @@ export default async function Dashboard() {
         pendingLogs={pendingLogs}
         declinedLogs={declinedLogs}
         upCommingShows={upCommingShows}
+        pendingRequests={pendingRequests}
+        advertsCount={advertsCount}
       />
     </>
   );

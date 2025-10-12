@@ -25,6 +25,8 @@ import {
   Check,
   CircleX,
   FileText,
+  Hourglass,
+  Megaphone,
 } from "lucide-react";
 
 export function DashboardHome({
@@ -37,6 +39,8 @@ export function DashboardHome({
   pendingLogs,
   declinedLogs,
   upCommingShows,
+  pendingRequests,
+  advertsCount,
 }: {
   staffData: any;
   scheduleData: any;
@@ -47,6 +51,8 @@ export function DashboardHome({
   pendingLogs: any;
   declinedLogs: any;
   upCommingShows: any;
+  pendingRequests: any;
+  advertsCount: any;
 }) {
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -149,20 +155,38 @@ export function DashboardHome({
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm shadow-green-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-serif font-xl font-bold">
-              Approved Logs
-            </CardTitle>
-            <Check className="h-6 w-6 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-sans font-bold">
-              {filterApprovedLogs?.length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground font-serif"></p>
-          </CardContent>
-        </Card>
+        {canManageStaff && (
+          <Card className="shadow-sm shadow-green-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-serif font-xl font-bold">
+                Total Adverts
+              </CardTitle>
+              <Megaphone className="h-6 w-6 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-sans font-bold">
+                {advertsCount[0]?.count || 0}
+              </div>
+              <p className="text-xs text-muted-foreground font-serif"></p>
+            </CardContent>
+          </Card>
+        )}
+        {canManageStaff && (
+          <Card className="shadow-sm shadow-green-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-serif font-xl font-bold">
+                Pending Requests
+              </CardTitle>
+              <Hourglass className="h-6 w-6 text-indigo-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-sans font-bold">
+                {pendingRequests[0]?.count || 0}
+              </div>
+              <p className="text-xs text-muted-foreground font-serif"></p>
+            </CardContent>
+          </Card>
+        )}
         <Card className="shadow-sm shadow-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-serif font-xl font-bold">
@@ -173,20 +197,6 @@ export function DashboardHome({
           <CardContent>
             <div className="text-2xl font-sans font-bold">
               {filterPendingLogs?.length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground font-serif"></p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm shadow-green-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-serif font-xl font-bold">
-              Declined Logs
-            </CardTitle>
-            <CircleX className="h-6 w-6 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-sans font-bold">
-              {filterDeclinedLogs?.length || 0}
             </div>
             <p className="text-xs text-muted-foreground font-serif"></p>
           </CardContent>
