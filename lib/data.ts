@@ -634,7 +634,6 @@ export async function fetchFilteredRequestsById(
       ORDER BY logs.created DESC
        LIMIT ${totalItemPage} OFFSET ${offset}
     `;
-
     return requests;
   } catch (error) {
     console.log(error);
