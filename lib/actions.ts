@@ -190,6 +190,7 @@ export async function createLog(formData: FormData) {
   const guests = formData.get("guests") as string;
   const adverts = formData.get("adverts") as string;
   const staff = formData.get("staff") as string;
+  const ads = formData.get("ads") as string;
   const status = formData.get("status")
     ? (formData.get("status") as string)
     : "pending";
@@ -200,8 +201,8 @@ export async function createLog(formData: FormData) {
 
   try {
     await sql`
-      INSERT INTO logs (staff, show, segments, guests, adverts, status, created)
-      VALUES (${staff}, ${show},  ${segments}, ${guests}, ${adverts}, ${status}, ${created} )
+      INSERT INTO logs (staff, show, segments, guests, adverts, status, created, ads)
+      VALUES (${staff}, ${show},  ${segments}, ${guests}, ${adverts}, ${status}, ${created}, ${ads} )
     `;
   } catch (error: any) {
     if (error) {
@@ -216,6 +217,7 @@ export async function updateLog(formData: FormData) {
   const segments = formData.get("segments") as string;
   const guests = formData.get("guests") as string;
   const adverts = formData.get("adverts") as string;
+  const ads = formData.get("ads") as string;
   const status = formData.get("status")
     ? (formData.get("status") as string)
     : "pending";
@@ -224,7 +226,7 @@ export async function updateLog(formData: FormData) {
 
   try {
     await sql`
-       UPDATE logs SET segments=${segments}, guests=${guests}, adverts = ${adverts}, status=${status} WHERE id=${logId}
+       UPDATE logs SET segments=${segments}, guests=${guests}, adverts = ${adverts}, status=${status}, ads=${ads} WHERE id=${logId}
     `;
   } catch (error: any) {
     if (error) {
@@ -293,12 +295,15 @@ export async function updateRequest(formData: FormData) {
 
   try {
     await sql`
-       UPDATE requests SET type=${type}, reason=${reason}, start_date = ${startDate}, end_date=${endtDate}, stand_in=${standIn}, status =${status}, notes=${notes} WHERE id=${id}
+       UPDATE requests SET type=${type}, reason=${reason}, start_date = ${startDate}, end_date=${endtDate}, stand_in=${standIn}, status =${
+      status ?? "pending"
+    }, notes=${notes} WHERE id=${id}
     `;
     revalidatePath("/dashboard/requests");
     return { success: true, message: "Request updated successfully" };
   } catch (error: any) {
     if (error) {
+      console.log(error);
     }
 
     return { success: false, message: "Some error occured" };

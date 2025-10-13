@@ -303,6 +303,7 @@ export async function fetchLogs() {
       logs.segments,
       logs.guests,
       logs.adverts,
+      logs.ads,
       logs.status,
       logs.created,
       scheduling.title,
@@ -326,8 +327,9 @@ export async function fetchLogs() {
       segments: JSON.parse(log.segments),
       guests: JSON.parse(log.guests),
       adverts: JSON.parse(log.adverts),
+      ads: JSON.parse(log.ads),
     }));
-
+    console.log(logsData);
     return { logsData, pendingLogs, approvedLogs, declinedLogs };
   } catch (error) {
     console.log("Database Error:", error);
@@ -345,6 +347,7 @@ export async function fetchScheduleLogs(id: string) {
       logs.guests,
       logs.status,
       logs.adverts,
+      logs.ads,
       logs.created,
       scheduling.title,
       scheduling.standin,
@@ -380,6 +383,7 @@ export async function fetchFilteredLogs(
       logs.segments,
       logs.guests,
       logs.adverts,
+      logs.ads,
       logs.status,
       logs.created,
       scheduling.title,
@@ -405,6 +409,7 @@ export async function fetchFilteredLogs(
       segments: JSON.parse(item.segments),
       guests: JSON.parse(item.guests),
       adverts: JSON.parse(item.adverts),
+      ads: JSON.parse(item.ads),
     }));
 
     return parsedLogs;
@@ -430,6 +435,7 @@ export async function fetchFilteredLogsById(
       logs.segments,
       logs.guests,
       logs.adverts,
+      logs.ads,
       logs.status,
       logs.created,
       scheduling.title,
@@ -456,6 +462,7 @@ export async function fetchFilteredLogsById(
       segments: JSON.parse(item.segments),
       guests: JSON.parse(item.guests),
       adverts: JSON.parse(item.adverts),
+      ads: JSON.parse(item.ads),
     }));
 
     return parsedLogs;
@@ -618,7 +625,8 @@ export async function fetchFilteredRequestsById(
       requests.status,
       requests.notes,
       requests.created,
-      users.name
+      users.name,
+      (SELECT users.name FROM users WHERE users.id::TEXT= requests.stand_in) as standin
       FROM requests
       JOIN users ON users.id = requests.staff_id 
       WHERE

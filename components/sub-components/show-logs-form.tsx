@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { use } from "react";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -77,6 +77,7 @@ interface GuestInterface {
 }
 
 interface ShowFormProps {
+  advertsForm: any;
   initialData: any;
   onClose: () => void;
 }
@@ -97,15 +98,19 @@ const daysOfWeek = [
   "Saturday",
 ];
 
-export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
+export function ShowLogsForm({
+  advertsForm,
+  initialData,
+  onClose,
+}: ShowFormProps) {
   const { user } = useAuth();
   const [segments, setSegments] = useState(
     initialData?.segments || [
       { startTime: "--:--", endTime: "--:--", description: "" },
     ]
   );
-  console.log(initialData);
-  const [adverts, setAdverts] = useState(initialData?.adverts || []);
+
+  const [adverts, setAdverts] = useState(initialData?.ads || []);
   const [guests, setGuests] = useState(initialData?.guests || []);
 
   const [userSchedule, setUserSChedule] = useState<UserSchedule[]>([
@@ -116,13 +121,28 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
   const [selectData, setSelectData] = useState(initialData?.show || "");
   const [radioValue, setRadioValue] = useState("pending");
   const [error, setError] = useState("");
+  const [filteredAds, setFilteredAds] = useState<any>([{ id: "" }]);
+  const [selectFilteredAds, setSelectFilteredAds] = useState<any>([]);
+  const [adError, setAdError] = useState(false);
 
   const canManageShows = user?.role === "admin" || user?.role === "manager";
 
   // Mock DJs for selection
+  const getShowAdaverts = (id: string) => {
+    const ads = advertsForm.filter((item: any, index: any) =>
+      item?.shows?.includes(id)
+    );
+    if (ads.length < 1) {
+      setAdverts([]);
+    }
+    setFilteredAds(ads);
+  };
 
   useEffect(() => {
     async function loadData() {
+      if (initialData) {
+        getShowAdaverts(initialData?.show);
+      }
       try {
         if (canManageShows) {
           const { schedule } = await fetchSchedule();
@@ -181,8 +201,20 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
   };
   // Adverts functions
   function addAdvert() {
-    const currentItems = adverts;
-    setAdverts([...currentItems, { title: "", description: "" }]);
+    if (selectShow === "") {
+      toast.error("Please select a show!");
+      setError("Please select a show");
+      return;
+    } else if (filteredAds?.length < 1) {
+      toast.error("Selected show has no adverts!");
+      return;
+    } else if (adverts?.length + 1 > filteredAds?.length) {
+      toast.error("Maximum adverts reached!");
+      return;
+    } else {
+      const currentItems = adverts;
+      setAdverts([...currentItems, { id: "" }]);
+    }
   }
 
   function removeAdverts(index: number) {
@@ -190,16 +222,23 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
     setAdverts(currentItems.filter((_: any, i: any) => i !== index));
   }
 
-  const handleAdvertChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    const { id, value } = e.target;
+  const handleAdvertChange = (name: string, value: any, index: number) => {
     const updatedItems = adverts.map((item: any, idx: any) =>
-      index === idx ? { ...item, [id]: value } : item
+      index === idx ? { ...item, id: value } : item
     );
 
     setAdverts(updatedItems);
+  };
+
+  const getSelectedAdvert = (id: string) => {
+    const check = adverts.map((item: any) => {
+      if (item?.id === id) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+    return check[0];
   };
 
   // Guest functions
@@ -225,8 +264,21 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(false);
     const formData2 = new FormData(e.currentTarget);
     const show = formData2.get("show");
+
+    if (adverts.length > 0) {
+      for (let i = 0; i < adverts?.length; i++) {
+        if (adverts[i]?.id === "") {
+          setIsSubmitting(false);
+          toast.error("Advert cannot be empty!");
+          setAdError(true);
+          return null;
+        }
+      }
+    }
+
     if (show === "initial") {
       setError("Please select a show");
     } else {
@@ -235,6 +287,7 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
       console.log(formData2.get("show"));
       formData2.append("segments", JSON.stringify(segments));
       formData2.append("adverts", JSON.stringify(adverts));
+      formData2.append("ads", JSON.stringify(adverts));
       formData2.append("guests", JSON.stringify(guests));
 
       const result = await createLog(formData2);
@@ -246,16 +299,29 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    console.log(adverts);
     const formData2 = new FormData(e.currentTarget);
     const show = formData2.get("show");
+    if (adverts.length > 0) {
+      for (let i = 0; i < adverts?.length; i++) {
+        if (adverts[i]?.id === "") {
+          setIsSubmitting(false);
+          toast.error("Advert cannot be empty!");
+          setAdError(true);
+          return null;
+        }
+      }
+    }
+
     if (show === "initial") {
       setError("Please select a show");
+      setIsSubmitting(false);
     } else {
-      setIsSubmitting(true);
-
       formData2.append("segments", JSON.stringify(segments));
       formData2.append("guests", JSON.stringify(guests));
       formData2.append("adverts", JSON.stringify(adverts));
+      formData2.append("ads", JSON.stringify(adverts));
 
       const result = await updateLog(formData2);
       toast.success("Log Updated successfully!");
@@ -273,6 +339,13 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
       >
         <div className={`space-y-2 ${selectShow ? "col-span-2" : ""}`}>
           <Input
+            className="hidden"
+            name="staff"
+            type="text"
+            value={user?.id}
+            readOnly
+          />
+          <Input
             name="logId"
             className="hidden"
             type="text"
@@ -283,19 +356,14 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
             Show <span className="text-red-500">*</span>
           </Label>
           {error && <p className="text-xs text-red-600">{error}</p>}
-          <Input
-            className="hidden"
-            name="staff"
-            type="text"
-            value={user?.id}
-            readOnly
-          />
+
           <Select
             name="show"
             value={selectData}
             onValueChange={(value) => {
               handleSelectChange(value);
               fetchShow(value);
+              getShowAdaverts(value);
             }}
             required
             disabled={initialData}
@@ -433,7 +501,7 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
         </div>
         {adverts?.map((_: any, index: any) => (
           <div className="grid grid-cols-8 gap-4 items-end " key={index}>
-            <div className="space-y-2 col-span-3">
+            {/* <div className="space-y-2 col-span-3">
               <Label htmlFor="title" className="font-serif">
                 Title <span className="text-red-500">*</span>
               </Label>
@@ -446,22 +514,41 @@ export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
                 onChange={(e) => handleAdvertChange(e, index)}
                 required
               />
-            </div>
-            <div className="space-y-2 col-span-4">
-              <Label htmlFor="description" className="font-serif">
-                Description
+            </div> */}
+            <div
+              className="space-y-2 col-span-7
+          "
+            >
+              <Label htmlFor="dj" className="font-serif">
+                Advert <span className="text-red-500">*</span>
               </Label>
-              <Input
-                className="border-1 border-blue-400"
-                name={`description_${index}`}
-                id="description"
-                type="text"
-                value={adverts[index]?.description}
-                onChange={(e) => handleAdvertChange(e, index)}
-              />
+              <Select
+                name="filteredAds"
+                value={adverts[index]?.id}
+                onValueChange={(value) => {
+                  handleAdvertChange("filtredAds", value, index);
+                }}
+                required
+              >
+                <SelectTrigger
+                  className={`border-1 w-full ${
+                    adError ? "border-red-400 " : "border-blue-400"
+                  }`}
+                >
+                  <SelectValue placeholder="Select Advert" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem className="hidden" value="initial"></SelectItem>
+                  {filteredAds.map((ad: any, index: any) => (
+                    <SelectItem key={ad.id} value={ad.id || `${index}`}>
+                      {ad.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="">
+            <div className="pb-2">
               <Button
                 type="button"
                 size="icon"

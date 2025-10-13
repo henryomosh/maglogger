@@ -9,6 +9,7 @@ import {
   fetchFilteredLogsById,
   fetchTotalCurrentUserLogs,
   fetchtotalCurentUserPages,
+  fetchAdverts,
 } from "@/lib/data";
 import { cookies } from "next/headers";
 
@@ -55,6 +56,8 @@ export default async function Logs(props: {
   const totalCurentUserLogs = await fetchTotalCurrentUserLogs(cookieStore);
   const { logsData } = await fetchLogs();
 
+  const adverts = await fetchAdverts();
+
   return (
     <>
       <ShowLogs
@@ -64,6 +67,7 @@ export default async function Logs(props: {
         totalLogs={totalLogs}
         totalCurentUserLogs={totalCurentUserLogs}
         totalCurentUserPages={totalCurentUserPages}
+        adverts={adverts}
       />
     </>
   );

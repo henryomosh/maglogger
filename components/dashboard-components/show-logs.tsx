@@ -154,6 +154,7 @@ export function ShowLogs({
   totalLogs,
   totalCurentUserLogs,
   totalCurentUserPages,
+  adverts,
 }: {
   schedule: any;
   showLogs: any;
@@ -161,6 +162,7 @@ export function ShowLogs({
   totalLogs: any;
   totalCurentUserLogs: any;
   totalCurentUserPages: any;
+  adverts: any;
 }) {
   const { user } = useAuth();
   const [logs, setLogs] = useState<ShowLog[]>();
@@ -177,6 +179,7 @@ export function ShowLogs({
     segments: [],
     guests: [],
     adverts: [],
+    ads: [],
     start: "",
     ends: "",
   });
@@ -193,6 +196,7 @@ export function ShowLogs({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [logId, setLogId] = useState("");
+  const [filteredAd, setFilteredAd] = useState([]);
 
   const canManageShows = user?.role === "admin" || user?.role === "manager";
   //param search
@@ -248,6 +252,11 @@ export function ShowLogs({
     return new Date(timestamp).toLocaleDateString();
   };
 
+  const getShowAdaverts = (id: string) => {
+    const ads = adverts.filter((item: any, index: any) => item?.id === id);
+
+    return ads;
+  };
   const exportLogs = () => {
     const csvContent = [
       [
@@ -370,6 +379,7 @@ export function ShowLogs({
                   </DialogDescription>
                 </DialogHeader>
                 <ShowLogsForm
+                  advertsForm={adverts}
                   initialData={editingLog}
                   onClose={() => setIsAddLogOpen(false)}
                 />
@@ -455,29 +465,28 @@ export function ShowLogs({
                       <hr />
                       <h1 className="font-serif font-bold pt-2">Adverts</h1>
                       <div className=" ">
-                        {modalLogDetails?.adverts?.length > 0 ? (
-                          modalLogDetails.adverts?.map(
-                            (item: any, index: any) => (
-                              <div
-                                className="flex justify-start gap-6"
-                                key={index}
-                              >
-                                <div className="mt-2 flex  gap-2">
-                                  <Megaphone className="h-4 w-4 text-blue-500" />
-                                  <p className="text-xs font-serif text-foreground">
-                                    <strong>Title: </strong>
-                                    {item?.title}{" "}
-                                  </p>
-                                </div>
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  <p className="text-xs font-serif text-foreground">
+                        {modalLogDetails?.ads?.length > 0 ? (
+                          modalLogDetails.ads?.map((item: any, index: any) => (
+                            <div
+                              className="flex justify-start gap-6"
+                              key={index}
+                            >
+                              <div className="mt-2 flex  gap-2">
+                                <Megaphone className="h-4 w-4 text-blue-500" />
+                                <p className="text-xs font-serif text-foreground">
+                                  <strong>
+                                    {getShowAdaverts(item.id)[0]?.title}{" "}
+                                  </strong>
+                                </p>
+                              </div>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {/* <p className="text-xs font-serif text-foreground">
                                     <strong>Description: </strong>
                                     {item?.description}
-                                  </p>
-                                </div>
+                                  </p> */}
                               </div>
-                            )
-                          )
+                            </div>
+                          ))
                         ) : (
                           <p className="text-sm font-serif text-foreground">
                             No Adverts
@@ -542,6 +551,7 @@ export function ShowLogs({
                   <DialogDescription className="font-serif"></DialogDescription>
                 </DialogHeader>
                 <ShowLogsForm
+                  advertsForm={adverts}
                   initialData={editingLog}
                   onClose={() => setEditingLog(null)}
                 />
@@ -1003,10 +1013,10 @@ export function ShowLogs({
                               {log?.segments.length || 0}
                             </TableCell>
                             <TableCell className="font-sans font-bold">
-                              {log?.adverts.length || 0}
+                              {log?.ads?.length || 0}
                             </TableCell>
                             <TableCell className="font-sans font-bold">
-                              {log?.guests.length || 0}
+                              {log?.guests?.length || 0}
                             </TableCell>
                             <TableCell className="font-serif">
                               {" "}

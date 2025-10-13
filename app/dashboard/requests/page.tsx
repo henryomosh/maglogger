@@ -34,6 +34,7 @@ export default async function Page(props: {
   );
 
   const currentUser = await fetchUserById(cookieStore);
+
   if (currentUser?.role === "admin") {
     const allLogs = await fetchFilteredRequests(
       query,
@@ -57,7 +58,7 @@ export default async function Page(props: {
   );
 
   const dashboardData = await fetchRequestfDashboard();
-
+  // console.log(filteredRequests);
   return (
     <>
       <Requests
