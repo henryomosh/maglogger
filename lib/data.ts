@@ -303,7 +303,6 @@ export async function fetchLogs() {
       logs.segments,
       logs.guests,
       logs.adverts,
-      logs.ads,
       logs.status,
       logs.created,
       scheduling.title,
@@ -316,18 +315,18 @@ export async function fetchLogs() {
       JOIN users ON scheduling.staff = users.id 
       `;
     const approvedLogs =
-      await sql`SELECT * FROM logs WHERE status = 'approved'`;
+      await sql`SELECT id FROM logs WHERE status = 'approved'`;
 
-    const pendingLogs = await sql`SELECT * FROM logs WHERE status = 'pending'`;
+    const pendingLogs = await sql`SELECT id FROM logs WHERE status = 'pending'`;
     const declinedLogs =
-      await sql`SELECT * FROM logs WHERE status = 'declined'`;
+      await sql`SELECT id FROM logs WHERE status = 'declined'`;
 
     const logsData = data.map((log) => ({
       ...log,
       segments: JSON.parse(log.segments),
       guests: JSON.parse(log.guests),
       adverts: JSON.parse(log.adverts),
-      ads: JSON.parse(log.ads),
+      ads: log?.ads ? JSON.parse(log.ads) : [],
     }));
     console.log(logsData);
     return { logsData, pendingLogs, approvedLogs, declinedLogs };
@@ -409,7 +408,7 @@ export async function fetchFilteredLogs(
       segments: JSON.parse(item.segments),
       guests: JSON.parse(item.guests),
       adverts: JSON.parse(item.adverts),
-      ads: JSON.parse(item.ads),
+      ads: item?.adsJ ? JSON.parse(item.ads) : [],
     }));
 
     return parsedLogs;
@@ -462,7 +461,7 @@ export async function fetchFilteredLogsById(
       segments: JSON.parse(item.segments),
       guests: JSON.parse(item.guests),
       adverts: JSON.parse(item.adverts),
-      ads: JSON.parse(item.ads),
+      ads: item?.ads ? JSON.parse(item.ads) : [],
     }));
 
     return parsedLogs;
