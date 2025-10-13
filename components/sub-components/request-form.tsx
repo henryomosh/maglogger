@@ -80,7 +80,7 @@ export function RequestForm({ initialData, onClose }: RequestFormProps) {
     }
     if (result?.success === true) {
       setIsSubmitting(false);
-      toast.success("Staff member created successfully!", {});
+      toast.success("Request created successfully!", {});
       onClose();
     }
   };

@@ -256,7 +256,6 @@ export async function createRequest(formData: FormData) {
   const notes = formData.get("notes") as string;
 
   const created = new Date();
-
   if (type === "initial") {
     return { success: false, message: "Please select type of request!" };
   }
@@ -266,7 +265,9 @@ export async function createRequest(formData: FormData) {
     await sql`
       INSERT INTO requests (staff_id, type, reason, start_date, end_date, stand_in, created, status, notes
       )
-      VALUES (${staffId}, ${type}, ${reason},  ${startDate}, ${endtDate}, ${standIn}, ${created}, ${status}, ${notes})
+      VALUES (${staffId}, ${type}, ${reason},  ${startDate}, ${endtDate}, ${standIn}, ${created}, ${
+      status ?? "pending"
+    }, ${notes ?? ""})
     `;
     revalidatePath("/dashboard/requests");
     return { success: true, message: "Request added successfully" };

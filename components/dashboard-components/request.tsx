@@ -51,7 +51,7 @@ export function Requests({
         <Hourglass className=" h-8 w-8 fill-blue-500" /> Requests Page
       </h1>
       {/* STATS */}
-      {!canManageShows && (
+      {canManageShows && (
         <div className={`grid gap-4 md:grid-cols-2 lg:grid-cols-4 `}>
           <div className="rounded rounded-2xl pl-1 bg-red-700">
             <Card>

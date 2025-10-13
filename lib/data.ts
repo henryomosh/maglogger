@@ -618,7 +618,6 @@ export async function fetchFilteredRequestsById(
       requests.status,
       requests.notes,
       requests.created,
-      logs.status,
       users.name
       FROM requests
       JOIN users ON users.id = requests.staff_id 
@@ -631,7 +630,7 @@ export async function fetchFilteredRequestsById(
         users.name ILIKE ${`%${query}%`} OR
         requests.created::TEXT ILIKE ${`%${query}%`})
         
-      ORDER BY logs.created DESC
+      ORDER BY requests.created DESC
        LIMIT ${totalItemPage} OFFSET ${offset}
     `;
     return requests;
