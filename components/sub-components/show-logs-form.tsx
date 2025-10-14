@@ -284,7 +284,6 @@ export function ShowLogsForm({
     } else {
       setIsSubmitting(true);
 
-      console.log(formData2.get("show"));
       formData2.append("segments", JSON.stringify(segments));
       formData2.append("adverts", JSON.stringify(adverts));
       formData2.append("ads", JSON.stringify(adverts));

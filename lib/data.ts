@@ -328,7 +328,7 @@ export async function fetchLogs() {
       adverts: JSON.parse(log.adverts),
       ads: log?.ads ? JSON.parse(log.ads) : [],
     }));
-    console.log(logsData);
+
     return { logsData, pendingLogs, approvedLogs, declinedLogs };
   } catch (error) {
     console.log("Database Error:", error);
@@ -408,7 +408,7 @@ export async function fetchFilteredLogs(
       segments: JSON.parse(item.segments),
       guests: JSON.parse(item.guests),
       adverts: JSON.parse(item.adverts),
-      ads: item?.adsJ ? JSON.parse(item.ads) : [],
+      ads: JSON.parse(item.ads) ?? [],
     }));
 
     return parsedLogs;
@@ -461,7 +461,7 @@ export async function fetchFilteredLogsById(
       segments: JSON.parse(item.segments),
       guests: JSON.parse(item.guests),
       adverts: JSON.parse(item.adverts),
-      ads: item?.ads ? JSON.parse(item.ads) : [],
+      ads: JSON.parse(item.ads) ?? [],
     }));
 
     return parsedLogs;
@@ -521,7 +521,7 @@ export async function fetchTotalCurrentUserLogs(id: string) {
     FROM logs
     WHERE staff = ${id}
   `;
-    console.log(data);
+
     return data[0];
   } catch (error) {
     console.error("Database Error:", error);
@@ -584,7 +584,7 @@ export async function fetchFilteredRequests(
       users.name,
       (SELECT users.name FROM users WHERE users.id::TEXT= requests.stand_in) as standin
       FROM requests
-      JOIN users ON users.id = requests.staff_id 
+      LEFT JOIN users ON users.id = requests.staff_id 
       WHERE
         requests.type ILIKE ${`%${query}%`} OR
         requests.reason ILIKE ${`%${query}%`} OR
@@ -594,7 +594,7 @@ export async function fetchFilteredRequests(
         users.name ILIKE ${`%${query}%`} OR
         requests.created::TEXT ILIKE ${`%${query}%`}
       ORDER BY requests.created DESC
-       LIMIT ${totalItemPage} OFFSET ${offset}
+      LIMIT ${totalItemPage} OFFSET ${offset}
     `;
 
     return requests;

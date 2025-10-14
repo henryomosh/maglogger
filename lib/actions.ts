@@ -197,6 +197,8 @@ export async function createLog(formData: FormData) {
 
   const created = new Date();
 
+  console.log(ads);
+
   // Saving to a database
 
   try {
