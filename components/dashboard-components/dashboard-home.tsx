@@ -41,6 +41,7 @@ export function DashboardHome({
   upCommingShows,
   pendingRequests,
   advertsCount,
+  pendingUserRequest,
 }: {
   staffData: any;
   scheduleData: any;
@@ -53,6 +54,7 @@ export function DashboardHome({
   upCommingShows: any;
   pendingRequests: any;
   advertsCount: any;
+  pendingUserRequest: any;
 }) {
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -105,7 +107,7 @@ export function DashboardHome({
       {/* Welcome Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-sans font-bold text-foreground">
+          <h1 className="text-3xl font-sans font-bold text-blue-500">
             Welcome back, {user?.name || "User"}!
           </h1>
           <p className="text-muted-foreground font-serif mt-1">
@@ -121,7 +123,11 @@ export function DashboardHome({
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div
+        className={`grid gap-4 md:grid-cols-2 ${
+          canManageStaff ? "lg:grid-cols-5" : "lg:grid-cols-4"
+        }`}
+      >
         <Card className="shadow-sm shadow-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 ">
             <CardTitle className="text-sm font-serif font-xl font-bold">
@@ -201,6 +207,22 @@ export function DashboardHome({
             <p className="text-xs text-muted-foreground font-serif"></p>
           </CardContent>
         </Card>
+        {!canManageStaff && (
+          <Card className="shadow-sm shadow-green-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-serif font-xl font-bold">
+                Pending Requests
+              </CardTitle>
+              <Hourglass className="h-6 w-6 text-cyan-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-sans font-bold">
+                {pendingUserRequest[0].count || 0}
+              </div>
+              <p className="text-xs text-muted-foreground font-serif"></p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Main Content Grid */}
@@ -298,9 +320,13 @@ export function DashboardHome({
                 <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
                   <Users className="h-5 w-5 text-accent" />
                   <div>
-                    <p className="font-serif font-medium">Manage Staff</p>
+                    <p className="font-serif font-medium">
+                      {canManageStaff ? "Manage Staff" : "View Profile"}
+                    </p>
                     <p className="text-xs text-muted-foreground font-serif">
-                      Add or edit Staff profiles
+                      {canManageStaff
+                        ? "Add or edit Staff profiles "
+                        : "My profile details"}
                     </p>
                   </div>
                 </div>
@@ -312,12 +338,21 @@ export function DashboardHome({
                   onClick={() => setActiveSection("scheduling")}
                 >
                   <Calendar className="h-5 w-5 text-accent" />
-                  <div>
-                    <p className="font-serif font-medium">Schedule Shows</p>
-                    <p className="text-xs text-muted-foreground font-serif">
-                      Update Show programming
-                    </p>
-                  </div>
+                  {canManageStaff ? (
+                    <div>
+                      <p className="font-serif font-medium">Schedule Shows </p>
+                      <p className="text-xs text-muted-foreground font-serif">
+                        Update Show programming
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="font-serif font-medium">Shows </p>
+                      <p className="text-xs text-muted-foreground font-serif">
+                        Radio Shows programming
+                      </p>
+                    </div>
+                  )}
                 </div>
               </Link>
               <Link href="dashboard/logs">

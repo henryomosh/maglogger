@@ -245,7 +245,8 @@ export function StaffManagement({
   };
   return (
     <div className="space-y-4">
-      <h1 className="text-3xl font-sans font-bold text-foreground">
+      <h1 className="text-3xl font-sans font-bold text-blue-500 flex gap-2">
+        <Users className="h-8 w-8" />{" "}
         {canManageStaff ? "Staff Management" : "My Profile"}
       </h1>
       {/* Stats Grid */}

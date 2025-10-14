@@ -137,11 +137,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-serif rounded-lg transition-colors text-left ${
                     activeSection2 === item.key
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                      : "text-blue-700 hover:bg-sidebar-accent/50"
                   }
                     `}
                 >
-                  <item.icon className="h-5 w-5 " />
+                  <item.icon
+                    className={`h-5 w-5 ${
+                      activeSection2 === item.key
+                        ? "text-white"
+                        : "text-blue-700"
+                    }`}
+                  />
+
                   {item.name}
                 </Link>
               </li>

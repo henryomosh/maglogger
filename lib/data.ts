@@ -722,6 +722,21 @@ export async function fetchPendingRequest() {
   }
 }
 
+export async function fetchPendingUserRequest(id: string) {
+  try {
+    const pending = await sql`
+      SELECT 
+        COUNT(*)
+      FROM requests
+      WHERE status = 'pending' AND staff_id = ${id}
+    `;
+
+    return pending;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export async function fetchAdverts() {
   try {
     const advert = await sql`

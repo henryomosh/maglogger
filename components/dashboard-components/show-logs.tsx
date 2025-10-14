@@ -318,8 +318,8 @@ export function ShowLogs({
       {/* Header */}
       <div className="md:flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-sans font-bold text-foreground">
-            Show Logs
+          <h1 className="text-3xl font-sans font-bold text-blue-500 flex gap-2">
+            <FileText className="h-8 w-8 " /> Show Logs
           </h1>
           <p className="text-muted-foreground font-serif mt-1 py-2">
             Comprehensive activity logs from {canManageShows ? "all" : "your"}{" "}

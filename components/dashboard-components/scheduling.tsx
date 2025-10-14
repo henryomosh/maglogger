@@ -247,8 +247,8 @@ export function ShowScheduling({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-sans font-bold text-foreground">
-            Show Programming & Sheduling
+          <h1 className="text-3xl font-sans font-bold text-blue-500 flex gap-2">
+            <Calendar className="h-8 w-8" /> Show Programming & Sheduling
           </h1>
           <p className="text-muted-foreground font-serif mt-1">
             Manage your radio station's shows and programming.
