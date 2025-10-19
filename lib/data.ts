@@ -771,3 +771,79 @@ export async function fetchAdvertStats() {
     console.log(error);
   }
 }
+
+export async function fetchCommunicationUsers() {
+  try {
+    const users = await sql`SELECT * FROM users ORDER BY name`;
+
+    const users_ = users.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      read: false,
+      deleted: false,
+    }));
+    return users_;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchCommunication() {
+  try {
+    const communications =
+      await sql`SELECT id, subject, sender_name, sender_id, content, user_status, created::TEXT FROM communications ORDER BY created`;
+    const coms = communications
+      .map((item: any) => ({
+        ...item,
+        user_status: JSON.parse(item.user_status),
+      }))
+      .sort((a: any, b: any) => b.created.localeCompare(a.created));
+
+    return coms;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchCommunicationById(id: string) {
+  try {
+    const communications =
+      await sql<any>`SELECT id, subject, content, user_status, created FROM communications WHERE id=${id}`;
+
+    const status = JSON.parse(communications[0].user_status);
+
+    return status;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchNoifications() {
+  try {
+    // const logNotifications =
+    //   await sql<any>`SELECT * FROM notifications WHERE type='logs' ORDER BY time `;
+
+    // const requestNotifications =
+    //   await sql<any>`SELECT * FROM notifications WHERE type='requests' ORDER BY time `;
+
+    // const communicationsNotifications =
+    //   await sql<any>`SELECT * FROM notifications WHERE type='communication' ORDER BY time`;
+    const notifications =
+      await sql<any>`SELECT * FROM notifications  ORDER BY time DESC`;
+
+    return notifications;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchNoificationById(id: string) {
+  try {
+    const notifications =
+      await sql<any>`SELECT * FROM notifications WHERE id=${id}`;
+
+    return notifications;
+  } catch (error) {
+    console.log(error);
+  }
+}

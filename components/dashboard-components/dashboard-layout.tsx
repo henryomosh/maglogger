@@ -26,13 +26,19 @@ import {
   FileText,
   Hourglass,
   Airplay,
+  Nfc,
 } from "lucide-react";
+import { NotificationBell } from "./notifications";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  notification: any;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({
+  children,
+  notification,
+}: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const [activeSection2, setActiveSection2] = useState("");
@@ -73,6 +79,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       href: "/dashboard/requests",
       key: "requests",
       link: "/dashboard/requests",
+    },
+    {
+      name: "Communications",
+      icon: Nfc,
+      href: "/dashboard/commincations",
+      key: "communications",
+      link: "/dashboard/communications",
     },
     {
       name: "Advert Management",
@@ -173,6 +186,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1"></div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
+              <NotificationBell notification={notification} />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

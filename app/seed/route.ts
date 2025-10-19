@@ -102,6 +102,38 @@ async function seedAdverts() {
     );
   `;
 }
+
+async function seedCommunications() {
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS communications (
+      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      sender_id UUID NOT NULL,
+      sender_name VARCHAR(250) NOT NULL,
+      subject VARCHAR(40000) NOT NULL,
+      user_status JSONB NOT NULL,
+      content TEXT,
+      created TIMESTAMPTZ NOT NULL
+    );
+  `;
+}
+
+async function seedNotificatications() {
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      type VARCHAR(250) NOT NULL,
+      title VARCHAR(250) NOT NULL,
+      message VARCHAR(250) NOT NULL,
+      priority VARCHAR(250) NOT NULL,
+      read BOOLEAN NOT NULL,
+      user_status JSONB NOT NULL,
+      time TIMESTAMPTZ NOT NULL
+    );
+  `;
+}
+
 export async function GET() {
   try {
     const result = await sql.begin((sql) => [
@@ -110,6 +142,8 @@ export async function GET() {
       seedLogs(),
       seedRequests(),
       seedAdverts(),
+      seedCommunications(),
+      seedNotificatications(),
     ]);
 
     return Response.json({ message: "Database seeded successfully" });

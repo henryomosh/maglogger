@@ -39,7 +39,7 @@ export default function Market({
   }
   return (
     <div>
-      <div className="flex items-center p-4 bg-green-500 text-2xl text-white font-bold">
+      <div className="flex items-center p-4 bg-green-500 text-2xl text-white font-bold rounded-lg">
         Advert Management
       </div>
       {/* Dialogues */}

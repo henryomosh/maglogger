@@ -4,9 +4,17 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import sql from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { fetchUser, fetchUserById } from "@/lib/data";
+import {
+  fetchUser,
+  fetchUserById,
+  fetchCommunicationById,
+  fetchCommunicationUsers,
+  fetchNoificationById,
+} from "@/lib/data";
 import { formatDateToLocal } from "./utils";
 import { DateTime } from "luxon";
+import { error } from "console";
+import { json } from "stream/consumers";
 
 export async function createStaff(formData: FormData) {
   const name = formData.get("name") as string;
@@ -197,18 +205,24 @@ export async function createLog(formData: FormData) {
 
   const created = new Date();
 
-  console.log(ads);
-
+  const user = await fetchUserById(staff);
   // Saving to a database
+  const title = "Log approval pending";
+  const message = `${user?.name} has created show log`;
 
+  const userData: any = await fetchCommunicationUsers();
   try {
     await sql`
       INSERT INTO logs (staff, show, segments, guests, adverts, status, created, ads)
       VALUES (${staff}, ${show},  ${segments}, ${guests}, ${adverts}, ${status}, ${created}, ${ads} )
     `;
+    await sql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
+      VALUES ('logs',${title} , ${message}, 'high', 'false', ${JSON.stringify(
+      userData
+    )}, ${created})`;
   } catch (error: any) {
     if (error) {
-      console.log(error?.detail);
+      console.log(error);
     }
   }
   revalidatePath("/dashboard/logs");
@@ -263,6 +277,11 @@ export async function createRequest(formData: FormData) {
   if (type === "initial") {
     return { success: false, message: "Please select type of request!" };
   }
+
+  const user = await fetchUserById(staffId);
+  const message = `${user?.name} has madae a request!`;
+
+  const userData: any = await fetchCommunicationUsers();
   // Saving to a database
 
   try {
@@ -273,11 +292,16 @@ export async function createRequest(formData: FormData) {
       status ?? "pending"
     }, ${notes ?? ""})
     `;
+    await sql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
+      VALUES ('requests','Request pending approval' , ${message}, 'high', 'false', ${JSON.stringify(
+      userData
+    )},${created})`;
+
     revalidatePath("/dashboard/requests");
     return { success: true, message: "Request added successfully" };
   } catch (error: any) {
     if (error) {
-      console.log(error?.detail);
+      console.log(error);
       return { success: false, message: "Some error occured" };
     }
   }
@@ -340,7 +364,7 @@ export async function createAdvert(formData: FormData) {
     return { success: false, message: "Please select advert slot!" };
   }
   // Saving to a database
-  console.log(title, status, slot, shows, created);
+
   try {
     await sql`
       INSERT INTO adverts (title, status, slot, shows, created)
@@ -396,5 +420,151 @@ export async function deleteAdvert(id: string) {
     if (error) {
       return { success: false };
     }
+  }
+}
+
+export async function createCommunication(formData: FormData) {
+  const subject = formData.get("subject") as string;
+  const content = formData.get("content") as string;
+  const user_status = formData.get("user_status") as string;
+  const userName = formData.get("userName") as string;
+  const userId = formData.get("userId") as string;
+
+  const created = new Date();
+  const user = await fetchUserById(userId);
+  const message = `${user?.name} has send new announcement`;
+
+  // Saving to a database
+
+  try {
+    await sql`
+      INSERT INTO communications (sender_id, sender_name, subject, content, user_status, created)
+      VALUES (${userId}, ${userName}, ${subject}, ${content}, ${user_status}, ${created})
+    `;
+
+    await sql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
+      VALUES ('communication','New announcement' , ${message}, 'medium', 'false', ${user_status}, ${created})`;
+
+    revalidatePath("/dashboard/communications");
+    return { success: true, message: "Message added successfully" };
+  } catch (error: any) {
+    if (error) {
+      console.log(error);
+      return { success: false, message: "Some error occured" };
+    }
+  }
+}
+
+export async function updateCommunication(formData: FormData) {
+  const subject = formData.get("subject") as string;
+  const content = formData.get("content") as string;
+
+  const id = formData.get("id") as string;
+  // Saving to a database
+
+  try {
+    await sql` UPDATE communications SET subject =${subject}, content =${content} WHERE id=${id}
+    `;
+    revalidatePath("/dashboard/communications");
+    return { success: true, message: "Message Updated successfully" };
+  } catch (error: any) {
+    if (error) {
+      console.log(error?.detail);
+      return { success: false, message: "Some error occured" };
+    }
+  }
+}
+
+export async function deleteCommunication(id: string) {
+  try {
+    await sql`DELETE FROM communications WHERE id = ${id}`;
+    revalidatePath("/dashboard/communications");
+    return { success: true, message: "Message Deleted!" };
+  } catch (error) {
+    if (error) {
+      return { success: false };
+    }
+  }
+}
+
+export async function updateCommunicationStatus(id: string, userId: string) {
+  const comsById = await fetchCommunicationById(id);
+  const user_index = comsById?.findIndex((item: any) => item.id === userId);
+
+  if (comsById[user_index].read === true) {
+    return null;
+  }
+
+  const newObj = {
+    id: comsById[user_index].id,
+    name: comsById[user_index].name,
+    read: true,
+  };
+
+  comsById[user_index] = newObj;
+
+  const strComsById = JSON.stringify(comsById);
+
+  try {
+    await sql`UPDATE communications SET user_status = ${strComsById} WHERE id=${id}`;
+    revalidatePath("/dashboard/communications");
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function markNotificationRead(id: string, userId: string) {
+  const notById = await fetchNoificationById(id);
+  const userObj = JSON.parse(notById[0]?.user_status);
+  const user_index = userObj?.findIndex((item: any) => item.id === userId);
+
+  if (userObj[user_index].read === true) {
+    return null;
+  }
+
+  const newObj = {
+    id: userObj[user_index].id,
+    name: userObj[user_index].name,
+    read: true,
+    deleted: userObj[user_index].deleted,
+  };
+
+  userObj[user_index] = newObj;
+
+  const strNotById = JSON.stringify(userObj);
+
+  try {
+    await sql`UPDATE notifications SET user_status=${strNotById} WHERE id=${id}`;
+    revalidatePath("/", "layout");
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function deleteUserNotification(id: string, userId: string) {
+  const notById = await fetchNoificationById(id);
+  const userObj = JSON.parse(notById[0]?.user_status);
+  const user_index = userObj?.findIndex((item: any) => item.id === userId);
+
+  if (userObj[user_index].deleted === true) {
+    return null;
+  }
+
+  const newObj = {
+    id: userObj[user_index].id,
+    name: userObj[user_index].name,
+    read: true,
+    deleted: true,
+  };
+
+  userObj[user_index] = newObj;
+
+  const strNotById = JSON.stringify(userObj);
+
+  try {
+    await sql`UPDATE notifications SET user_status=${strNotById} WHERE id=${id}`;
+    revalidatePath("/", "layout");
+  } catch (error) {
+    console.log(error);
   }
 }

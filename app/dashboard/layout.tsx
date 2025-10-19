@@ -1,4 +1,3 @@
-"use client";
 import type React from "react";
 import type { Metadata } from "next";
 import { Space_Grotesk, DM_Sans } from "next/font/google";
@@ -7,7 +6,7 @@ import { DashboardLayout } from "@/components/dashboard-components/dashboard-lay
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/components/auth-provider";
 import { redirect } from "next/navigation";
-
+import { fetchNoifications } from "@/lib/data";
 // const spaceGrotesk = Space_Grotesk({
 //   subsets: ["latin"],
 //   display: "swap",
@@ -26,14 +25,18 @@ import { redirect } from "next/navigation";
 //   generator: "v0.app",
 // };
 
-export default function Layout({
+export default async function Layout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const notification = await fetchNoifications();
   return (
     <div>
-      <DashboardLayout children={children}></DashboardLayout>
+      <DashboardLayout
+        children={children}
+        notification={notification}
+      ></DashboardLayout>
       <Toaster position="top-right" richColors theme="dark" duration={2000} />
     </div>
   );

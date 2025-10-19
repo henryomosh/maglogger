@@ -48,7 +48,7 @@ export function Requests({
   return (
     <div className="space-y-4">
       <h1 className="text-3xl font-sans font-bold  flex gap-2 text-blue-500">
-        <Hourglass className=" h-8 w-8 fill-blue-500" /> Requests Page
+        <Hourglass className=" h-8 w-8 text-blue-500" /> Requests Page
       </h1>
       {/* STATS */}
       {canManageShows && (
