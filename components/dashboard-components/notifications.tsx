@@ -225,7 +225,7 @@ export function NotificationBell({ notification }: { notification: any }) {
             </div>
           )}
         </div>
-
+        {/* SYSYTEM NOTIFICATION */}
         {notification.length > 0 && (
           <div className="p-2 border-t hidden">
             <Button variant="ghost" className="w-full text-xs font-serif">
