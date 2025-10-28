@@ -17,11 +17,49 @@ export const formatDateToLocal = (
   dateStr: string,
   locale: string = "en-US"
 ) => {
+  if (dateStr === "") {
+    return;
+  }
   const date = new Date(dateStr);
   const options: Intl.DateTimeFormatOptions = {
     timeZone: "Africa/Nairobi",
     minute: "numeric",
     hour: "numeric",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  };
+  const formatter = new Intl.DateTimeFormat(locale, options);
+  return formatter.format(date);
+};
+
+export const formatDateToTimeOnly = (
+  dateStr: string,
+  locale: string = "en-US"
+) => {
+  if (dateStr === "") {
+    return;
+  }
+  const date = new Date(dateStr);
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: "Africa/Nairobi",
+    minute: "numeric",
+    hour: "numeric",
+  };
+  const formatter = new Intl.DateTimeFormat(locale, options);
+  return formatter.format(date);
+};
+
+export const formatDateToDateOnly = (
+  dateStr: string,
+  locale: string = "en-US"
+) => {
+  if (dateStr === "") {
+    return;
+  }
+  const date = new Date(dateStr);
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: "Africa/Nairobi",
     day: "numeric",
     month: "short",
     year: "numeric",

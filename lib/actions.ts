@@ -568,3 +568,51 @@ export async function deleteUserNotification(id: string, userId: string) {
     console.log(error);
   }
 }
+
+export async function createAttendance(userId: string) {
+  const clock_in_time = new Date();
+  const clocked_in = true;
+  const created = new Date();
+
+  try {
+    await sql`
+      INSERT INTO attendance (staff, clock_in_time, clocked_in, created)
+      VALUES (${userId}, ${clock_in_time}, ${clocked_in}, ${created})
+    `;
+
+    // await sql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
+    //   VALUES ('A','New announcement' , ${message}, 'medium', 'false', ${user_status}, ${created})`;
+
+    revalidatePath("/dashboard/attendance");
+    return { success: true, message: "Clocked In!" };
+  } catch (error: any) {
+    if (error) {
+      console.log(error);
+      return { success: false, message: "Some error occured" };
+    }
+  }
+}
+
+export async function updateAttendance(id: string) {
+  const clock_out_time = new Date();
+  const clocked_out = true;
+
+  if (id === "null") {
+    return { success: false, message: "Some error occured" };
+  }
+
+  try {
+    await sql`
+      UPDATE attendance set clock_out_time = ${clock_out_time}, clocked_out = ${clocked_out}
+      WHERE id = ${id}
+    `;
+
+    revalidatePath("/dashboard/attendance");
+    return { success: true, message: "Clocked Out!" };
+  } catch (error: any) {
+    if (error) {
+      console.log(error);
+      return { success: false, message: "Some error occured" };
+    }
+  }
+}

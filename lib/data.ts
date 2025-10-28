@@ -847,3 +847,30 @@ export async function fetchNoificationById(id: string) {
     console.log(error);
   }
 }
+
+// ATTENDANCE
+
+export async function fetchAttendanceById(id: string) {
+  try {
+    const attendance =
+      await sql<any>`SELECT * FROM attendance WHERE staff=${id} AND created >= DATE_TRUNC('day', NOW())
+  AND created < DATE_TRUNC('day', NOW()) + INTERVAL '1 day' ORDER BY created DESC LIMIT 1;`;
+
+    return attendance;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchFilteredAttendance() {
+  try {
+    const attendance = await sql<any>`SELECT 
+      users.id, users.name, attendance.clock_in_time, attendance.clock_out_time,
+      attendance.created FROM users LEFT JOIN attendance ON attendance.staff = users.id 
+      WHERE attendance.created IS NULL OR (attendance.created  >= DATE_TRUNC('day', NOW())
+     AND attendance.created < DATE_TRUNC('day', NOW()) + INTERVAL '1 day') ORDER BY users.name ASC;`;
+    return attendance;
+  } catch (error) {
+    console.log(error);
+  }
+}

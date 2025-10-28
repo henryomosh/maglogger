@@ -27,6 +27,7 @@ import {
   Hourglass,
   Airplay,
   Nfc,
+  Clock,
 } from "lucide-react";
 import { NotificationBell } from "./notifications";
 
@@ -86,6 +87,13 @@ export function DashboardLayout({
       href: "/dashboard/commincations",
       key: "communications",
       link: "/dashboard/communications",
+    },
+    {
+      name: "Attendance",
+      icon: Clock,
+      href: "/dashboard/attendance",
+      key: "attendance",
+      link: "/dashboard/attendance",
     },
     {
       name: "Advert Management",

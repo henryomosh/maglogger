@@ -134,6 +134,20 @@ async function seedNotificatications() {
   `;
 }
 
+async function seedAttendance() {
+  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS attendance (
+      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      staff UUID NOT NULL,
+      clock_in_time TIMESTAMPTZ NOT NULL,
+      clock_out_time TIMESTAMPTZ,
+      clocked_in BOOLEAN,
+      clocked_out BOOLEAN DEFAULT FALSE,
+      created TIMESTAMPTZ
+    );
+  `;
+}
 export async function GET() {
   try {
     const result = await sql.begin((sql) => [
@@ -144,6 +158,7 @@ export async function GET() {
       seedAdverts(),
       seedCommunications(),
       seedNotificatications(),
+      seedAttendance(),
     ]);
 
     return Response.json({ message: "Database seeded successfully" });
