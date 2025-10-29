@@ -854,7 +854,7 @@ export async function fetchAttendanceById(id: string) {
   try {
     const attendance =
       await sql<any>`SELECT * FROM attendance WHERE staff=${id} AND created >= DATE_TRUNC('day', NOW())
-  AND created < DATE_TRUNC('day', NOW()) + INTERVAL '1 day' ORDER BY created DESC LIMIT 1;`;
+  AND created < DATE_TRUNC('day', NOW()) + INTERVAL '1 day' ORDER BY created DESC LIMIT 1`;
 
     return attendance;
   } catch (error) {
@@ -862,13 +862,23 @@ export async function fetchAttendanceById(id: string) {
   }
 }
 
-export async function fetchFilteredAttendance() {
+export async function fetchFilteredAttendance(query: string) {
   try {
+    const today = new Date();
+    const formattedDate = today.toISOString().slice(0, 10);
+    let date = formattedDate;
+    if (query) {
+      date = query;
+    }
+
     const attendance = await sql<any>`SELECT 
-      users.id, users.name, attendance.clock_in_time, attendance.clock_out_time,
-      attendance.created FROM users LEFT JOIN attendance ON attendance.staff = users.id 
-      WHERE attendance.created IS NULL OR (attendance.created  >= DATE_TRUNC('day', NOW())
-     AND attendance.created < DATE_TRUNC('day', NOW()) + INTERVAL '1 day') ORDER BY users.name ASC;`;
+      users.id, users.name, users.status, login, logout, attendance.clock_in_time, 
+      attendance.clock_out_time, COALESCE(attendance.created, ${date}) as date
+      FROM users LEFT JOIN LATERAL (SELECT * FROM attendance WHERE users.id = attendance.staff AND
+      attendance.created::DATE = ${date} ORDER BY 
+      created DESC LIMIT 1) AS attendance ON TRUE ORDER BY users.name ASC
+  `;
+    console.log(attendance);
     return attendance;
   } catch (error) {
     console.log(error);

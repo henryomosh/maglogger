@@ -20,45 +20,59 @@ export default function Attendance({
   filteredAttendance: any;
 }) {
   const { user }: any = useAuth();
-  const isAdmin = user.role === "admin";
+  const isAdmin = user?.role === "admin";
   const [isLoading, setIsLoading] = useState(false);
   const isClockedIn = attendance?.length > 0;
   const isClockedOut = isClockedIn && attendance[0]?.clocked_out ? true : false;
 
+  //WORK TIMER
   const hours = isClockedIn
     ? isClockedOut
       ? String(
-          new Date(attendance[0]?.clock_out_time).getHours() -
-            new Date(attendance[0]?.clock_in_time).getHours()
+          Math.abs(
+            new Date(attendance[0]?.clock_out_time).getHours() -
+              new Date(attendance[0]?.clock_in_time).getHours()
+          )
         )
       : String(
-          new Date().getHours() -
-            new Date(attendance[0]?.clock_in_time).getHours()
+          Math.abs(
+            new Date().getHours() -
+              new Date(attendance[0]?.clock_in_time).getHours()
+          )
         )
     : "0";
   const minutes = isClockedIn
     ? isClockedOut
       ? String(
-          new Date(attendance[0]?.clock_out_time).getMinutes() -
-            new Date(attendance[0]?.clock_in_time).getMinutes()
+          Math.abs(
+            new Date(attendance[0]?.clock_out_time).getMinutes() -
+              new Date(attendance[0]?.clock_in_time).getMinutes()
+          )
         )
       : String(
-          new Date().getMinutes() -
-            new Date(attendance[0]?.clock_in_time).getMinutes()
+          Math.abs(
+            new Date().getMinutes() -
+              new Date(attendance[0]?.clock_in_time).getMinutes()
+          )
         )
     : "0";
   const seconds = isClockedIn
     ? isClockedOut
       ? String(
-          new Date(attendance[0]?.clock_out_time).getSeconds() -
-            new Date(attendance[0]?.clock_in_time).getSeconds()
+          Math.abs(
+            new Date(attendance[0]?.clock_out_time).getSeconds() -
+              new Date(attendance[0]?.clock_in_time).getSeconds()
+          )
         )
       : String(
-          new Date().getSeconds() -
-            new Date(attendance[0]?.clock_in_time).getSeconds()
+          Math.abs(
+            new Date().getSeconds() -
+              new Date(attendance[0]?.clock_in_time).getSeconds()
+          )
         )
     : "0";
 
+  // Clock in and out timmer
   const handleClockIn = async () => {
     setIsLoading(true);
     const results = await createAttendance(user?.id);
@@ -165,7 +179,7 @@ export default function Attendance({
               <Badge
                 className={`text-lg px-4 py-2 font-serif bg-yellow-100 text-yellow-800`}
               >
-                Not Clocked In
+                Not Clocked In Today
               </Badge>
             )}
           </div>
@@ -185,24 +199,24 @@ export default function Attendance({
             <Card className="bg-indigo-100">
               <CardContent className="text-center">
                 <div className="text-md text-indigo-800 font-serif mb-1">
-                  Clock In
+                  Clock In Time
                 </div>
                 <div className="text-2xl font-sans font-bold text-indigo-800 ">
                   {isClockedIn
                     ? formatDateToLocal(attendance[0]?.clock_in_time ?? "")
-                    : "Not clocked in"}
+                    : "Not clocked in today"}
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-indigo-100">
               <CardContent className=" text-center">
                 <div className="text-md text-indigo-800 font-serif mb-1">
-                  Clock Out
+                  Clock Out Time
                 </div>
                 <div className="text-2xl font-sans font-bold text-indigo-800 ">
                   {isClockedOut
                     ? formatDateToLocal(attendance[0]?.clock_out_time ?? "")
-                    : "Not clocked out"}
+                    : "Not clocked out today"}
                 </div>
               </CardContent>
             </Card>

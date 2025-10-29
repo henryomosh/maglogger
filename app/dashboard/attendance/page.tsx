@@ -5,10 +5,16 @@ import Attendance from "@/components/dashboard-components/attendance";
 
 export const dynamic = "force-dynamic";
 
-export default async function AttendancePage() {
+export default async function AttendancePage(props: {
+  searchParams?: Promise<{
+    query?: string;
+  }>;
+}) {
+  const searchParams = await props.searchParams;
+  const query = searchParams?.query || "";
   const cookieStore = (await cookies()).get("session")?.value as string;
   const attendance = await fetchAttendanceById(cookieStore);
-  const filteredAttendance = await fetchFilteredAttendance();
+  const filteredAttendance = await fetchFilteredAttendance(query);
 
   return (
     <>

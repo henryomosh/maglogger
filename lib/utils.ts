@@ -6,6 +6,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const formatTime = (time: string) => {
+  if (time === "") {
+    return "Nill";
+  }
   const [hours, minutes] = time.split(":");
   const hour = Number.parseInt(hours);
   const ampm = hour >= 12 ? "PM" : "AM";
