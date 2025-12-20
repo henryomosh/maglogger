@@ -16,21 +16,28 @@ export async function middleware(request: NextRequest) {
 
   const cookie = (await cookies()).get("session")?.value;
 
+  if (isPublicRoute && !cookie) {
+    return NextResponse.redirect(new URL("/locked", request.nextUrl));
+  }
   if (isProtectedRoute && !cookie) {
-    return NextResponse.redirect(new URL("/login", request.nextUrl));
+    // return NextResponse.redirect(new URL("/login", request.nextUrl));
+    return NextResponse.redirect(new URL("/locked", request.nextUrl));
   }
   if (isLockedRoute && cookie) {
-    return NextResponse.redirect(new URL("/dashboard", request.nextUrl));
+    // return NextResponse.redirect(new URL("/dashboard", request.nextUrl));
+    return NextResponse.redirect(new URL("/locked", request.nextUrl));
   }
   if (isLockedRoute && !cookie) {
-    return NextResponse.redirect(new URL("/login", request.nextUrl));
+    // return NextResponse.redirect(new URL("/login", request.nextUrl));
+    return NextResponse.redirect(new URL("/locked", request.nextUrl));
   }
   if (
     isPublicRoute &&
     cookie &&
     !request.nextUrl.pathname.startsWith("/dashboard")
   ) {
-    return NextResponse.redirect(new URL("/dashboard", request.nextUrl));
+    // return NextResponse.redirect(new URL("/dashboard", request.nextUrl));
+    return NextResponse.redirect(new URL("/locked", request.nextUrl));
   }
 
   return NextResponse.next();
