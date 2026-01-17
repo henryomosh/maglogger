@@ -28,6 +28,7 @@ import {
   Airplay,
   Nfc,
   Clock,
+  PowerIcon,
 } from "lucide-react";
 import { NotificationBell } from "./notifications";
 
@@ -130,8 +131,7 @@ export function DashboardLayout({
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border transform ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-200 ease-in-out lg:translate-x-0`}
-      >
+        } transition-transform duration-200 ease-in-out lg:translate-x-0`}>
         <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-500 rounded-lg">
@@ -148,34 +148,45 @@ export function DashboardLayout({
           </div>
         </div>
 
-        <nav className="mt-6 px-3">
-          <ul className="space-y-1">
-            {navigation.map((item) => (
-              <li key={item.name}>
-                <Link
-                  href={item.link}
-                  onClick={() => setActiveSection2(item.key)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-serif rounded-lg transition-colors text-left ${
-                    activeSection2 === item.key
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-blue-700 hover:bg-sidebar-accent/50"
-                  }
-                    `}
-                >
-                  <item.icon
-                    className={`h-5 w-5 ${
+        <div className="flex h-full flex-col ">
+          <nav className="mt-6 px-3">
+            <ul className="space-y-1">
+              {navigation.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.link}
+                    onClick={() => setActiveSection2(item.key)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-serif rounded-lg transition-colors text-left ${
                       activeSection2 === item.key
-                        ? "text-white"
-                        : "text-blue-700"
-                    }`}
-                  />
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-blue-700 hover:bg-sidebar-accent/50"
+                    }
+                    `}>
+                    <item.icon
+                      className={`h-5 w-5 ${
+                        activeSection2 === item.key
+                          ? "text-white"
+                          : "text-blue-700"
+                      }`}
+                    />
 
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <div className="flex flex-col justify-end h-full mb-12 ">
+            <div className="pb-12 px-4">
+              <Button
+                className="flex w-full cursor-pointer bg-red-700 hover:bg-red-600"
+                onClick={() => logout()}>
+                <PowerIcon className="w-4 md-w-6 " />
+                <div className="">Sign Out</div>
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main content */}
@@ -186,8 +197,7 @@ export function DashboardLayout({
             variant="ghost"
             size="sm"
             className="lg:hidden"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
+            onClick={() => setSidebarOpen(!sidebarOpen)}>
             <Menu className="h-5 w-5" />
           </Button>
 
@@ -199,8 +209,7 @@ export function DashboardLayout({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
-                  >
+                    className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-primary text-primary-foreground font-sans font-bold">
                         {user?.name
@@ -214,21 +223,21 @@ export function DashboardLayout({
                 <DropdownMenuContent className="w-56" align="end">
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
+                      <p className="text-sm">Logged in as</p>
                       <p className="font-sans font-bold">{user?.name}</p>
                       <p className="text-xs text-muted-foreground font-serif capitalize">
-                        {user?.role}
+                        Role: {user?.role}
                       </p>
                     </div>
                   </div>
-                  <DropdownMenuItem>
+                  {/* <DropdownMenuItem>
                     <Settings className="mr-2 h-4 w-4" />
                     <span className="font-serif">Settings</span>
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                   <DropdownMenuItem
                     onClick={() => {
                       logout();
-                    }}
-                  >
+                    }}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span className="font-serif">Log out</span>
                   </DropdownMenuItem>

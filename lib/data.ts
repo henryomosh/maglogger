@@ -218,7 +218,7 @@ export async function fetchSchedule() {
     }));
 
     const todaySchedule = schedule2.filter(
-      (item: any) => item.days[todayNum].value === true
+      (item: any) => item.days[todayNum].value === true,
     );
     const logsData = await sql`SELECT * FROM  logs ORDER BY created DESC`;
 
@@ -369,7 +369,7 @@ export async function fetchScheduleLogs(id: string) {
 export async function fetchFilteredLogs(
   query: string,
   currentPage: number,
-  totalItemPage: number
+  totalItemPage: number,
 ) {
   const offset = (currentPage - 1) * totalItemPage;
 
@@ -421,7 +421,7 @@ export async function fetchFilteredLogsById(
   query: string,
   currentPage: number,
   totalItemPage: number,
-  id: string
+  id: string,
 ) {
   const offset = (currentPage - 1) * totalItemPage;
 
@@ -486,7 +486,7 @@ export async function fetchLogPages(totalItemPage: number) {
 
 export async function fetchtotalCurentUserPages(
   totalItemPage: number,
-  id: string
+  id: string,
 ) {
   try {
     const data = await sql`SELECT COUNT(*)
@@ -545,7 +545,7 @@ export async function fetchRequetsPages(totalItemPage: number) {
 
 export async function fetchtotalCurentUserRequestsPages(
   totalItemPage: number,
-  id: string
+  id: string,
 ) {
   try {
     const data = await sql`SELECT COUNT(*)
@@ -564,7 +564,7 @@ export async function fetchtotalCurentUserRequestsPages(
 export async function fetchFilteredRequests(
   query: string,
   currentPage: number,
-  totalItemPage: number
+  totalItemPage: number,
 ) {
   const offset = (currentPage - 1) * totalItemPage;
 
@@ -607,7 +607,7 @@ export async function fetchFilteredRequestsById(
   query: string,
   currentPage: number,
   totalItemPage: number,
-  id: string
+  id: string,
 ) {
   const offset = (currentPage - 1) * totalItemPage;
 
@@ -829,7 +829,7 @@ export async function fetchNoifications() {
     // const communicationsNotifications =
     //   await sql<any>`SELECT * FROM notifications WHERE type='communication' ORDER BY time`;
     const notifications =
-      await sql<any>`SELECT * FROM notifications  ORDER BY time DESC`;
+      await sql<any>`SELECT * FROM notifications  ORDER BY time DESC LIMIT 4`;
 
     return notifications;
   } catch (error) {
@@ -840,7 +840,7 @@ export async function fetchNoifications() {
 export async function fetchNoificationById(id: string) {
   try {
     const notifications =
-      await sql<any>`SELECT * FROM notifications WHERE id=${id}`;
+      await sql<any>`SELECT * FROM notifications WHERE id=${id} `;
 
     return notifications;
   } catch (error) {
