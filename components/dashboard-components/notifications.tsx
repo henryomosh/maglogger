@@ -96,13 +96,13 @@ export function NotificationBell({ notification }: { notification: any }) {
 
   if (canManageSystem) {
     filtredNotification = notification?.filter(
-      (item: any) => item.type !== "communication"
+      (item: any) => item.type !== "communication",
     );
   }
 
   if (!canManageSystem) {
     filtredNotification = notification?.filter(
-      (item: any) => item.type === "communication"
+      (item: any) => item.type === "communication",
     );
   }
   const unreadUserCount = filtredNotification?.filter((item: any) => {
@@ -125,8 +125,7 @@ export function NotificationBell({ notification }: { notification: any }) {
           {unreadUserCount > 0 && (
             <Badge
               variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-            >
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
               {unreadUserCount}
             </Badge>
           )}
@@ -146,8 +145,7 @@ export function NotificationBell({ notification }: { notification: any }) {
               variant="ghost"
               size="sm"
               onClick={markAllAsRead}
-              className="text-xs font-serif hidden"
-            >
+              className="text-xs font-serif hidden">
               Mark all read
             </Button>
           )}
@@ -178,8 +176,7 @@ export function NotificationBell({ notification }: { notification: any }) {
                     !canManageSystem && item.type !== "communication"
                       ? "hidden"
                       : ""
-                  }`}
-                >
+                  }`}>
                   <div className="flex items-start gap-3">
                     <div className={`mt-1 ${getPriorityColor(item.priority)}`}>
                       {getIcon(item.type)}
@@ -203,8 +200,7 @@ export function NotificationBell({ notification }: { notification: any }) {
                               variant="ghost"
                               size="icon"
                               className="h-6 w-6 cursor-pointer"
-                              onClick={() => markAsRead(item.id)}
-                            >
+                              onClick={() => markAsRead(item.id)}>
                               <Check className="h-3 w-3 text-green-500 hover:text-white" />
                             </Button>
                           )}
@@ -212,8 +208,7 @@ export function NotificationBell({ notification }: { notification: any }) {
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 cursor-pointer"
-                            onClick={() => deleteNotification(item.id)}
-                          >
+                            onClick={() => deleteNotification(item.id)}>
                             <X className="h-3 w-3 text-red-500" />
                           </Button>
                         </div>

@@ -6,7 +6,6 @@ import { DashboardLayout } from "@/components/dashboard-components/dashboard-lay
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/components/auth-provider";
 import { redirect } from "next/navigation";
-import { fetchNoifications } from "@/lib/data";
 // const spaceGrotesk = Space_Grotesk({
 //   subsets: ["latin"],
 //   display: "swap",
@@ -30,13 +29,12 @@ export default async function Layout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const notification = await fetchNoifications();
+  const notification: any = [];
   return (
     <div>
       <DashboardLayout
         children={children}
-        notification={notification}
-      ></DashboardLayout>
+        notification={notification}></DashboardLayout>
       <Toaster position="top-right" richColors theme="dark" duration={2000} />
     </div>
   );

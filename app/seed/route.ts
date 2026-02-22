@@ -21,18 +21,18 @@ async function seedUsers() {
     );
   `;
 
-  const insertedUsers = await Promise.all(
-    users.map(async (user) => {
-      const hashedPassword = await bcrypt.hash(user.password, 10);
-      return sql`
-        INSERT INTO users (id, role, name, email, phone, specialities, status, bio, password)
-        VALUES (${user.id},${user.role}, ${user.name}, ${user.email},${user.phone},${user.specialities}, ${user.status}, ${user.bio}, ${hashedPassword})
-        ON CONFLICT (id) DO NOTHING;
-      `;
-    })
-  );
+  // const insertedUsers = await Promise.all(
+  //   users.map(async (user) => {
+  //     const hashedPassword = await bcrypt.hash(user.password, 10);
+  //     return sql`
+  //       INSERT INTO users (id, role, name, email, phone, specialities, status, bio, password)
+  //       VALUES (${user.id},${user.role}, ${user.name}, ${user.email},${user.phone},${user.specialities}, ${user.status}, ${user.bio}, ${hashedPassword})
+  //       ON CONFLICT (id) DO NOTHING;
+  //     `;
+  //   })
+  // );
 
-  return insertedUsers;
+  return;
 }
 
 async function seedSheduling() {

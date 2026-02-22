@@ -292,10 +292,6 @@ export async function createRequest(formData: FormData) {
       status ?? "pending"
     }, ${notes ?? ""})
     `;
-    await sql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
-      VALUES ('requests','Request pending approval' , ${message}, 'high', 'false', ${JSON.stringify(
-      userData
-    )},${created})`;
 
     revalidatePath("/dashboard/requests");
     return { success: true, message: "Request added successfully" };
@@ -441,9 +437,6 @@ export async function createCommunication(formData: FormData) {
       INSERT INTO communications (sender_id, sender_name, subject, content, user_status, created)
       VALUES (${userId}, ${userName}, ${subject}, ${content}, ${user_status}, ${created})
     `;
-
-    await sql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
-      VALUES ('communication','New announcement' , ${message}, 'medium', 'false', ${user_status}, ${created})`;
 
     revalidatePath("/dashboard/communications");
     return { success: true, message: "Message added successfully" };
