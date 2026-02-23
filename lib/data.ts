@@ -1,13 +1,13 @@
 "use server";
 
-import sql from "@/lib/db";
+import { readSql } from "@/lib/db";
 import { User } from "@/lib/definations";
 import { DateTime } from "luxon";
 
 // Users
 export async function fetchStaff() {
   try {
-    const data = await sql`
+    const data = await readSql`
       SELECT 
         users.id,
         users.role,
@@ -21,14 +21,14 @@ export async function fetchStaff() {
         users.bio
       FROM users 
       ORDER BY users.name`;
-    const activeUsers = await sql<
+    const activeUsers = await readSql<
       []
     >`SELECT * from users WHERE status ='active'`;
     const staffData = data.map((member) => ({
       ...member,
       specialities: member?.specialities ? member.specialities.split(",") : [],
     }));
-    const formStaff = await sql<[]>`SELECT
+    const formStaff = await readSql<[]>`SELECT
       users.id,
       users.name
       FROM users
@@ -43,7 +43,7 @@ export async function fetchStaff() {
 
 export async function fetchUser(email: string) {
   try {
-    const data = await sql<User[]>`
+    const data = await readSql<User[]>`
       SELECT 
         users.id,
         users.role,
@@ -65,7 +65,7 @@ export async function fetchUser(email: string) {
 
 export async function fetchUserById(id: string) {
   try {
-    const data = await sql<User[]>`
+    const data = await readSql<User[]>`
       SELECT 
         users.id,
         users.role,
@@ -96,7 +96,7 @@ export async function fetchFilteredStaff(query: string, currentPage: number) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
-    const staff = await sql`
+    const staff = await readSql`
       SELECT 
         users.id,
         users.role,
@@ -132,7 +132,7 @@ export async function fetchFilteredStaff(query: string, currentPage: number) {
 
 export async function fetchStaffDashboard() {
   try {
-    const activeUsersPromise = await sql`
+    const activeUsersPromise = await readSql`
       SELECT 
         users.id,
         users.role,
@@ -140,7 +140,7 @@ export async function fetchStaffDashboard() {
       FROM users
       WHERE status = 'active'
     `;
-    const onLeaveUsersPromise = await sql`
+    const onLeaveUsersPromise = await readSql`
       SELECT 
         users.id,
         users.role,
@@ -148,7 +148,7 @@ export async function fetchStaffDashboard() {
       FROM users
       WHERE status = 'on-leave'
     `;
-    const inactiveUsersPromise = await sql`
+    const inactiveUsersPromise = await readSql`
       SELECT 
         users.id,
         users.role,
@@ -169,7 +169,7 @@ export async function fetchStaffDashboard() {
 //SCHEDULE
 export async function fetchSchedule() {
   try {
-    const data = await sql<[]>`
+    const data = await readSql<[]>`
       SELECT 
       scheduling.id,
       scheduling.staff,
@@ -195,7 +195,7 @@ export async function fetchSchedule() {
     }));
     const today = new Date();
     const todayNum = today.getDay();
-    const schedule1 = await sql`SELECT 
+    const schedule1 = await readSql`SELECT 
       scheduling.id,
       scheduling.title,
       scheduling.standin,
@@ -220,7 +220,7 @@ export async function fetchSchedule() {
     const todaySchedule = schedule2.filter(
       (item: any) => item.days[todayNum].value === true,
     );
-    const logsData = await sql`SELECT * FROM  logs ORDER BY created DESC`;
+    const logsData = await readSql`SELECT * FROM  logs ORDER BY created DESC`;
 
     const scheduleLogs = logsData.map((log) => ({
       ...log,
@@ -265,7 +265,7 @@ export async function fetchSchedule() {
 
 export async function fetchUserSchedule(id: string) {
   try {
-    const data = await sql<[]>`
+    const data = await readSql<[]>`
       SELECT 
       scheduling.id,
       scheduling.title,
@@ -286,7 +286,7 @@ export async function fetchUserSchedule(id: string) {
 export async function fetchAdSchedule() {
   try {
     const show =
-      await sql`SELECT id AS value, title AS label FROM scheduling ORDER BY title`;
+      await readSql`SELECT id AS value, title AS label FROM scheduling ORDER BY title`;
     return show;
   } catch (error) {
     console.log(error);
@@ -295,7 +295,7 @@ export async function fetchAdSchedule() {
 // LOGS
 export async function fetchLogs() {
   try {
-    const data = await sql`
+    const data = await readSql`
       SELECT 
       logs.id,
       logs.staff,
@@ -315,11 +315,11 @@ export async function fetchLogs() {
       JOIN users ON scheduling.staff = users.id 
       `;
     const approvedLogs =
-      await sql`SELECT id FROM logs WHERE status = 'approved'`;
+      await readSql`SELECT id FROM logs WHERE status = 'approved'`;
 
-    const pendingLogs = await sql`SELECT id FROM logs WHERE status = 'pending'`;
+    const pendingLogs = await readSql`SELECT id FROM logs WHERE status = 'pending'`;
     const declinedLogs =
-      await sql`SELECT id FROM logs WHERE status = 'declined'`;
+      await readSql`SELECT id FROM logs WHERE status = 'declined'`;
 
     const logsData = data.map((log) => ({
       ...log,
@@ -338,7 +338,7 @@ export async function fetchLogs() {
 
 export async function fetchScheduleLogs(id: string) {
   try {
-    const scheduleLogs = await sql`
+    const scheduleLogs = await readSql`
       SELECT 
       logs.id,
       logs.show,
@@ -374,7 +374,7 @@ export async function fetchFilteredLogs(
   const offset = (currentPage - 1) * totalItemPage;
 
   try {
-    const logs = await sql`
+    const logs = await readSql`
       SELECT 
       logs.id,
       logs.staff,
@@ -426,7 +426,7 @@ export async function fetchFilteredLogsById(
   const offset = (currentPage - 1) * totalItemPage;
 
   try {
-    const logs = await sql`
+    const logs = await readSql`
       SELECT 
       logs.id,
       logs.staff,
@@ -472,7 +472,7 @@ export async function fetchFilteredLogsById(
 
 export async function fetchLogPages(totalItemPage: number) {
   try {
-    const data = await sql`SELECT COUNT(*)
+    const data = await readSql`SELECT COUNT(*)
     FROM logs
   `;
     const totalPages = Math.ceil(Number(data[0].count) / totalItemPage);
@@ -489,7 +489,7 @@ export async function fetchtotalCurentUserPages(
   id: string,
 ) {
   try {
-    const data = await sql`SELECT COUNT(*)
+    const data = await readSql`SELECT COUNT(*)
     FROM logs
     WHERE staff = ${id}
   `;
@@ -504,7 +504,7 @@ export async function fetchtotalCurentUserPages(
 
 export async function fetchTotalLogs() {
   try {
-    const data = await sql`SELECT COUNT(*)
+    const data = await readSql`SELECT COUNT(*)
     FROM logs
   `;
 
@@ -517,7 +517,7 @@ export async function fetchTotalLogs() {
 
 export async function fetchTotalCurrentUserLogs(id: string) {
   try {
-    const data = await sql`SELECT COUNT(*)
+    const data = await readSql`SELECT COUNT(*)
     FROM logs
     WHERE staff = ${id}
   `;
@@ -531,7 +531,7 @@ export async function fetchTotalCurrentUserLogs(id: string) {
 
 export async function fetchRequetsPages(totalItemPage: number) {
   try {
-    const data = await sql`SELECT COUNT(*)
+    const data = await readSql`SELECT COUNT(*)
     FROM requests
   `;
     const totalPages = Math.ceil(Number(data[0].count) / totalItemPage);
@@ -548,7 +548,7 @@ export async function fetchtotalCurentUserRequestsPages(
   id: string,
 ) {
   try {
-    const data = await sql`SELECT COUNT(*)
+    const data = await readSql`SELECT COUNT(*)
     FROM requests
     WHERE staff_id = ${id}
   `;
@@ -569,7 +569,7 @@ export async function fetchFilteredRequests(
   const offset = (currentPage - 1) * totalItemPage;
 
   try {
-    const requests = await sql`
+    const requests = await readSql`
       SELECT 
       requests.id,
       requests.staff_id,
@@ -612,7 +612,7 @@ export async function fetchFilteredRequestsById(
   const offset = (currentPage - 1) * totalItemPage;
 
   try {
-    const requests = await sql`
+    const requests = await readSql`
       SELECT 
       requests.id,
       requests.staff_id,
@@ -648,7 +648,7 @@ export async function fetchFilteredRequestsById(
 
 export async function fetchTotalRequests() {
   try {
-    const data = await sql`SELECT COUNT(*)
+    const data = await readSql`SELECT COUNT(*)
     FROM requests
   `;
 
@@ -661,7 +661,7 @@ export async function fetchTotalRequests() {
 
 export async function fetchTotalCurrentUserRequests(id: string) {
   try {
-    const data = await sql`SELECT COUNT(*)
+    const data = await readSql`SELECT COUNT(*)
     FROM requests
     WHERE staff_id = ${id}
   `;
@@ -675,26 +675,26 @@ export async function fetchTotalCurrentUserRequests(id: string) {
 
 export async function fetchRequestfDashboard() {
   try {
-    const emergency = await sql`
+    const emergency = await readSql`
       SELECT 
         COUNT(*)
       FROM requests
       WHERE type = 'emergency'
     `;
-    const leave = await sql`
+    const leave = await readSql`
       SELECT 
         COUNT(*)
       FROM requests
       WHERE type = 'leave'
     `;
 
-    const offDuty = await sql`
+    const offDuty = await readSql`
       SELECT 
         COUNT(*)
       FROM requests
       WHERE type = 'off-duty'
     `;
-    const facilitation = await sql`
+    const facilitation = await readSql`
       SELECT 
         COUNT(*)
       FROM requests
@@ -709,7 +709,7 @@ export async function fetchRequestfDashboard() {
 
 export async function fetchPendingRequest() {
   try {
-    const pending = await sql`
+    const pending = await readSql`
       SELECT 
         COUNT(*)
       FROM requests
@@ -724,7 +724,7 @@ export async function fetchPendingRequest() {
 
 export async function fetchPendingUserRequest(id: string) {
   try {
-    const pending = await sql`
+    const pending = await readSql`
       SELECT 
         COUNT(*)
       FROM requests
@@ -739,7 +739,7 @@ export async function fetchPendingUserRequest(id: string) {
 
 export async function fetchAdverts() {
   try {
-    const advert = await sql`
+    const advert = await readSql`
       SELECT 
         *
       FROM adverts
@@ -759,7 +759,7 @@ export async function fetchAdverts() {
 
 export async function fetchAdvertStats() {
   try {
-    const advertCount = await sql`
+    const advertCount = await readSql`
       SELECT 
         COUNT(*)
       FROM adverts
@@ -774,7 +774,7 @@ export async function fetchAdvertStats() {
 
 export async function fetchCommunicationUsers() {
   try {
-    const users = await sql`SELECT * FROM users ORDER BY name`;
+    const users = await readSql`SELECT * FROM users ORDER BY name`;
 
     const users_ = users.map((item: any) => ({
       id: item.id,
@@ -791,7 +791,7 @@ export async function fetchCommunicationUsers() {
 export async function fetchCommunication() {
   try {
     const communications =
-      await sql`SELECT id, subject, sender_name, sender_id, content, user_status, created::TEXT FROM communications ORDER BY created`;
+      await readSql`SELECT id, subject, sender_name, sender_id, content, user_status, created::TEXT FROM communications ORDER BY created`;
     const coms = communications
       .map((item: any) => ({
         ...item,
@@ -808,7 +808,7 @@ export async function fetchCommunication() {
 export async function fetchCommunicationById(id: string) {
   try {
     const communications =
-      await sql<any>`SELECT id, subject, content, user_status, created FROM communications WHERE id=${id}`;
+      await readSql<any>`SELECT id, subject, content, user_status, created FROM communications WHERE id=${id}`;
 
     const status = JSON.parse(communications[0].user_status);
 
@@ -821,15 +821,15 @@ export async function fetchCommunicationById(id: string) {
 export async function fetchNoifications() {
   try {
     // const logNotifications =
-    //   await sql<any>`SELECT * FROM notifications WHERE type='logs' ORDER BY time `;
+    //   await readSql<any>`SELECT * FROM notifications WHERE type='logs' ORDER BY time `;
 
     // const requestNotifications =
-    //   await sql<any>`SELECT * FROM notifications WHERE type='requests' ORDER BY time `;
+    //   await readSql<any>`SELECT * FROM notifications WHERE type='requests' ORDER BY time `;
 
     // const communicationsNotifications =
-    //   await sql<any>`SELECT * FROM notifications WHERE type='communication' ORDER BY time`;
+    //   await readSql<any>`SELECT * FROM notifications WHERE type='communication' ORDER BY time`;
     const notifications =
-      await sql<any>`SELECT * FROM notifications  ORDER BY time DESC LIMIT 4`;
+      await readSql<any>`SELECT * FROM notifications  ORDER BY time DESC LIMIT 4`;
 
     return notifications;
   } catch (error) {
@@ -840,7 +840,7 @@ export async function fetchNoifications() {
 export async function fetchNoificationById(id: string) {
   try {
     const notifications =
-      await sql<any>`SELECT * FROM notifications WHERE id=${id} `;
+      await readSql<any>`SELECT * FROM notifications WHERE id=${id} `;
 
     return notifications;
   } catch (error) {
@@ -853,7 +853,7 @@ export async function fetchNoificationById(id: string) {
 export async function fetchAttendanceById(id: string) {
   try {
     const attendance =
-      await sql<any>`SELECT * FROM attendance WHERE staff=${id} AND created >= DATE_TRUNC('day', NOW())
+      await readSql<any>`SELECT * FROM attendance WHERE staff=${id} AND created >= DATE_TRUNC('day', NOW())
   AND created < DATE_TRUNC('day', NOW()) + INTERVAL '1 day' ORDER BY created DESC LIMIT 1`;
 
     return attendance;
@@ -871,7 +871,7 @@ export async function fetchFilteredAttendance(query: string) {
       date = query;
     }
 
-    const attendance = await sql<any>`SELECT 
+    const attendance = await readSql<any>`SELECT 
       users.id, users.name, users.status, login, logout, attendance.clock_in_time, 
       attendance.clock_out_time, COALESCE(attendance.created, ${date}) as date
       FROM users LEFT JOIN LATERAL (SELECT * FROM attendance WHERE users.id = attendance.staff AND

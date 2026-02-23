@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import sql from "@/lib/db";
+import { primarySql } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import {
   fetchUser,
@@ -38,7 +38,7 @@ export async function createStaff(formData: FormData) {
   // Saving to a database
 
   try {
-    await sql`
+    await primarySql`
       INSERT INTO users (role, name, email, phone, specialities, status, bio, password, login, logout)
       VALUES (${role}, ${name}, ${email}, ${phone}, ${specialities}, ${status}, ${bio}, ${hashedPassword}, ${login}, ${logout})
     `;
@@ -80,7 +80,7 @@ export async function updateStaff(formData: FormData) {
   }
 
   try {
-    await sql`
+    await primarySql`
       UPDATE users
       SET role = ${role}, name = ${name} , email = ${email} , phone = ${phone},
       specialities = ${specialities}, status = ${status}, bio = ${bio} , password=${setPassword}, login= ${login}, logout=${logout}
@@ -97,9 +97,9 @@ export async function updateStaff(formData: FormData) {
 }
 
 export async function deleteStaff(id: string) {
-  await sql`DELETE FROM users WHERE id = ${id}`;
-  await sql`DELETE FROM scheduling WHERE staff = ${id}`;
-  await sql`DELETE FROM logs WHERE staff = ${id}`;
+  await primarySql`DELETE FROM users WHERE id = ${id}`;
+  await primarySql`DELETE FROM scheduling WHERE staff = ${id}`;
+  await primarySql`DELETE FROM logs WHERE staff = ${id}`;
   revalidatePath("/dashboard/staff");
 }
 
@@ -128,7 +128,7 @@ export async function createScheduling(formData: FormData) {
   }
 
   try {
-    await sql` INSERT INTO scheduling (title, standin, description, days, color, start, ends, recurring, created, date,  staff)
+    await primarySql` INSERT INTO scheduling (title, standin, description, days, color, start, ends, recurring, created, date,  staff)
     VALUES (${title}, ${standIn},  ${description}, ${days},  ${color}, ${startTime}, ${endTime}, ${isRecurring}, ${created}, ${date}, ${staffId} )
     `;
     revalidatePath("/dashboard/schedulindg");
@@ -165,7 +165,7 @@ export async function updateScheduling(formData: FormData) {
   }
 
   try {
-    await sql` UPDATE 
+    await primarySql` UPDATE 
      scheduling SET title=${title}, standin=${standIn}, description= ${description}, days=${days}, color=${color}, 
      start=${startTime}, ends=${endTime}, recurring=${isRecurring}, date = ${date}, staff = ${staffId}
      WHERE id= ${id}
@@ -182,8 +182,8 @@ export async function updateScheduling(formData: FormData) {
 
 export async function deleteSchedule(id: string) {
   try {
-    await sql`DELETE FROM scheduling WHERE id = ${id}`;
-    await sql`DELETE FROM logs WHERE show = ${id}`;
+    await primarySql`DELETE FROM scheduling WHERE id = ${id}`;
+    await primarySql`DELETE FROM logs WHERE show = ${id}`;
   } catch (error) {
     if (error) {
       return { success: false };
@@ -212,14 +212,14 @@ export async function createLog(formData: FormData) {
 
   const userData: any = await fetchCommunicationUsers();
   try {
-    await sql`
+    await primarySql`
       INSERT INTO logs (staff, show, segments, guests, adverts, status, created, ads)
       VALUES (${staff}, ${show},  ${segments}, ${guests}, ${adverts}, ${status}, ${created}, ${ads} )
     `;
-    await sql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
+    await primarySql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
       VALUES ('logs',${title} , ${message}, 'high', 'false', ${JSON.stringify(
-      userData
-    )}, ${created})`;
+        userData,
+      )}, ${created})`;
   } catch (error: any) {
     if (error) {
       console.log(error);
@@ -241,7 +241,7 @@ export async function updateLog(formData: FormData) {
   // Saving to a database
 
   try {
-    await sql`
+    await primarySql`
        UPDATE logs SET segments=${segments}, guests=${guests}, adverts = ${adverts}, status=${status}, ads=${ads} WHERE id=${logId}
     `;
   } catch (error: any) {
@@ -254,7 +254,7 @@ export async function updateLog(formData: FormData) {
 
 export async function deleteLog(id: string) {
   try {
-    await sql`DELETE FROM logs WHERE id = ${id}`;
+    await primarySql`DELETE FROM logs WHERE id = ${id}`;
   } catch (error) {
     if (error) {
       return { success: false };
@@ -285,12 +285,12 @@ export async function createRequest(formData: FormData) {
   // Saving to a database
 
   try {
-    await sql`
+    await primarySql`
       INSERT INTO requests (staff_id, type, reason, start_date, end_date, stand_in, created, status, notes
       )
       VALUES (${staffId}, ${type}, ${reason},  ${startDate}, ${endtDate}, ${standIn}, ${created}, ${
-      status ?? "pending"
-    }, ${notes ?? ""})
+        status ?? "pending"
+      }, ${notes ?? ""})
     `;
 
     revalidatePath("/dashboard/requests");
@@ -316,10 +316,10 @@ export async function updateRequest(formData: FormData) {
   // Saving to a database
 
   try {
-    await sql`
+    await primarySql`
        UPDATE requests SET type=${type}, reason=${reason}, start_date = ${startDate}, end_date=${endtDate}, stand_in=${standIn}, status =${
-      status ?? "pending"
-    }, notes=${notes} WHERE id=${id}
+         status ?? "pending"
+       }, notes=${notes} WHERE id=${id}
     `;
     revalidatePath("/dashboard/requests");
     return { success: true, message: "Request updated successfully" };
@@ -334,7 +334,7 @@ export async function updateRequest(formData: FormData) {
 
 export async function deleteRequest(id: string) {
   try {
-    await sql`DELETE FROM requests WHERE id = ${id}`;
+    await primarySql`DELETE FROM requests WHERE id = ${id}`;
     revalidatePath("/dashboard/scheduling");
     return { success: true, message: "Request Deleted!" };
   } catch (error) {
@@ -362,7 +362,7 @@ export async function createAdvert(formData: FormData) {
   // Saving to a database
 
   try {
-    await sql`
+    await primarySql`
       INSERT INTO adverts (title, status, slot, shows, created)
       VALUES (${title}, ${status}, ${slot},  ${shows},${created})
     `;
@@ -393,7 +393,7 @@ export async function updateAdvert(formData: FormData) {
   // Saving to a database
 
   try {
-    await sql`
+    await primarySql`
       UPDATE adverts SET title =${title}, status =${status}, slot =${slot}, shows =${shows} 
       WHERE id=${id}
     `;
@@ -409,7 +409,7 @@ export async function updateAdvert(formData: FormData) {
 
 export async function deleteAdvert(id: string) {
   try {
-    await sql`DELETE FROM adverts WHERE id = ${id}`;
+    await primarySql`DELETE FROM adverts WHERE id = ${id}`;
     revalidatePath("/dashboard/market");
     return { success: true, message: "Advert Deleted!" };
   } catch (error) {
@@ -433,7 +433,7 @@ export async function createCommunication(formData: FormData) {
   // Saving to a database
 
   try {
-    await sql`
+    await primarySql`
       INSERT INTO communications (sender_id, sender_name, subject, content, user_status, created)
       VALUES (${userId}, ${userName}, ${subject}, ${content}, ${user_status}, ${created})
     `;
@@ -456,7 +456,7 @@ export async function updateCommunication(formData: FormData) {
   // Saving to a database
 
   try {
-    await sql` UPDATE communications SET subject =${subject}, content =${content} WHERE id=${id}
+    await primarySql` UPDATE communications SET subject =${subject}, content =${content} WHERE id=${id}
     `;
     revalidatePath("/dashboard/communications");
     return { success: true, message: "Message Updated successfully" };
@@ -470,7 +470,7 @@ export async function updateCommunication(formData: FormData) {
 
 export async function deleteCommunication(id: string) {
   try {
-    await sql`DELETE FROM communications WHERE id = ${id}`;
+    await primarySql`DELETE FROM communications WHERE id = ${id}`;
     revalidatePath("/dashboard/communications");
     return { success: true, message: "Message Deleted!" };
   } catch (error) {
@@ -499,7 +499,7 @@ export async function updateCommunicationStatus(id: string, userId: string) {
   const strComsById = JSON.stringify(comsById);
 
   try {
-    await sql`UPDATE communications SET user_status = ${strComsById} WHERE id=${id}`;
+    await primarySql`UPDATE communications SET user_status = ${strComsById} WHERE id=${id}`;
     revalidatePath("/dashboard/communications");
   } catch (error) {
     console.log(error);
@@ -527,7 +527,7 @@ export async function markNotificationRead(id: string, userId: string) {
   const strNotById = JSON.stringify(userObj);
 
   try {
-    await sql`UPDATE notifications SET user_status=${strNotById} WHERE id=${id}`;
+    await primarySql`UPDATE notifications SET user_status=${strNotById} WHERE id=${id}`;
     revalidatePath("/", "layout");
   } catch (error) {
     console.log(error);
@@ -555,7 +555,7 @@ export async function deleteUserNotification(id: string, userId: string) {
   const strNotById = JSON.stringify(userObj);
 
   try {
-    await sql`UPDATE notifications SET user_status=${strNotById} WHERE id=${id}`;
+    await primarySql`UPDATE notifications SET user_status=${strNotById} WHERE id=${id}`;
     revalidatePath("/", "layout");
   } catch (error) {
     console.log(error);
@@ -568,12 +568,12 @@ export async function createAttendance(userId: string) {
   const created = new Date();
 
   try {
-    await sql`
+    await primarySql`
       INSERT INTO attendance (staff, clock_in_time, clocked_in, created)
       VALUES (${userId}, ${clock_in_time}, ${clocked_in}, ${created})
     `;
 
-    // await sql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
+    // await primarySql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
     //   VALUES ('A','New announcement' , ${message}, 'medium', 'false', ${user_status}, ${created})`;
 
     revalidatePath("/dashboard/attendance");
@@ -595,7 +595,7 @@ export async function updateAttendance(id: string) {
   }
 
   try {
-    await sql`
+    await primarySql`
       UPDATE attendance set clock_out_time = ${clock_out_time}, clocked_out = ${clocked_out}
       WHERE id = ${id}
     `;

@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs";
 import postgres from "postgres";
-import sql from "@/lib/db";
+import { primarySql } from "@/lib/db";
 import { users } from "@/lib/placeholder-data";
 
 async function seedUsers() {
-  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  await sql`
+  await primarySql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await primarySql`
     CREATE TABLE IF NOT EXISTS users (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       role VARCHAR(255) NOT NULL,
@@ -24,7 +24,7 @@ async function seedUsers() {
   // const insertedUsers = await Promise.all(
   //   users.map(async (user) => {
   //     const hashedPassword = await bcrypt.hash(user.password, 10);
-  //     return sql`
+  //     return primarySql`
   //       INSERT INTO users (id, role, name, email, phone, specialities, status, bio, password)
   //       VALUES (${user.id},${user.role}, ${user.name}, ${user.email},${user.phone},${user.specialities}, ${user.status}, ${user.bio}, ${hashedPassword})
   //       ON CONFLICT (id) DO NOTHING;
@@ -36,8 +36,8 @@ async function seedUsers() {
 }
 
 async function seedSheduling() {
-  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  await sql`
+  await primarySql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await primarySql`
     CREATE TABLE IF NOT EXISTS scheduling (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       title VARCHAR(255) NOT NULL,
@@ -56,8 +56,8 @@ async function seedSheduling() {
 }
 
 async function seedLogs() {
-  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  await sql`
+  await primarySql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await primarySql`
     CREATE TABLE IF NOT EXISTS logs (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       staff UUID NOT NULL,
@@ -72,8 +72,8 @@ async function seedLogs() {
 }
 
 async function seedRequests() {
-  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  await sql`
+  await primarySql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await primarySql`
     CREATE TABLE IF NOT EXISTS requests (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       staff_id UUID NOT NULL,
@@ -90,8 +90,8 @@ async function seedRequests() {
 }
 
 async function seedAdverts() {
-  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  await sql`
+  await primarySql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await primarySql`
     CREATE TABLE IF NOT EXISTS adverts (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       title VARCHAR(255) NOT NULL,
@@ -104,8 +104,8 @@ async function seedAdverts() {
 }
 
 async function seedCommunications() {
-  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  await sql`
+  await primarySql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await primarySql`
     CREATE TABLE IF NOT EXISTS communications (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       sender_id UUID NOT NULL,
@@ -119,8 +119,8 @@ async function seedCommunications() {
 }
 
 async function seedNotificatications() {
-  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  await sql`
+  await primarySql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await primarySql`
     CREATE TABLE IF NOT EXISTS notifications (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       type VARCHAR(250) NOT NULL,
@@ -135,8 +135,8 @@ async function seedNotificatications() {
 }
 
 async function seedAttendance() {
-  await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  await sql`
+  await primarySql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+  await primarySql`
     CREATE TABLE IF NOT EXISTS attendance (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       staff UUID NOT NULL,
@@ -150,7 +150,7 @@ async function seedAttendance() {
 }
 export async function GET() {
   try {
-    const result = await sql.begin((sql) => [
+    const result = await primarySql.begin((primarySql) => [
       seedUsers(),
       seedSheduling(),
       seedLogs(),
