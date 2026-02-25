@@ -24,7 +24,7 @@ export async function fetchStaff() {
     const activeUsers = await readSql<
       []
     >`SELECT * from users WHERE status ='active'`;
-    const staffData = data.map((member) => ({
+    const staffData = data.map((member: any) => ({
       ...member,
       specialities: member?.specialities ? member.specialities.split(",") : [],
     }));
@@ -222,7 +222,7 @@ export async function fetchSchedule() {
     );
     const logsData = await readSql`SELECT * FROM  logs ORDER BY created DESC`;
 
-    const scheduleLogs = logsData.map((log) => ({
+    const scheduleLogs = logsData.map((log: any) => ({
       ...log,
       segments: JSON.parse(log.segments),
       guests: JSON.parse(log.guests),
@@ -230,7 +230,7 @@ export async function fetchSchedule() {
     }));
 
     const hourNow = Number(new Date().getHours());
-    const liveShow = todaySchedule.filter((item) => {
+    const liveShow = todaySchedule.filter((item: any) => {
       const startHour = Number(item?.start.split(":")[0]);
       const endHour = Number(item.ends.split(":")[0]);
 
@@ -238,14 +238,14 @@ export async function fetchSchedule() {
     });
 
     const upCommingShows1 = todaySchedule
-      .filter((item) => {
+      .filter((item: any) => {
         const startHour = Number(item.start.split(":")[0]);
         return startHour > hourNow;
       })
       .sort((a: any, b: any) => a.start.localeCompare(b.start))
       .slice(0, 4);
 
-    const upCommingShows = upCommingShows1.map((item) => ({
+    const upCommingShows = upCommingShows1.map((item: any) => ({
       ...item,
       duration: Number(item.start.split(":")[0]) - hourNow,
     }));
@@ -317,11 +317,12 @@ export async function fetchLogs() {
     const approvedLogs =
       await readSql`SELECT id FROM logs WHERE status = 'approved'`;
 
-    const pendingLogs = await readSql`SELECT id FROM logs WHERE status = 'pending'`;
+    const pendingLogs =
+      await readSql`SELECT id FROM logs WHERE status = 'pending'`;
     const declinedLogs =
       await readSql`SELECT id FROM logs WHERE status = 'declined'`;
 
-    const logsData = data.map((log) => ({
+    const logsData = data.map((log: any) => ({
       ...log,
       segments: JSON.parse(log.segments),
       guests: JSON.parse(log.guests),

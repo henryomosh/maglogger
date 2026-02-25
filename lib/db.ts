@@ -5,7 +5,7 @@ import postgres from "postgres";
 //   // ssl: process.env.NODE_ENV === "production" ? "require" : false,
 // });
 
-const primarySql = postgres(process.env.POSTGRES_URL!);
-const readSql = postgres(process.env.POSTGRES_READ_REPLICA_URL!);
+let primarySql: any = postgres(process.env.POSTGRE_BACKUP_URL!);
+let readSql: any = postgres(process.env.POSTGRE_BACKUP_URL!);
 
 export { primarySql, readSql };

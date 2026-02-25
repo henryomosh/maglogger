@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import postgres from "postgres";
 import { primarySql } from "@/lib/db";
-import { users } from "@/lib/placeholder-data";
 
 async function seedUsers() {
   await primarySql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -20,17 +19,6 @@ async function seedUsers() {
       password TEXT NOT NULL
     );
   `;
-
-  // const insertedUsers = await Promise.all(
-  //   users.map(async (user) => {
-  //     const hashedPassword = await bcrypt.hash(user.password, 10);
-  //     return primarySql`
-  //       INSERT INTO users (id, role, name, email, phone, specialities, status, bio, password)
-  //       VALUES (${user.id},${user.role}, ${user.name}, ${user.email},${user.phone},${user.specialities}, ${user.status}, ${user.bio}, ${hashedPassword})
-  //       ON CONFLICT (id) DO NOTHING;
-  //     `;
-  //   })
-  // );
 
   return;
 }
@@ -66,7 +54,8 @@ async function seedLogs() {
       guests JSONB,
       adverts JSONB,
       status VARCHAR(255) NOT NULL,
-      created TIMESTAMPTZ NOT NULL
+      created TIMESTAMPTZ NOT NULL,
+      ads JSONB
     );
   `;
 }
@@ -150,7 +139,7 @@ async function seedAttendance() {
 }
 export async function GET() {
   try {
-    const result = await primarySql.begin((primarySql) => [
+    const result = await primarySql.begin((primarySql: any) => [
       seedUsers(),
       seedSheduling(),
       seedLogs(),

@@ -3,14 +3,15 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 
-const protectedRoutes = ["/dashboard"];
+const protectedRoutes = ["/seed"];
 const publicRoutes = ["/signup", "/"];
 const lockedRoutes = ["/"];
 
 export async function middleware(request: NextRequest) {
   // Check if the current route is protected or public
   const path = request.nextUrl.pathname;
-  const isProtectedRoute = path.startsWith("/dashboard");
+  const isProtectedRoute =
+    protectedRoutes.includes(path) || path.startsWith("/dashboard");
   const isPublicRoute = publicRoutes.includes(path);
 
   const cookie = (await cookies()).get("session")?.value;
