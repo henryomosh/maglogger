@@ -13,44 +13,34 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Users,
   Calendar,
-  Music,
-  DollarSign,
-  TrendingUp,
-  Clock,
-  Mic,
-  Radio,
   Clock3,
-  Check,
-  CircleX,
   FileText,
+  Home,
   Hourglass,
   Megaphone,
+  Mic,
+  Radio,
+  Users,
 } from "lucide-react";
+import DashboardAttendance from "@/components/sub-components/dashboard-attendance";
 
 export function DashboardHome({
-  staffData,
+  attendance,
   activeUsers,
   scheduleData,
-  logsData,
   liveShow,
-  approvedLogs,
   pendingLogs,
-  declinedLogs,
   upCommingShows,
   pendingRequests,
   advertsCount,
   pendingUserRequest,
 }: {
-  staffData: any;
+  attendance: any;
   scheduleData: any;
   activeUsers: any;
-  logsData: any;
   liveShow: any;
-  approvedLogs: any;
   pendingLogs: any;
-  declinedLogs: any;
   upCommingShows: any;
   pendingRequests: any;
   advertsCount: any;
@@ -61,65 +51,27 @@ export function DashboardHome({
 
   const canManageStaff = user?.role === "admin" || user?.role === "manager";
 
-  const filterApprovedLogs = canManageStaff
-    ? approvedLogs
-    : approvedLogs.filter((item: any) => {
-        return item.staff === user?.id;
-      });
-
-  const filterDeclinedLogs = canManageStaff
-    ? declinedLogs
-    : declinedLogs.filter((item: any) => {
-        return item.staff === user?.id;
-      });
-
   const filterPendingLogs = canManageStaff
     ? pendingLogs
     : pendingLogs.filter((item: any) => {
         return item.staff === user?.id;
       });
 
-  const recentActivity = [
-    {
-      time: "2:30 PM",
-      event: 'Mike Presenter started "Newspaper Review"',
-      type: "live",
-    },
-    {
-      time: "1:45 PM",
-      event: 'New playlist "Top 40 Hits" created',
-      type: "playlist",
-    },
-    {
-      time: "12:15 PM",
-      event: "Sarah  updated show schedule",
-      type: "schedule",
-    },
-    {
-      time: "11:30 AM",
-      event: 'Ad campaign "Local Business" completed',
-      type: "revenue",
-    },
-  ];
-
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-sans font-bold text-blue-500">
-            Welcome back, {user?.name || "User"}!
-          </h1>
-          <p className="text-muted-foreground font-serif mt-1">
-            Here's what's happening at your radio station today.
-          </p>
-        </div>
+      <div className="flex items-center gap-2">
+        <Home className="h-8 w-8 text-blue-500" />
+        <h1 className="text-blue-500 text-3xl font-extrabold">Dashboard</h1>
+      </div>
+      <div className="flex flex-col md:flex-row gap-8 justify-between border border-green-300 rounded-md p-4 bg-green-50">
         <a href="https://zeno.fm/radio/mitumeradio/">
-          <Badge variant="secondary" className="font-serif">
+          <Badge variant="secondary" className="font-serif p-2 px-4">
             <div className="w-4 h-4 bg-green-500 rounded-full mr-2 animate-pulse"></div>
             Mitume Radio Live
           </Badge>
         </a>
+        <DashboardAttendance attendance={attendance} />
       </div>
 
       {/* Stats Grid */}
@@ -137,7 +89,7 @@ export function DashboardHome({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-sans font-bold">
-              {activeUsers.length || 0}
+              {activeUsers[0]?.count ?? 0}
             </div>
             <p className="text-xs text-muted-foreground font-serif"></p>
           </CardContent>
@@ -156,7 +108,7 @@ export function DashboardHome({
             </div>
             <p className="text-xs text-green-500 font-serif font-bold">
               {liveShow?.length > 0
-                ? `${liveShow.length} live now`
+                ? `${liveShow?.length} live now`
                 : "No live show now"}
             </p>
           </CardContent>
@@ -202,7 +154,7 @@ export function DashboardHome({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-sans font-bold">
-              {filterPendingLogs?.length || 0}
+              {pendingLogs[0]?.count ?? 0}
             </div>
             <p className="text-xs text-muted-foreground font-serif"></p>
           </CardContent>
@@ -217,7 +169,7 @@ export function DashboardHome({
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-sans font-bold">
-                {pendingUserRequest[0].count || 0}
+                {pendingUserRequest[0]?.count || 0}
               </div>
               <p className="text-xs text-muted-foreground font-serif"></p>
             </CardContent>

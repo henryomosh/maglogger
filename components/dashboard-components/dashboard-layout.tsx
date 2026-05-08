@@ -29,6 +29,7 @@ import {
   Nfc,
   Clock,
   PowerIcon,
+  Home,
 } from "lucide-react";
 import { NotificationBell } from "./notifications";
 
@@ -48,7 +49,7 @@ export function DashboardLayout({
   const navigation = [
     {
       name: "Dashboard",
-      icon: BarChart3,
+      icon: Home,
       href: "#dashboard",
       key: "dashboard",
       link: "/dashboard",

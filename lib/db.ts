@@ -5,7 +5,14 @@ import postgres from "postgres";
 //   // ssl: process.env.NODE_ENV === "production" ? "require" : false,
 // });
 
-let primarySql: any = postgres(process.env.POSTGRE_BACKUP_URL!);
-let readSql: any = postgres(process.env.POSTGRE_BACKUP_URL!);
+const isDev = process.env.NODE_ENV === "development";
+
+let primarySql: any = isDev
+  ? postgres(process.env.POSTGRES_URL!)
+  : postgres(process.env.POSTGRE_BACKUP_URL!);
+
+let readSql: any = isDev
+  ? postgres(process.env.POSTGRES_URL!)
+  : postgres(process.env.POSTGRE_BACKUP_URL!);
 
 export { primarySql, readSql };

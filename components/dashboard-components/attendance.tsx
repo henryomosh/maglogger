@@ -4,8 +4,7 @@ import { useState } from "react";
 import AttendanceTable from "@/components/sub-components/attendance-table";
 import { Clock, LogIn, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "../auth-provider";
 import { toast } from "sonner";
@@ -31,14 +30,14 @@ export default function Attendance({
       ? String(
           Math.abs(
             new Date(attendance[0]?.clock_out_time).getHours() -
-              new Date(attendance[0]?.clock_in_time).getHours()
-          )
+              new Date(attendance[0]?.clock_in_time).getHours(),
+          ),
         )
       : String(
           Math.abs(
             new Date().getHours() -
-              new Date(attendance[0]?.clock_in_time).getHours()
-          )
+              new Date(attendance[0]?.clock_in_time).getHours(),
+          ),
         )
     : "0";
   const minutes = isClockedIn
@@ -46,14 +45,14 @@ export default function Attendance({
       ? String(
           Math.abs(
             new Date(attendance[0]?.clock_out_time).getMinutes() -
-              new Date(attendance[0]?.clock_in_time).getMinutes()
-          )
+              new Date(attendance[0]?.clock_in_time).getMinutes(),
+          ),
         )
       : String(
           Math.abs(
             new Date().getMinutes() -
-              new Date(attendance[0]?.clock_in_time).getMinutes()
-          )
+              new Date(attendance[0]?.clock_in_time).getMinutes(),
+          ),
         )
     : "0";
   const seconds = isClockedIn
@@ -61,14 +60,14 @@ export default function Attendance({
       ? String(
           Math.abs(
             new Date(attendance[0]?.clock_out_time).getSeconds() -
-              new Date(attendance[0]?.clock_in_time).getSeconds()
-          )
+              new Date(attendance[0]?.clock_in_time).getSeconds(),
+          ),
         )
       : String(
           Math.abs(
             new Date().getSeconds() -
-              new Date(attendance[0]?.clock_in_time).getSeconds()
-          )
+              new Date(attendance[0]?.clock_in_time).getSeconds(),
+          ),
         )
     : "0";
 
@@ -128,7 +127,7 @@ export default function Attendance({
                 <>
                   {" "}
                   <LogOut className="h-5 w-5 mr-2" />
-                  Clock Out
+                  {isClockedOut ? "Clocked Out" : "Clock Out"}
                 </>
               )}
             </Button>

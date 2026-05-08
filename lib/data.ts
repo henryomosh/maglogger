@@ -230,24 +230,24 @@ export async function fetchSchedule() {
     }));
 
     const hourNow = Number(new Date().getHours());
-    const liveShow = todaySchedule.filter((item: any) => {
-      const startHour = Number(item?.start.split(":")[0]);
-      const endHour = Number(item.ends.split(":")[0]);
+    const liveShow = todaySchedule?.filter((item: any) => {
+      const startHour = Number(item?.start?.split(":")[0]);
+      const endHour = Number(item?.ends?.split(":")[0]);
 
       return endHour >= hourNow && startHour <= hourNow;
     });
 
     const upCommingShows1 = todaySchedule
       .filter((item: any) => {
-        const startHour = Number(item.start.split(":")[0]);
+        const startHour = Number(item.start?.split(":")[0]);
         return startHour > hourNow;
       })
-      .sort((a: any, b: any) => a.start.localeCompare(b.start))
+      .sort((a: any, b: any) => a.start?.localeCompare(b.start))
       .slice(0, 4);
 
     const upCommingShows = upCommingShows1.map((item: any) => ({
       ...item,
-      duration: Number(item.start.split(":")[0]) - hourNow,
+      duration: Number(item.start?.split(":")[0]) - hourNow,
     }));
 
     return {

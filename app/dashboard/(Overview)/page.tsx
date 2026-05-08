@@ -1,41 +1,52 @@
 import { DashboardHome } from "@/components/dashboard-components/dashboard-home";
-import { useAuth } from "@/components/auth-provider";
 import { cookies } from "next/headers";
 import {
-  fetchStaff,
-  fetchSchedule,
-  fetchUserSchedule,
-  fetchLogs,
   fetchAdvertStats,
+  fetchAttendanceById,
   fetchPendingRequest,
   fetchPendingUserRequest,
 } from "@/lib/data";
+import { fetchDashboardCount } from "@/lib/data2";
 
 export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {
-  const { staffData, activeUsers } = await fetchStaff();
-  const { todaySchedule, liveShow, upCommingShows } = await fetchSchedule();
-  const { logsData, approvedLogs, pendingLogs, declinedLogs } =
-    await fetchLogs();
-  const pendingRequests = await fetchPendingRequest();
-  const advertsCount = await fetchAdvertStats();
-
   const cookieStore = (await cookies()).get("session")?.value as string;
-  const pendingUserRequest = await fetchPendingUserRequest(cookieStore);
 
+  const {
+    activeUsers,
+    todaySchedule,
+    liveShow,
+    upComingShows,
+    pendingLogs,
+    currentUser,
+  } = await fetchDashboardCount(cookieStore);
+
+  const isAdmin = currentUser[0].role === "admin";
+
+  let pendingRequests: any[] = [];
+  let advertsCount: any[] = [];
+  let pendingUserRequest: any[] = [];
+
+  if (isAdmin) {
+    pendingRequests = await fetchPendingRequest();
+    advertsCount = await fetchAdvertStats();
+  }
+
+  if (!isAdmin) {
+    pendingUserRequest = await fetchPendingUserRequest(cookieStore);
+  }
+
+  const attendance = await fetchAttendanceById(cookieStore);
   return (
     <>
       <DashboardHome
-        staffData={staffData}
+        attendance={attendance}
         activeUsers={activeUsers}
         scheduleData={todaySchedule}
-        logsData={logsData}
         liveShow={liveShow}
-        approvedLogs={approvedLogs}
         pendingLogs={pendingLogs}
-        declinedLogs={declinedLogs}
-        upCommingShows={upCommingShows}
+        upCommingShows={upComingShows}
         pendingRequests={pendingRequests}
         advertsCount={advertsCount}
         pendingUserRequest={pendingUserRequest}
