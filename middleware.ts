@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation";
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { deleteSession } from "@/lib/session";
 
 const protectedRoutes = [""];
 const publicRoutes = ["/signup", "/"];
@@ -15,6 +15,11 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = publicRoutes.includes(path);
 
   const cookie = (await cookies()).get("session")?.value;
+  const reset = (await cookies()).get("reset")?.value;
+
+  if (cookie && !reset) {
+    deleteSession();
+  }
 
   if (isPublicRoute && !cookie) {
     return NextResponse.redirect(new URL("/login", request.nextUrl));

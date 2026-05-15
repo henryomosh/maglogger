@@ -1,8 +1,7 @@
 "use server";
 
 import { readSql } from "@/lib/db";
-import { User } from "@/lib/definations";
-import { DateTime } from "luxon";
+import { User } from "@/lib/definations"; // Users
 
 // Users
 export async function fetchStaff() {
@@ -52,7 +51,10 @@ export async function fetchUser(email: string) {
         users.phone,
         users.status,
         users.password,
-        users.bio
+        users.bio,
+        users.specialities,
+        users.login,
+        users.logout
       FROM users
       WHERE users.email = ${email} `;
 
@@ -93,8 +95,6 @@ export async function fetchUserById(id: string) {
 
 const ITEMS_PER_PAGE = 5;
 export async function fetchFilteredStaff(query: string, currentPage: number) {
-  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-
   try {
     const staff = await readSql`
       SELECT 
@@ -119,12 +119,39 @@ export async function fetchFilteredStaff(query: string, currentPage: number) {
         users.bio ILIKE ${`%${query}%`}   
       ORDER BY users.name
     `;
-    const newStaff = staff.map((item: any) => ({
+
+    return staff.map((item: any) => ({
       ...item,
       specialities: item?.specialities?.split(","),
       len: item?.specialities?.split(",").length,
     }));
-    return newStaff;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchCurrentStaff(userId: string) {
+  try {
+    const staff = await readSql`
+      SELECT 
+        users.id,
+        users.role,
+        users.name,
+        users.email,
+        users.phone,
+        users.specialities,
+        users.status,
+        users.login,
+        users.logout,
+        users.bio
+      FROM users
+      WHERE users.id = ${userId}`;
+
+    return staff.map((item: any) => ({
+      ...item,
+      specialities: item?.specialities?.split(","),
+      len: item?.specialities?.split(",").length,
+    }));
   } catch (error) {
     console.log(error);
   }
@@ -134,31 +161,26 @@ export async function fetchStaffDashboard() {
   try {
     const activeUsersPromise = await readSql`
       SELECT 
-        users.id,
-        users.role,
-        users.status
+        COUNT(*)
       FROM users
       WHERE status = 'active'
     `;
     const onLeaveUsersPromise = await readSql`
-      SELECT 
-        users.id,
-        users.role,
-        users.status
+      SELECT
+        COUNT(*)
       FROM users
       WHERE status = 'on-leave'
     `;
     const inactiveUsersPromise = await readSql`
-      SELECT 
-        users.id,
-        users.role,
-        users.status
+      SELECT
+        COUNT(*)
       FROM users
       WHERE status = 'inactive'
     `;
-    const activeUsers = activeUsersPromise?.length;
-    const onLeaveUsers = onLeaveUsersPromise?.length;
-    const inactiveUsers = inactiveUsersPromise?.length;
+
+    const activeUsers = activeUsersPromise[0]?.count;
+    const onLeaveUsers = onLeaveUsersPromise[0]?.count;
+    const inactiveUsers = inactiveUsersPromise[0]?.count;
 
     return { activeUsers, onLeaveUsers, inactiveUsers };
   } catch (error) {
@@ -167,6 +189,20 @@ export async function fetchStaffDashboard() {
 }
 
 //SCHEDULE
+export async function fetchLogsScheduleFilter() {
+  try {
+    const data = await readSql<[]>`
+      SELECT 
+      scheduling.title
+      FROM scheduling
+      ORDER BY scheduling.title`;
+    return data;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch the latest invoices.");
+  }
+}
+
 export async function fetchSchedule() {
   try {
     const data = await readSql<[]>`
@@ -195,24 +231,8 @@ export async function fetchSchedule() {
     }));
     const today = new Date();
     const todayNum = today.getDay();
-    const schedule1 = await readSql`SELECT 
-      scheduling.id,
-      scheduling.title,
-      scheduling.standin,
-      scheduling.description,
-      scheduling.days,
-      scheduling.color,
-      scheduling.start,
-      scheduling.ends,
-      scheduling.recurring,
-      TO_CHAR(scheduling.date, 'YYYY-MM-DD') AS date,
-      scheduling.created, 
-      users.name
-      FROM scheduling
-      JOIN users ON scheduling.staff = users.id
-     `;
 
-    const schedule2 = schedule1.map((item: any) => ({
+    const schedule2 = data.map((item: any) => ({
       ...item,
       days: JSON.parse(item.days),
     }));
@@ -220,14 +240,6 @@ export async function fetchSchedule() {
     const todaySchedule = schedule2.filter(
       (item: any) => item.days[todayNum].value === true,
     );
-    const logsData = await readSql`SELECT * FROM  logs ORDER BY created DESC`;
-
-    const scheduleLogs = logsData.map((log: any) => ({
-      ...log,
-      segments: JSON.parse(log.segments),
-      guests: JSON.parse(log.guests),
-      created: new Date(log.created).toUTCString(),
-    }));
 
     const hourNow = Number(new Date().getHours());
     const liveShow = todaySchedule?.filter((item: any) => {
@@ -255,7 +267,6 @@ export async function fetchSchedule() {
       todaySchedule,
       liveShow,
       upCommingShows,
-      scheduleLogs,
     };
   } catch (error) {
     console.error("Database Error:", error);
@@ -267,15 +278,46 @@ export async function fetchUserSchedule(id: string) {
   try {
     const data = await readSql<[]>`
       SELECT 
-      scheduling.id,
       scheduling.title,
-      scheduling.standin,
       scheduling.start,
       scheduling.ends
       FROM scheduling
       WHERE scheduling.staff = ${id}
       ORDER BY scheduling.created DESC`;
 
+    return data;
+  } catch (error) {
+    console.log("Database Error:", error);
+    throw new Error("Failed to fetch the latest invoices.");
+  }
+}
+
+export async function fetchAdvertsSchedule() {
+  try {
+    const data = await readSql<[]>`
+      SELECT
+      scheduling.id,
+      scheduling.title 
+      FROM scheduling
+      ORDER BY scheduling.title`;
+
+    return data;
+  } catch (error) {
+    console.log("Database Error:", error);
+    throw new Error("Failed to fetch the latest invoices.");
+  }
+}
+
+export async function fetchStaffSchedule() {
+  try {
+    const data = await readSql<[]>`
+      SELECT 
+      scheduling.staff,
+      scheduling.title,
+      scheduling.start,
+      scheduling.ends
+      FROM scheduling
+      ORDER BY scheduling.created DESC`;
     return data;
   } catch (error) {
     console.log("Database Error:", error);
@@ -401,7 +443,7 @@ export async function fetchFilteredLogs(
         logs.status ILIKE ${`%${query}%`} OR
         logs.created::TEXT ILIKE ${`%${query}%`}
       ORDER BY logs.created DESC
-       LIMIT ${totalItemPage} OFFSET ${offset}
+        LIMIT ${totalItemPage} OFFSET ${offset}
     `;
 
     const parsedLogs = logs.map((item: any) => ({
@@ -508,7 +550,6 @@ export async function fetchTotalLogs() {
     const data = await readSql`SELECT COUNT(*)
     FROM logs
   `;
-
     return data[0];
   } catch (error) {
     console.error("Database Error:", error);
@@ -744,14 +785,12 @@ export async function fetchAdverts() {
       SELECT 
         *
       FROM adverts
-      ORDER BY title
+      ORDER BY status, title
     `;
-
     const newad = advert.map((item: any) => ({
       ...item,
       shows: JSON.parse(item.shows),
     }));
-
     return newad;
   } catch (error) {
     console.log(error);
@@ -775,7 +814,7 @@ export async function fetchAdvertStats() {
 
 export async function fetchCommunicationUsers() {
   try {
-    const users = await readSql`SELECT * FROM users ORDER BY name`;
+    const users = await readSql`SELECT name, id FROM users ORDER BY name`;
 
     const users_ = users.map((item: any) => ({
       id: item.id,
@@ -879,7 +918,7 @@ export async function fetchFilteredAttendance(query: string) {
       attendance.created::DATE = ${date} ORDER BY 
       created DESC LIMIT 1) AS attendance ON TRUE ORDER BY users.name ASC
   `;
-    console.log(attendance);
+
     return attendance;
   } catch (error) {
     console.log(error);

@@ -1,14 +1,13 @@
-import { Requests } from "@/components/dashboard-components/request";
-import { cookies } from "next/headers";
+import {Requests} from "@/components/dashboard-components/request";
+import {cookies} from "next/headers";
 import {
-  fetchRequetsPages,
-  fetchtotalCurentUserRequestsPages,
-  fetchUserById,
   fetchFilteredRequests,
   fetchFilteredRequestsById,
-  fetchTotalRequests,
-  fetchTotalCurrentUserRequests,
   fetchRequestfDashboard,
+  fetchRequetsPages,
+  fetchtotalCurentUserRequestsPages,
+  fetchTotalCurrentUserRequests,
+  fetchTotalRequests,
 } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -21,27 +20,34 @@ export default async function Page(props: {
     success?: string;
   }>;
 }) {
+  const cookieStore = (await cookies()).get("session")?.value as string;
+  const userCookieData = JSON.parse(cookieStore);
+  const isAdmin = userCookieData.role === "admin";
+
   const searchParams = await props.searchParams;
   const query = searchParams?.query || "";
   const currentPage = Number(searchParams?.page) || 1;
   const totalItemPage = Number(searchParams?.total || 5);
-  const totalPages = await fetchRequetsPages(totalItemPage);
+
+  let totalPages = 0;
+  let totalCurentUserPages = 0;
+
+  if (isAdmin) {
+    totalPages = await fetchRequetsPages(totalItemPage);
+  } else {
+    totalCurentUserPages = await fetchtotalCurentUserRequestsPages(
+      totalItemPage,
+      userCookieData.id,
+    );
+  }
 
   let filteredRequests: any[];
 
-  const cookieStore = (await cookies()).get("session")?.value as string;
-  const totalCurentUserPages = await fetchtotalCurentUserRequestsPages(
-    totalItemPage,
-    cookieStore
-  );
-
-  const currentUser = await fetchUserById(cookieStore);
-
-  if (currentUser?.role === "admin") {
+  if (isAdmin) {
     const allLogs = await fetchFilteredRequests(
       query,
       currentPage,
-      totalItemPage
+      totalItemPage,
     );
     filteredRequests = allLogs!;
   } else {
@@ -49,18 +55,24 @@ export default async function Page(props: {
       query,
       currentPage,
       totalItemPage,
-      cookieStore
+      userCookieData.id,
     );
     filteredRequests = curentUserRequests!;
   }
 
-  const totalRequests = await fetchTotalRequests();
-  const totalCurentUserRequests = await fetchTotalCurrentUserRequests(
-    cookieStore
-  );
+  let totalRequests = { count: 0 };
+  let totalCurentUserRequests = { count: 0 };
+
+  if (isAdmin) {
+    totalRequests = await fetchTotalRequests();
+  } else {
+    totalCurentUserRequests = await fetchTotalCurrentUserRequests(
+      userCookieData.id,
+    );
+  }
 
   const dashboardData = await fetchRequestfDashboard();
-  // console.log(filteredRequests);
+
   return (
     <>
       <Requests

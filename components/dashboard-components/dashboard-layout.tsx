@@ -1,35 +1,30 @@
 "use client";
 
 import type React from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/components/auth-provider";
 import {
-  RadioIcon,
-  Users,
-  Calendar,
-  Music,
-  DollarSign,
-  BarChart3,
-  Menu,
-  LogOut,
-  Settings,
-  FileText,
-  Hourglass,
   Airplay,
-  Nfc,
+  Calendar,
   Clock,
-  PowerIcon,
+  FileText,
   Home,
+  Hourglass,
+  LogOut,
+  Menu,
+  Nfc,
+  PowerIcon,
+  RadioIcon,
+  Users
 } from "lucide-react";
 import { NotificationBell } from "./notifications";
 
@@ -44,6 +39,8 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
+  const isAdmin = user?.role === "admin";
+  console.log(isAdmin);
   const [activeSection2, setActiveSection2] = useState("");
 
   const navigation = [
@@ -97,28 +94,18 @@ export function DashboardLayout({
       key: "attendance",
       link: "/dashboard/attendance",
     },
-    {
+
+  ];
+
+  if (isAdmin) {
+    navigation.push({
       name: "Advert Management",
       icon: Airplay,
       href: "/dashboard/market",
       key: "market",
       link: "/dashboard/market",
-    },
-    // {
-    //   name: "Playlists",
-    //   icon: Music,
-    //   href: "#playlists",
-    //   key: "playlists",
-    //   link: "#",
-    // },
-    // {
-    //   name: "Analytics",
-    //   icon: BarChart3,
-    //   href: "#analytics",
-    //   key: "analytics",
-    //   link: "#",
-    // },
-  ];
+    });
+  }
 
   useEffect(() => {
     if (!user) {
@@ -132,7 +119,8 @@ export function DashboardLayout({
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border transform ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-200 ease-in-out lg:translate-x-0`}>
+        } transition-transform duration-200 ease-in-out lg:translate-x-0`}
+      >
         <div className="flex h-16 items-center px-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-500 rounded-lg">
@@ -162,7 +150,8 @@ export function DashboardLayout({
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
                         : "text-blue-700 hover:bg-sidebar-accent/50"
                     }
-                    `}>
+                    `}
+                  >
                     <item.icon
                       className={`h-5 w-5 ${
                         activeSection2 === item.key
@@ -181,7 +170,8 @@ export function DashboardLayout({
             <div className="pb-12 px-4">
               <Button
                 className="flex w-full cursor-pointer bg-red-700 hover:bg-red-600"
-                onClick={() => logout()}>
+                onClick={() => logout()}
+              >
                 <PowerIcon className="w-4 md-w-6 " />
                 <div className="">Sign Out</div>
               </Button>
@@ -198,7 +188,8 @@ export function DashboardLayout({
             variant="ghost"
             size="sm"
             className="lg:hidden"
-            onClick={() => setSidebarOpen(!sidebarOpen)}>
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
             <Menu className="h-5 w-5" />
           </Button>
 
@@ -210,7 +201,8 @@ export function DashboardLayout({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-8 w-8 rounded-full">
+                    className="relative h-8 w-8 rounded-full"
+                  >
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-primary text-primary-foreground font-sans font-bold">
                         {user?.name
@@ -238,7 +230,8 @@ export function DashboardLayout({
                   <DropdownMenuItem
                     onClick={() => {
                       logout();
-                    }}>
+                    }}
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span className="font-serif">Log out</span>
                   </DropdownMenuItem>

@@ -1,15 +1,12 @@
 import { ShowLogs } from "@/components/dashboard-components/show-logs";
 import {
-  fetchSchedule,
-  fetchLogs,
   fetchFilteredLogs,
-  fetchLogPages,
-  fetchTotalLogs,
-  fetchUserById,
   fetchFilteredLogsById,
-  fetchTotalCurrentUserLogs,
+  fetchLogPages,
+  fetchLogsScheduleFilter,
   fetchtotalCurentUserPages,
-  fetchAdverts,
+  fetchTotalCurrentUserLogs,
+  fetchTotalLogs,
 } from "@/lib/data";
 import { cookies } from "next/headers";
 
@@ -23,22 +20,30 @@ export default async function Logs(props: {
     success?: string;
   }>;
 }) {
+  const cookieStore = (await cookies()).get("session")?.value as string;
+  const userCookieData = JSON.parse(cookieStore);
+  const isAdmin = userCookieData.role === "admin";
+
   const searchParams = await props.searchParams;
   const query = searchParams?.query || "";
   const currentPage = Number(searchParams?.page) || 1;
   const totalItemPage = Number(searchParams?.total || 5);
-  const totalPages = await fetchLogPages(totalItemPage);
+
+  let totalPages = 0;
+  let totalCurentUserPages = 0;
+
+  if (isAdmin) {
+    totalPages = await fetchLogPages(totalItemPage);
+  } else {
+    totalCurentUserPages = await fetchtotalCurentUserPages(
+      totalItemPage,
+      userCookieData.id,
+    );
+  }
 
   let filteredLogs: any[];
 
-  const cookieStore = (await cookies()).get("session")?.value as string;
-  const totalCurentUserPages = await fetchtotalCurentUserPages(
-    totalItemPage,
-    cookieStore
-  );
-
-  const currentUser = await fetchUserById(cookieStore);
-  if (currentUser?.role === "admin") {
+  if (isAdmin) {
     const allLogs = await fetchFilteredLogs(query, currentPage, totalItemPage);
     filteredLogs = allLogs!;
   } else {
@@ -46,28 +51,28 @@ export default async function Logs(props: {
       query,
       currentPage,
       totalItemPage,
-      cookieStore
+      userCookieData.id,
     );
     filteredLogs = curentUserLogs!;
   }
 
-  const schedule = await fetchSchedule();
-  const totalLogs = await fetchTotalLogs();
-  const totalCurentUserLogs = await fetchTotalCurrentUserLogs(cookieStore);
-  const { logsData } = await fetchLogs();
+  const schedule = isAdmin ? await fetchLogsScheduleFilter() : [];
+  let totalLogs = {};
+  let totalCurentUserLogs = {};
 
-  const adverts = await fetchAdverts();
+  totalLogs = isAdmin && (await fetchTotalLogs());
+  totalCurentUserLogs =
+    !isAdmin && (await fetchTotalCurrentUserLogs(userCookieData.id));
 
   return (
     <>
       <ShowLogs
-        schedule={schedule.schedule}
+        schedule={schedule}
         showLogs={filteredLogs}
         totalPages={totalPages}
         totalLogs={totalLogs}
         totalCurentUserLogs={totalCurentUserLogs}
         totalCurentUserPages={totalCurentUserPages}
-        adverts={adverts}
       />
     </>
   );

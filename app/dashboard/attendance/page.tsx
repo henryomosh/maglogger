@@ -1,4 +1,3 @@
-import { useAuth } from "@/components/auth-provider";
 import { cookies } from "next/headers";
 import { fetchAttendanceById, fetchFilteredAttendance } from "@/lib/data";
 import Attendance from "@/components/dashboard-components/attendance";
@@ -10,11 +9,18 @@ export default async function AttendancePage(props: {
     query?: string;
   }>;
 }) {
+  const cookieStore = (await cookies()).get("session")?.value as string;
+  const userCookieData = JSON.parse(cookieStore);
+  const isAdmin = userCookieData.role === "admin";
+
   const searchParams = await props.searchParams;
   const query = searchParams?.query || "";
-  const cookieStore = (await cookies()).get("session")?.value as string;
-  const attendance = await fetchAttendanceById(cookieStore);
-  const filteredAttendance = await fetchFilteredAttendance(query);
+
+  const attendance = await fetchAttendanceById(userCookieData.id);
+  let filteredAttendance = [];
+  if (isAdmin) {
+    filteredAttendance = await fetchFilteredAttendance(query);
+  }
 
   return (
     <>

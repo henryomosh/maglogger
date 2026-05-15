@@ -1,10 +1,10 @@
 import { StaffManagement } from "@/components/dashboard-components/staff-management";
 import {
-  fetchStaff,
-  fetchSchedule,
+  fetchCurrentStaff,
   fetchFilteredStaff,
   fetchStaffDashboard,
-  fetchUserById,
+  fetchStaffSchedule,
+  fetchUserSchedule,
 } from "@/lib/data";
 import { cookies } from "next/headers";
 
@@ -17,16 +17,23 @@ export default async function Staff(props: {
     success?: string;
   }>;
 }) {
+  const cookieStore = (await cookies()).get("session")?.value as string;
+  const userCookieData = JSON.parse(cookieStore);
+
   const searchParams = await props.searchParams;
   const query = searchParams?.query || "";
   const currentPage = Number(searchParams?.page) || 1;
 
-  const staff = await fetchFilteredStaff(query, currentPage);
-  const { staffData } = await fetchStaff();
-  const { schedule } = await fetchSchedule();
-  const staffDashboardData = await fetchStaffDashboard();
-  const cookieStore = (await cookies()).get("session")?.value as string;
-  const currentUser = await fetchUserById(cookieStore);
+  const isAdmin = userCookieData.role === "admin";
+
+  let staff = isAdmin
+    ? await fetchFilteredStaff(query, currentPage)
+    : await fetchCurrentStaff(userCookieData.id);
+
+  const schedule = isAdmin
+    ? await fetchStaffSchedule()
+    : await fetchUserSchedule(userCookieData.id);
+  const staffDashboardData = isAdmin ? await fetchStaffDashboard() : [];
 
   return (
     <>
@@ -34,7 +41,6 @@ export default async function Staff(props: {
         data={staff}
         schedule={schedule}
         staffDashboardData={staffDashboardData}
-        currentUser={currentUser}
       />
     </>
   );

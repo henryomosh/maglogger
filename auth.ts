@@ -1,4 +1,5 @@
 "use server";
+
 import bcrypt from "bcryptjs";
 import { fetchUser } from "@/lib/data";
 import { createSession, deleteSession } from "@/lib/session";
@@ -15,7 +16,7 @@ export async function loginUser(formData: FormData) {
 
   const passwordMatch = await bcrypt.compare(password, user?.password);
   if (user && passwordMatch) {
-    await createSession(user?.id);
+    await createSession(user?.id, user?.role);
 
     return { success: true, message: "Success", error: "", user: user };
   }

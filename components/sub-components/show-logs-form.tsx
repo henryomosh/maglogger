@@ -1,21 +1,9 @@
 "use client";
 
-import React, { use } from "react";
-
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -23,30 +11,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Plus,
-  Trash2,
-  AlarmClockCheck,
-  Clock3,
   Check,
   CircleX,
+  Clock3,
+  ContactRound,
   ListCheck,
   Megaphone,
-  ContactRound,
+  Plus,
+  Trash2,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/components/auth-provider";
-import { fetchUserSchedule, fetchSchedule } from "@/lib/data";
 import { createLog, updateLog } from "@/lib/actions";
 import { toast } from "sonner";
+import { fetchAdsByIds, fetchLogsFormShow, fetchShowAds } from "@/lib/data2";
 
 interface Show {
   id: string;
@@ -64,6 +42,7 @@ interface Show {
   color: string;
   segmentItems: [{ startTime: string; endTime: string; description: string }];
 }
+
 interface SegmentInterface {
   startTime: string;
   endTime: string;
@@ -77,7 +56,6 @@ interface GuestInterface {
 }
 
 interface ShowFormProps {
-  advertsForm: any;
   initialData: any;
   onClose: () => void;
 }
@@ -88,6 +66,7 @@ interface UserSchedule {
   start: string;
   ends: string;
 }
+
 const daysOfWeek = [
   "Sunday",
   "Monday",
@@ -98,27 +77,23 @@ const daysOfWeek = [
   "Saturday",
 ];
 
-export function ShowLogsForm({
-  advertsForm,
-  initialData,
-  onClose,
-}: ShowFormProps) {
+export function ShowLogsForm({ initialData, onClose }: ShowFormProps) {
   const { user } = useAuth();
   const [segments, setSegments] = useState(
     initialData?.segments || [
       { startTime: "--:--", endTime: "--:--", description: "" },
-    ]
+    ],
   );
 
   const [adverts, setAdverts] = useState(initialData?.ads || []);
   const [guests, setGuests] = useState(initialData?.guests || []);
-
-  const [userSchedule, setUserSChedule] = useState<UserSchedule[]>([
-    { id: "", title: "", start: "", ends: "" },
+  console.log(initialData?.ads);
+  const [userSchedule, setUserSChedule] = useState<any>([
+    { id: "", title: "" },
   ]);
   const [selectShow, setSelectShow] = useState(initialData || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectData, setSelectData] = useState(initialData?.show || "");
+  const [selectData, setSelectData] = useState(initialData?.show || "show");
   const [radioValue, setRadioValue] = useState("pending");
   const [error, setError] = useState("");
   const [filteredAds, setFilteredAds] = useState<any>([{ id: "" }]);
@@ -127,11 +102,9 @@ export function ShowLogsForm({
 
   const canManageShows = user?.role === "admin" || user?.role === "manager";
 
-  // Mock DJs for selection
-  const getShowAdaverts = (id: string) => {
-    const ads = advertsForm.filter((item: any, index: any) =>
-      item?.shows?.includes(id)
-    );
+  const fetchShowAd = async (id: any) => {
+    const ad = await fetchShowAds(id);
+    const ads = ad.filter((item: any, index: any) => item?.shows?.includes(id));
     if (ads.length < 1) {
       setAdverts([]);
     }
@@ -141,16 +114,12 @@ export function ShowLogsForm({
   useEffect(() => {
     async function loadData() {
       if (initialData) {
-        getShowAdaverts(initialData?.show);
+        const adData = await fetchAdsByIds(initialData?.ads);
+        setFilteredAds(adData);
       }
       try {
-        if (canManageShows) {
-          const { schedule } = await fetchSchedule();
-          setUserSChedule(schedule);
-        } else {
-          const result = await fetchUserSchedule(user?.id || "");
-          setUserSChedule(result);
-        }
+        const schedule = await fetchLogsFormShow(user?.id);
+        setUserSChedule(schedule);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -169,9 +138,10 @@ export function ShowLogsForm({
   };
 
   function fetchShow(id: string) {
-    const foundItem = userSchedule.find((item) => item.id === id);
+    const foundItem = userSchedule.find((item: any) => item.id === id);
     setSelectShow(foundItem);
   }
+
   // Show segment functions
   function addSegment() {
     const currentItems = segments;
@@ -190,15 +160,16 @@ export function ShowLogsForm({
 
   const handleSegmentChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     const { id, value } = e.target;
     const updatedItems = segments.map((item: any, idx: any) =>
-      index === idx ? { ...item, [id]: value } : item
+      index === idx ? { ...item, [id]: value } : item,
     );
 
     setSegments(updatedItems);
   };
+
   // Adverts functions
   function addAdvert() {
     if (selectShow === "") {
@@ -224,7 +195,7 @@ export function ShowLogsForm({
 
   const handleAdvertChange = (name: string, value: any, index: number) => {
     const updatedItems = adverts.map((item: any, idx: any) =>
-      index === idx ? { ...item, id: value } : item
+      index === idx ? { ...item, id: value } : item,
     );
 
     setAdverts(updatedItems);
@@ -254,11 +225,11 @@ export function ShowLogsForm({
 
   const handleGuestChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     const { id, value } = e.target;
     const updatedItems = guests.map((item: any, idx: any) =>
-      index === idx ? { ...item, [id]: value } : item
+      index === idx ? { ...item, [id]: value } : item,
     );
     setGuests(updatedItems);
   };
@@ -299,7 +270,7 @@ export function ShowLogsForm({
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    console.log(adverts);
+
     const formData2 = new FormData(e.currentTarget);
     const show = formData2.get("show");
     if (adverts.length > 0) {
@@ -328,6 +299,7 @@ export function ShowLogsForm({
       onClose();
     }
   };
+
   return (
     <form
       onSubmit={initialData ? handleUpdate : handleSubmit}
@@ -361,8 +333,8 @@ export function ShowLogsForm({
             value={selectData}
             onValueChange={(value) => {
               handleSelectChange(value);
+              fetchShowAd(value);
               fetchShow(value);
-              getShowAdaverts(value);
             }}
             required
             disabled={initialData}
@@ -376,26 +348,27 @@ export function ShowLogsForm({
             </SelectTrigger>
             <SelectContent>
               <SelectItem className="hidden" value="initial"></SelectItem>
-              {userSchedule.map((show, index) => (
-                <SelectItem key={show.id} value={show.id || `${index}`}>
+              <SelectItem value="show">Select Show</SelectItem>
+              {userSchedule.map((show: any, index: any) => (
+                <SelectItem key={index} value={show.id || `${index}`}>
                   {show.title}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        {selectShow && (
-          <div className="space-y-2 flex flex-col  pt-4 pl-6 text-sm text-gray-500">
-            <div className="flex gap-2">
-              <AlarmClockCheck className="h-4 w-4" />
-              <p>Start: {selectShow.start} </p>{" "}
-            </div>
-            <div className="flex gap-2">
-              <AlarmClockCheck className="h-4 w-4" />
-              <p>End: {selectShow.ends} </p>{" "}
-            </div>
-          </div>
-        )}
+        {/*{selectShow && (*/}
+        {/*  <div className="space-y-2 flex flex-col  pt-4 pl-6 text-sm text-gray-500">*/}
+        {/*    <div className="flex gap-2">*/}
+        {/*      <AlarmClockCheck className="h-4 w-4" />*/}
+        {/*      <p>Start: {selectShow.start} </p>{" "}*/}
+        {/*    </div>*/}
+        {/*    <div className="flex gap-2">*/}
+        {/*      <AlarmClockCheck className="h-4 w-4" />*/}
+        {/*      <p>End: {selectShow.ends} </p>{" "}*/}
+        {/*    </div>*/}
+        {/*  </div>*/}
+        {/*)}*/}
       </div>
       <hr className="border-gray-300" />
 

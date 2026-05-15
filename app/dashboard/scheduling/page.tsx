@@ -4,15 +4,11 @@ import { fetchSchedule } from "@/lib/data";
 export const dynamic = "force-dynamic";
 
 export default async function Schedulling() {
-  const { schedule, scheduleLogs, todaySchedule } = await fetchSchedule();
+  const { schedule, todaySchedule } = await fetchSchedule();
 
   return (
     <>
-      <ShowScheduling
-        data={schedule}
-        scheduleLogs={scheduleLogs}
-        todaySchedule={todaySchedule}
-      />
+      <ShowScheduling data={schedule} todaySchedule={todaySchedule} />
     </>
   );
 }

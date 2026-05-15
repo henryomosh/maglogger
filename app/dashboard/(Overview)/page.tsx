@@ -12,17 +12,11 @@ export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {
   const cookieStore = (await cookies()).get("session")?.value as string;
+  const userCookieData = JSON.parse(cookieStore);
+  const isAdmin = userCookieData.role === "admin";
 
-  const {
-    activeUsers,
-    todaySchedule,
-    liveShow,
-    upComingShows,
-    pendingLogs,
-    currentUser,
-  } = await fetchDashboardCount(cookieStore);
-
-  const isAdmin = currentUser[0].role === "admin";
+  const { activeUsers, todaySchedule, liveShow, upComingShows, pendingLogs } =
+    await fetchDashboardCount(userCookieData.id, isAdmin);
 
   let pendingRequests: any[] = [];
   let advertsCount: any[] = [];
@@ -34,10 +28,10 @@ export default async function Dashboard() {
   }
 
   if (!isAdmin) {
-    pendingUserRequest = await fetchPendingUserRequest(cookieStore);
+    pendingUserRequest = await fetchPendingUserRequest(userCookieData.id);
   }
 
-  const attendance = await fetchAttendanceById(cookieStore);
+  const attendance = await fetchAttendanceById(userCookieData.id);
   return (
     <>
       <DashboardHome

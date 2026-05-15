@@ -1,20 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { primarySql } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import {
+  fetchCommunicationById,
+  fetchNoificationById,
   fetchUser,
   fetchUserById,
-  fetchCommunicationById,
-  fetchCommunicationUsers,
-  fetchNoificationById,
 } from "@/lib/data";
-import { formatDateToLocal } from "./utils";
-import { DateTime } from "luxon";
-import { error } from "console";
-import { json } from "stream/consumers";
 
 export async function createStaff(formData: FormData) {
   const name = formData.get("name") as string;
@@ -205,21 +199,21 @@ export async function createLog(formData: FormData) {
 
   const created = new Date();
 
-  const user = await fetchUserById(staff);
+  // const user = await fetchUserById(staff);
   // Saving to a database
-  const title = "Log approval pending";
-  const message = `${user?.name} has created show log`;
-
-  const userData: any = await fetchCommunicationUsers();
+  // const title = "Log approval pending";
+  // const message = `${user?.name} has created show log`;
+  //
+  // const userData: any = await fetchCommunicationUsers();
   try {
     await primarySql`
       INSERT INTO logs (staff, show, segments, guests, adverts, status, created, ads)
       VALUES (${staff}, ${show},  ${segments}, ${guests}, ${adverts}, ${status}, ${created}, ${ads} )
     `;
-    await primarySql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
-      VALUES ('logs',${title} , ${message}, 'high', 'false', ${JSON.stringify(
-        userData,
-      )}, ${created})`;
+    // await primarySql`INSERT INTO notifications (type, title, message, priority, read, user_status, time)
+    //   VALUES ('logs',${title} , ${message}, 'high', 'false', ${JSON.stringify(
+    //     userData,
+    //   )}, ${created})`;
   } catch (error: any) {
     if (error) {
       console.log(error);
@@ -278,10 +272,10 @@ export async function createRequest(formData: FormData) {
     return { success: false, message: "Please select type of request!" };
   }
 
-  const user = await fetchUserById(staffId);
-  const message = `${user?.name} has madae a request!`;
-
-  const userData: any = await fetchCommunicationUsers();
+  // const user = await fetchUserById(staffId);
+  // const message = `${user?.name} has madae a request!`;
+  //
+  // const userData: any = await fetchCommunicationUsers();
   // Saving to a database
 
   try {

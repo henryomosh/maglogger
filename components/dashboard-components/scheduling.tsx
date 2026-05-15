@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,18 +25,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/components/auth-provider";
 import {
-  Plus,
-  Edit,
-  Clock,
-  User,
+  BadgeCheck,
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  Edit,
   MoreVertical,
-  BadgeCheck,
-  Trash2,
   OctagonAlert,
-  FileText,
+  Plus,
+  Trash2,
+  User,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -53,9 +50,7 @@ import {
 } from "@/lib/actions";
 import { toast } from "sonner";
 import "@/components/dashboard-components/radix-styles.css";
-import { ShowLogsManager } from "@/components/sub-components/scheduling-logs";
 import { fetchStaff } from "@/lib/data";
-import { Fascinate } from "next/font/google";
 
 interface Show {
   id: string;
@@ -107,11 +102,10 @@ interface LiveEvent {
 
 export function ShowScheduling({
   data,
-  scheduleLogs,
   todaySchedule,
 }: {
   data: any;
-  scheduleLogs: any;
+
   todaySchedule: any;
 }) {
   const { user } = useAuth();
@@ -144,11 +138,6 @@ export function ShowScheduling({
 
     loadData();
   }, []);
-
-  const handleLogs = async (id: string) => {
-    const logs = scheduleLogs?.filter((item: any) => item?.show === id);
-    setShowLogs(logs);
-  };
 
   // Check if user has permission to manage shows
   const canManageShows = user?.role === "admin" || user?.role === "manager";
@@ -309,8 +298,8 @@ export function ShowScheduling({
                     shows.map((s) =>
                       s.id === editingShow.id
                         ? { ...updatedShow, id: editingShow.id }
-                        : s
-                    )
+                        : s,
+                    ),
                   );
                   setEditingShow(null);
                 }}
@@ -365,19 +354,19 @@ export function ShowScheduling({
                 hosted by{" "}
                 <span className="text-green-500">{modalShow?.name}</span>
               </DialogTitle>
-              {(canManageShows || user?.id === modalShow.staff) && (
-                <DialogDescription className="font-serif">
-                  Recent logs.
-                </DialogDescription>
-              )}
+              {/*{(canManageShows || user?.id === modalShow.staff) && (*/}
+              {/*  <DialogDescription className="font-serif">*/}
+              {/*    Recent logs.*/}
+              {/*  </DialogDescription>*/}
+              {/*)}*/}
             </DialogHeader>
-            {(canManageShows || user?.id === modalShow.staff) && (
-              <ShowLogsManager
-                logs={showLogs}
-                scheduleId={scheduleId}
-                modalShow={modalShow}
-              />
-            )}
+            {/*{(canManageShows || user?.id === modalShow.staff) && (*/}
+            {/*  <ShowLogsManager*/}
+            {/*    logs={showLogs}*/}
+            {/*    scheduleId={scheduleId}*/}
+            {/*    modalShow={modalShow}*/}
+            {/*  />*/}
+            {/*)}*/}
           </DialogContent>
         </Dialog>
       </div>
@@ -495,8 +484,8 @@ export function ShowScheduling({
 
               {/* Schedule grid */}
               {timeSlots
-                .filter((_, i) => i % 2 === 0)
-                .map((slot) => (
+                ?.filter((_, i) => i % 2 === 0)
+                ?.map((slot) => (
                   <React.Fragment key={slot.hour}>
                     {/* Time label */}
                     <div className="text-xs text-muted-foreground font-serif border-t   ">
@@ -504,16 +493,16 @@ export function ShowScheduling({
                     </div>
 
                     {/* Day columns */}
-                    {daysOfWeek.map((_, dayIndex) => {
+                    {daysOfWeek?.map((_, dayIndex) => {
                       const dayShows = getShowsForDay(dayIndex).filter(
                         (show: any) => {
                           const showHour = Number.parseInt(
-                            show.start.split(":")[0]
+                            show.start.split(":")[0],
                           );
                           return (
                             showHour >= slot.hour && showHour < slot.hour + 2
                           );
-                        }
+                        },
                       );
 
                       return (
@@ -526,7 +515,6 @@ export function ShowScheduling({
                               {show.recurring ? (
                                 <div
                                   onClick={() => {
-                                    handleLogs(show.id);
                                     setModalShow(show);
                                     setScheduleLogModal(true);
                                   }}
@@ -687,11 +675,14 @@ export function ShowScheduling({
                     showStatus({
                       startTime: show.start,
                       endTime: show.ends,
-                    }) || ""
+                    }) || "",
                   )} font-serif text-sm`}
                 >
                   {/* {show.status.charAt(0).toUpperCase() + show.status.slice(1)} */}
-                  {showStatus({ startTime: show.start, endTime: show.ends })}{" "}
+                  {showStatus({
+                    startTime: show.start,
+                    endTime: show.ends,
+                  })}{" "}
                 </Badge>
 
                 <div className="space-y-2 text-sm">
@@ -726,19 +717,18 @@ export function ShowScheduling({
                       size="sm"
                       className="font-serif text-xs"
                       onClick={() => {
-                        handleLogs(show.id);
                         setModalShow(show);
                         setScheduleLogModal(true);
                       }}
                     >
-                      <FileText className="h-3 w-3 mr-1 text-cyan-500" />
-                      View Logs (
-                      {
-                        scheduleLogs?.filter(
-                          (item: any) => item.show === show.id
-                        ).length
-                      }
-                      )
+                      {/*<FileText className="h-3 w-3 mr-1 text-cyan-500" />*/}
+                      {/*View Logs (*/}
+                      {/*{*/}
+                      {/*  scheduleLogs?.filter(*/}
+                      {/*    (item: any) => item.show === show.id,*/}
+                      {/*  ).length*/}
+                      {/*}*/}
+                      {/*)*/}
                     </Button>
                   </div>
                 )}
@@ -772,7 +762,7 @@ function ShowForm({ staff, initialData, onClose, onSave }: ShowFormProps) {
   const [hostSelect, setHostSelect] = useState(initialData?.staff || "");
   const [error, setError] = useState({ field: "", message: "" });
   const [weekDaysValue, setWeekDaysValue] = useState(
-    initialData?.days || weekDays
+    initialData?.days || weekDays,
   );
 
   const [formData, setFormData] = useState({

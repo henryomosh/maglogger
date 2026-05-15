@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,21 +25,19 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth, type UserRole } from "@/components/auth-provider";
 import {
-  Plus,
-  Edit,
-  Mail,
-  Phone,
-  Calendar,
   Clock,
-  MoreVertical,
-  Trash,
-  OctagonAlert,
-  Eye,
+  Edit,
   EyeClosed,
   LogIn,
   LogOut,
-  Users,
+  Mail,
   MicVocal,
+  MoreVertical,
+  OctagonAlert,
+  Phone,
+  Plus,
+  Trash,
+  Users,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -49,16 +45,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { createStaff } from "@/lib/actions";
-import { updateStaff } from "@/lib/actions";
-import { deleteStaff } from "@/lib/actions";
-import { fetchStaff } from "@/lib/data";
-import { User } from "@/lib/definations";
+import { createStaff, deleteStaff, updateStaff } from "@/lib/actions";
 import { toast } from "sonner";
 import { formatTime } from "@/lib/utils";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
-import { fetchUserSchedule } from "@/lib/data";
 
 interface StaffMember {
   id: string;
@@ -134,16 +125,14 @@ export function StaffManagement({
   data,
   schedule,
   staffDashboardData,
-  currentUser,
 }: {
   data: any;
   schedule: any;
   staffDashboardData: any;
-  currentUser: any;
 }) {
   const { user } = useAuth();
+
   const [staff, setStaff] = useState<StaffMember[]>(mockStaff);
-  const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -151,8 +140,6 @@ export function StaffManagement({
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [staffId, setStaffId] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const [staffData, setStaffData] = useState<StaffDataMemmber[]>();
 
   // Check if user has permission to manage staff
   const canManageStaff = user?.role === "admin" || user?.role === "manager";
@@ -177,36 +164,15 @@ export function StaffManagement({
     replace(`${pathname}?${params.toString()}`);
   }, 300);
 
-  const filteredStaff = data?.filter((member: any) => {
-    const matchesSearch =
-      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === "all" || member.role === filterRole;
-    const matchesStatus =
-      filterStatus === "all" || member.status === filterStatus;
-    return matchesSearch && matchesRole && matchesStatus;
-  });
   const getStaffShows = (id: any) => {
     return schedule?.filter((item: any, index: any) => item?.staff === id);
   };
 
   const showDays = (show: any) => {
-    const days: number[] = [];
     return show?.days
       ?.map((day: any, index: number) => (day.value === true ? index : -1))
       .filter((index: any) => index !== -1);
   };
-
-  const activeStaff = data?.filter(
-    (member: any) => member?.status === "active"
-  );
-  const onleavStaff = data?.filter(
-    (member: any) => member?.status === "on-leave"
-  );
-
-  const inactiveStaff = data?.filter(
-    (member: any) => member?.status === "inactive"
-  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -243,6 +209,7 @@ export function StaffManagement({
     setIsDeleting(false);
     setIsDeleteDialogOpen(false);
   };
+
   return (
     <div className="space-y-4">
       <h1 className="text-3xl font-sans font-bold text-blue-500 flex gap-2">
@@ -433,7 +400,7 @@ export function StaffManagement({
         {canManageStaff && (
           <>
             {" "}
-            {filteredStaff?.map((member: any) => (
+            {data?.map((member: any) => (
               <Card
                 key={member.id}
                 className={`relative ${
@@ -496,7 +463,7 @@ export function StaffManagement({
                   <div className="flex gap-2">
                     <Badge
                       className={`${getRoleColor(
-                        member.role
+                        member.role,
                       )} font-serif text-xs`}
                     >
                       {member.role.charAt(0).toUpperCase() +
@@ -504,7 +471,7 @@ export function StaffManagement({
                     </Badge>
                     <Badge
                       className={`${getStatusColor(
-                        member.status
+                        member.status,
                       )} font-serif text-xs`}
                     >
                       {member.status.charAt(0).toUpperCase() +
@@ -580,38 +547,40 @@ export function StaffManagement({
                         </span>
                       </div>
                       <div className="">
-                        {getStaffShows(member.id)?.map((show: any) => (
-                          <div key={show.id}>
-                            <p className="text-green-500 text-sm font-bold pb-1 flex">
-                              <MicVocal className="w-4 h-4 text-indigo-500" />{" "}
-                              {show.title}
-                            </p>
-                            {showDays(show)?.map((day: any, index: any) => (
-                              <div
-                                key={index}
-                                className="flex justify-between text-xs"
-                              >
-                                <span className="font-serif capitalize">
-                                  {daysOfWeek[day]}
-                                </span>
-                                <span className="font-serif text-muted-foreground">
-                                  {formatTime(show.start)} -{" "}
-                                  {formatTime(show.ends)}
-                                </span>
-                              </div>
-                            ))}
-                            {/* {showDays(show).length > 2 && (
+                        {getStaffShows(member.id)?.map(
+                          (show: any, index: number) => (
+                            <div key={index}>
+                              <p className="text-green-500 text-sm font-bold pb-1 flex">
+                                <MicVocal className="w-4 h-4 text-indigo-500" />{" "}
+                                {show.title}
+                              </p>
+                              {showDays(show)?.map((day: any, index: any) => (
+                                <div
+                                  key={index}
+                                  className="flex justify-between text-xs"
+                                >
+                                  <span className="font-serif capitalize">
+                                    {daysOfWeek[day]}
+                                  </span>
+                                  <span className="font-serif text-muted-foreground">
+                                    {formatTime(show.start)} -{" "}
+                                    {formatTime(show.ends)}
+                                  </span>
+                                </div>
+                              ))}
+                              {/* {showDays(show).length > 2 && (
                             <p className="text-xs text-muted-foreground font-serif">
                               +{showDays(show).length - 2} more days
                             </p>
                           )} */}
-                            {/* {getStaffShows(member.id).length > 1 && (
+                              {/* {getStaffShows(member.id).length > 1 && (
                             <p className="text-xs text-muted-foreground font-serif">
                               +{getStaffShows(member.id).length - 1} more shows
                             </p>
                           )} */}
-                          </div>
-                        ))}
+                            </div>
+                          ),
+                        )}
                       </div>
                     </div>
                   )}
@@ -637,101 +606,71 @@ export function StaffManagement({
                   </Avatar>
                   <div>
                     <CardTitle className="text-lg font-sans font-bold">
-                      {currentUser.name}
+                      {data[0].name}
                     </CardTitle>
                     {/* <p className="text-sm text-muted-foreground font-serif">
                       place
                     </p> */}
                   </div>
                 </div>
-                {canManageStaff && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => setEditingStaff(currentUser)}
-                      >
-                        <Edit className="h-4 w-4 mr-2 text-green-600" />
-                        Edit Profile
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setIsDeleteDialogOpen(true);
-                          setStaffId(currentUser.id);
-                        }}
-                        disabled={currentUser.id === user.id}
-                      >
-                        <Trash className="h-4 w-4 mr-2 text-red-600" />
-                        Delete Member
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
                 <Badge
-                  className={`${getRoleColor(
-                    currentUser.role
-                  )} font-serif text-xs`}
+                  className={`${getRoleColor(data[0].role)} font-serif text-xs`}
                 >
-                  {currentUser.role.charAt(0).toUpperCase() +
-                    currentUser.role.slice(1)}
+                  {data[0].role.charAt(0).toUpperCase() + data[0].role.slice(1)}
                 </Badge>
                 <Badge
                   className={`${getStatusColor(
-                    currentUser.status
+                    data[0].status,
                   )} font-serif text-xs`}
                 >
-                  {currentUser.status.charAt(0).toUpperCase() +
-                    currentUser.status.slice(1).replace("-", " ")}
+                  {data[0].status.charAt(0).toUpperCase() +
+                    data[0].status.slice(1).replace("-", " ")}
                 </Badge>
               </div>
 
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-serif">{currentUser.email}</span>
+                  <span className="font-serif">{data[0]?.email}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-serif">{currentUser.phone}</span>
+                  <span className="font-serif">{data[0].phone}</span>
                 </div>
               </div>
               <div className=" text-sm space-y-2 ">
-                {currentUser?.login && (
+                {data[0]?.login && (
                   <div className="flex items-center gap-2">
                     <LogIn className="h-4 w-4 text-muted-foreground" />
                     <span className="font-serif">
-                      Login Time: {formatTime(currentUser?.login || "")}
+                      Login Time: {formatTime(data[0]?.login || "")}
                     </span>
                   </div>
                 )}
-                {currentUser?.logout && (
+                {data[0]?.logout && (
                   <div className="flex items-center gap-2">
                     <LogOut className="h-4 w-4 text-muted-foreground" />
                     <span className="font-serif">
-                      Logout Time: {formatTime(currentUser?.logout || "")}
+                      Logout Time: {formatTime(data[0]?.logout || "")}
                     </span>
                   </div>
                 )}
               </div>
 
-              {currentUser.bio && (
+              {data[0].bio && (
                 <p className="text-sm text-muted-foreground font-serif line-clamp-2">
-                  {currentUser.bio}
+                  {data[0].bio}
                 </p>
               )}
 
-              {currentUser.specialities[0] !== "" &&
-                currentUser?.specialities?.length > 0 && (
+              {data[0].specialities[0] !== "" &&
+                data[0]?.specialities?.length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {currentUser?.specialities
+                    {data[0]?.specialities
                       ?.slice(0, 3)
                       .map((specialty: any) => (
                         <Badge
@@ -741,15 +680,15 @@ export function StaffManagement({
                           {specialty}
                         </Badge>
                       ))}
-                    {currentUser?.specialities?.length > 3 && (
+                    {data[0]?.specialities?.length > 3 && (
                       <Badge variant="outline" className="font-serif text-xs">
-                        +{currentUser?.specialities?.length - 3} more
+                        +{data[0]?.specialities?.length - 3} more
                       </Badge>
                     )}
                   </div>
                 )}
 
-              {getStaffShows(currentUser.id)?.length > 0 && (
+              {schedule.length > 0 && (
                 <div className="pt-2 border-t">
                   <div className="flex items-center gap-2 mb-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
@@ -758,8 +697,8 @@ export function StaffManagement({
                     </span>
                   </div>
                   <div className="">
-                    {getStaffShows(currentUser.id)?.map((show: any) => (
-                      <div key={show.id}>
+                    {schedule?.map((show: any, index: number) => (
+                      <div key={index}>
                         <p className="text-green-500 text-sm font-bold pb-1 flex gap-2">
                           <MicVocal className="w-4 h-4 text-indigo-500" />{" "}
                           {show.title}
@@ -796,7 +735,7 @@ export function StaffManagement({
 
       {canManageStaff && (
         <>
-          {filteredStaff?.length === 0 && (
+          {data?.length === 0 && (
             <Card>
               <CardContent className="py-12 text-center ">
                 <p className="text-muted-foreground font-serif">
@@ -831,8 +770,8 @@ export function StaffManagement({
                   staff.map((s) =>
                     s.id === editingStaff.id
                       ? { ...updatedStaff, id: editingStaff.id }
-                      : s
-                  )
+                      : s,
+                  ),
                 );
                 setEditingStaff(null);
               }}

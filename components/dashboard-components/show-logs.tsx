@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -35,41 +35,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
-  Search,
+  AlarmClock,
   Calendar,
-  Music,
-  Mic,
-  AlertTriangle,
-  Phone,
-  MessageSquare,
-  Download,
-  Plus,
-  Eye,
-  LayoutGrid,
-  List,
+  Check,
   ChevronLeft,
   ChevronRight,
-  SquarePen,
-  Trash2,
-  ListCheck,
-  ContactRound,
-  FileText,
-  AlarmClock,
-  OctagonAlert,
-  Trash,
-  Edit,
-  MoreVertical,
-  Clock3,
-  Check,
   CircleX,
-  ShieldAlert,
+  Clock3,
+  ContactRound,
+  Download,
+  Edit,
+  Eye,
+  FileText,
+  LayoutGrid,
+  List,
+  ListCheck,
   Megaphone,
+  MoreVertical,
+  OctagonAlert,
+  Plus,
+  Search,
+  SquarePen,
+  Trash,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
-import { fetchUserSchedule, fetchLogs } from "@/lib/data";
 import { deleteLog } from "@/lib/actions";
 import { toast } from "sonner";
 import {
@@ -78,15 +69,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatDateToLocal, formatTime } from "@/lib/utils";
+import { formatDateToLocal } from "@/lib/utils";
 import { DateTime } from "luxon";
 import {
-  useSearchParams,
+  redirect,
   usePathname,
   useRouter,
-  redirect,
+  useSearchParams,
 } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
+import { fetchLogsModalAds } from "@/lib/data2";
 
 interface ShowLog {
   id: string;
@@ -113,34 +105,6 @@ interface ShowLog {
   };
 }
 
-interface ModalLogsDetails {
-  start_time: any;
-  end_time: any;
-  description: any;
-  guest_name: any;
-  topic: any;
-  phone: any;
-}
-
-const logTypeConfig = {
-  song: { icon: Music, color: "bg-blue-500", label: "Song" },
-  announcement: { icon: Mic, color: "bg-green-500", label: "Announcement" },
-  technical: { icon: AlertTriangle, color: "bg-red-500", label: "Technical" },
-  listener_call: {
-    icon: Phone,
-    color: "bg-purple-500",
-    label: "Listener Call",
-  },
-  commercial: {
-    icon: MessageSquare,
-    color: "bg-orange-500",
-    label: "Commercial",
-  },
-  weather: { icon: Calendar, color: "bg-green-500", label: "Weather" },
-  traffic: { icon: Calendar, color: "bg-yellow-500", label: "Traffic" },
-  news: { icon: MessageSquare, color: "bg-indigo-500", label: "News" },
-};
-
 const logStatus = {
   pending: "pending",
   approved: "approved",
@@ -154,7 +118,6 @@ export function ShowLogs({
   totalLogs,
   totalCurentUserLogs,
   totalCurentUserPages,
-  adverts,
 }: {
   schedule: any;
   showLogs: any;
@@ -162,7 +125,6 @@ export function ShowLogs({
   totalLogs: any;
   totalCurentUserLogs: any;
   totalCurentUserPages: any;
-  adverts: any;
 }) {
   const { user } = useAuth();
   const [logs, setLogs] = useState<ShowLog[]>();
@@ -252,10 +214,11 @@ export function ShowLogs({
     return new Date(timestamp).toLocaleDateString();
   };
 
-  const getShowAdaverts = (id: string) => {
-    const ads = adverts.filter((item: any, index: any) => item?.id === id);
-
-    return ads;
+  const getLogModalAds = async (ids: any) => {
+    if (ids?.length > 0) {
+      const adData = await fetchLogsModalAds(ids);
+      setFilteredAd(adData);
+    }
   };
   const exportLogs = () => {
     const csvContent = [
@@ -277,7 +240,7 @@ export function ShowLogs({
           log.guests.length,
           log.start,
           log.ends,
-        ].join(",")
+        ].join(","),
       ),
     ].join("\n");
 
@@ -333,6 +296,7 @@ export function ShowLogs({
               size="sm"
               onClick={() => setViewMode("cards")}
               className="rounded-r-none font-serif "
+              disabled={!canManageShows}
             >
               <LayoutGrid className="h-4 w-4 mr-2" />
               Cards
@@ -379,7 +343,6 @@ export function ShowLogs({
                   </DialogDescription>
                 </DialogHeader>
                 <ShowLogsForm
-                  advertsForm={adverts}
                   initialData={editingLog}
                   onClose={() => setIsAddLogOpen(false)}
                 />
@@ -453,7 +416,7 @@ export function ShowLogs({
                                     </p>
                                   </div>
                                 </div>
-                              )
+                              ),
                             )
                           ) : (
                             <p className="text-sm font-serif text-foreground">
@@ -465,8 +428,8 @@ export function ShowLogs({
                       <hr />
                       <h1 className="font-serif font-bold pt-2">Adverts</h1>
                       <div className=" ">
-                        {modalLogDetails?.ads?.length > 0 ? (
-                          modalLogDetails.ads?.map((item: any, index: any) => (
+                        {filteredAd?.length > 0 ? (
+                          filteredAd?.map((item: any, index: any) => (
                             <div
                               className="flex justify-start gap-6"
                               key={index}
@@ -474,9 +437,7 @@ export function ShowLogs({
                               <div className="mt-2 flex  gap-2">
                                 <Megaphone className="h-4 w-4 text-blue-500" />
                                 <p className="text-xs font-serif text-foreground">
-                                  <strong>
-                                    {getShowAdaverts(item.id)[0]?.title}{" "}
-                                  </strong>
+                                  <strong>{item.title}</strong>
                                 </p>
                               </div>
                               <div className="mt-2 flex flex-wrap gap-2">
@@ -521,7 +482,7 @@ export function ShowLogs({
                                   </p>
                                 </div>
                               </div>
-                            )
+                            ),
                           )
                         ) : (
                           <p className="text-sm font-serif text-foreground">
@@ -551,7 +512,6 @@ export function ShowLogs({
                   <DialogDescription className="font-serif"></DialogDescription>
                 </DialogHeader>
                 <ShowLogsForm
-                  advertsForm={adverts}
                   initialData={editingLog}
                   onClose={() => setEditingLog(null)}
                 />
@@ -608,18 +568,20 @@ export function ShowLogs({
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-green-500" />
-              <Input
-                placeholder="Search logs..."
-                value={searchTerm}
-                onChange={(e) => {
-                  handleSearch(e.target.value);
-                  setSearchTerm(e.target.value);
-                }}
-                className="pl-10 font-serif border-2 text-green-500 border-green-400"
-              />
-            </div>
+            {canManageShows && (
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-green-500" />
+                <Input
+                  placeholder="Search logs..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    handleSearch(e.target.value);
+                    setSearchTerm(e.target.value);
+                  }}
+                  className="pl-10 font-serif border-2 text-green-500 border-green-400"
+                />
+              </div>
+            )}
             <div className="flex gap-4">
               <Select
                 value={filterType}
@@ -642,33 +604,35 @@ export function ShowLogs({
                   ))}
                 </SelectContent>
               </Select>
-              <Select
-                value={filterShow}
-                onValueChange={(value) =>
-                  handleFilterChange(() => {
-                    handleSearch(value);
-                    setFilterShow(value);
-                  })
-                }
-              >
-                <SelectTrigger className="font-serif border-2 text-green-500 border-green-400 w-full">
-                  <SelectValue placeholder="Filter by show" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="font-serif">
-                    All Shows
-                  </SelectItem>
-                  {schedule?.map((log: any) => (
-                    <SelectItem
-                      key={log.id}
-                      value={log.title}
-                      className="font-serif"
-                    >
-                      {log.title}
+              {canManageShows && (
+                <Select
+                  value={filterShow}
+                  onValueChange={(value) =>
+                    handleFilterChange(() => {
+                      handleSearch(value);
+                      setFilterShow(value);
+                    })
+                  }
+                >
+                  <SelectTrigger className="font-serif border-2 text-green-500 border-green-400 w-full">
+                    <SelectValue placeholder="Filter by show" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="font-serif">
+                      All Shows
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    {schedule?.map((log: any, index: number) => (
+                      <SelectItem
+                        key={index}
+                        value={log.title}
+                        className="font-serif"
+                      >
+                        {log.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div></div>
             <Input
@@ -1044,6 +1008,7 @@ export function ShowLogs({
                               <div className="flex items-center gap-3">
                                 <button
                                   onClick={() => {
+                                    getLogModalAds(log.ads);
                                     setModalLogsDetails(log);
 
                                     setIsDetailsLogOpen(true);
@@ -1137,7 +1102,7 @@ export function ShowLogs({
                                     </Button>{" "}
                                     {Array.from(
                                       { length: totalPages },
-                                      (_, i) => i + 1
+                                      (_, i) => i + 1,
                                     )
                                       .map((page) => (
                                         <Button
@@ -1224,7 +1189,7 @@ export function ShowLogs({
                                     </Button>
                                     {Array.from(
                                       { length: totalPages },
-                                      (_, i) => i + 1
+                                      (_, i) => i + 1,
                                     )
                                       .map((page) => (
                                         <Button
@@ -1290,7 +1255,7 @@ export function ShowLogs({
                                 {" "}
                                 {Array.from(
                                   { length: totalPages },
-                                  (_, i) => i + 1
+                                  (_, i) => i + 1,
                                 ).map((page) => (
                                   <Button
                                     key={page}
@@ -1335,7 +1300,7 @@ export function ShowLogs({
                   </>
                 ) : (
                   <>
-                    {totalPages > 1 && (
+                    {totalCurentUserPages > 1 && (
                       <div className="flex items-center justify-between">
                         <div className="text-sm  text-green-500 font-bold font-serif">
                           Showing {startIndex + 1} to{" "}
@@ -1364,7 +1329,7 @@ export function ShowLogs({
                           <div className="flex items-center gap-1">
                             {Array.from(
                               { length: totalCurentUserPages },
-                              (_, i) => i + 1
+                              (_, i) => i + 1,
                             ).map((page) => (
                               <Button
                                 key={page}

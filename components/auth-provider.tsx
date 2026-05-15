@@ -2,13 +2,11 @@
 
 import {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   type ReactNode,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
-import { fetchUser } from "@/lib/data";
-import { Fascinate } from "next/font/google";
 import { logoutUser } from "@/auth";
 import { redirect } from "next/navigation";
 
@@ -24,6 +22,7 @@ export interface User {
   status?: string;
   bio?: string;
   password?: string;
+  login: string;
 }
 
 interface AuthContextType {
@@ -41,7 +40,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [isAuthenticated, setIsAuthentcated] = useState(false);
 
   useEffect(() => {
